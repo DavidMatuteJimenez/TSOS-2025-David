@@ -1,11 +1,13 @@
 /* ------------
-   Shell.ts
+  Shell.ts
 
-   The OS Shell - The "command line interface" (CLI) for the console.
 
-    Note: While fun and learning are the primary goals of all enrichment center activities,
-          serious injuries may occur when trying to write your own Operating System.
-   ------------ */
+  The OS Shell - The "command line interface" (CLI) for the console.
+
+
+   Note: While fun and learning are the primary goals of all enrichment center activities,
+         serious injuries may occur when trying to write your own Operating System.
+  ------------ */
 // TODO: Write a base class / prototype for system services and let Shell inherit from it.
 var TSOS;
 (function (TSOS) {
@@ -45,6 +47,14 @@ var TSOS;
             // prompt <string>
             sc = new TSOS.ShellCommand(this.shellPrompt, "prompt", "<string> - Sets the prompt.");
             this.commandList[this.commandList.length] = sc;
+            //Shows date and time 
+            sc = new TSOS.ShellCommand(this.shellDate, "date", "- Displays the current date and time.");
+            this.commandList[this.commandList.length] = sc;
+            //whereami
+            sc = new TSOS.ShellCommand(this.shellWhereAmI, "whereami", "- Displays users current location");
+            this.commandList[this.commandList.length] = sc;
+            sc = new TSOS.ShellCommand(this.shellStatus, "status", "- Displays status message");
+            this.commandList[this.commandList.length] = sc;
             // ps  - list the running processes and their IDs
             // kill <id> - kills the specified process id.
             // Display the initial prompt.
@@ -66,7 +76,7 @@ var TSOS;
             // Determine the command and execute it.
             //
             // TypeScript/JavaScript may not support associative arrays in all browsers so we have to iterate over the
-            // command list in attempt to find a match. 
+            // command list in attempt to find a match.
             // TODO: Is there a better way? Probably. Someone work it out and tell me in class.
             var index = 0;
             var found = false;
@@ -164,7 +174,7 @@ var TSOS;
                 _StdOut.putText("For what?");
             }
         }
-        // Although args is unused in some of these functions, it is always provided in the 
+        // Although args is unused in some of these functions, it is always provided in the
         // actual parameter list when this function is called, so I feel like we need it.
         shellVer(args) {
             _StdOut.putText(APP_NAME + " version " + APP_VERSION);
@@ -192,6 +202,24 @@ var TSOS;
                 switch (topic) {
                     case "help":
                         _StdOut.putText("Help displays a list of (hopefully) valid commands.");
+                        break;
+                    case "ver":
+                        _StdOut.putText("ver - Shows the current version of the OS.");
+                        break;
+                    case "shutdown":
+                        _StdOut.putText("shutdown - Turns off the OS.");
+                        break;
+                    case "cls":
+                        _StdOut.putText("cls - Clears the screen.");
+                        break;
+                    case "trace":
+                        _StdOut.putText("trace - Turns the OS trace on or off.");
+                        break;
+                    case "rot13":
+                        _StdOut.putText("rot13 - Does rot13 obfuscation on string.");
+                        break;
+                    case "prompt":
+                        _StdOut.putText("prompt - sets the prompt.");
                         break;
                     // TODO: Make descriptive MANual page entries for the the rest of the shell commands here.
                     default:
@@ -243,6 +271,19 @@ var TSOS;
             else {
                 _StdOut.putText("Usage: prompt <string>  Please supply a string.");
             }
+        }
+        //function to tell date and time
+        shellDate(args) {
+            const now = new Date();
+            _StdOut.putText(now.toLocaleString());
+        }
+        // fuction that displays a message on where the user is at  
+        shellWhereAmI(args) {
+            _StdOut.putText("You are here. ");
+        }
+        shellStatus(args) {
+            TSOS.Control.setTaskbarMessage(args.join(" "));
+            _StdOut.putText("Status bar updated. ");
         }
     }
     TSOS.Shell = Shell;

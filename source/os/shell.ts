@@ -99,6 +99,11 @@ module TSOS {
                                 "- Displays users current location");
             this.commandList[this.commandList.length] = sc;
 
+            sc = new ShellCommand(this.shellStatus,
+                                "status",
+                                "- Displays status message");
+            this.commandList[this.commandList.length] = sc;
+
             // ps  - list the running processes and their IDs
             // kill <id> - kills the specified process id.
  
@@ -359,6 +364,11 @@ module TSOS {
         // fuction that displays a message on where the user is at  
         public shellWhereAmI(args: string[]) {
             _StdOut.putText("You are here. ");
+            }
+        
+            public shellStatus(args: string[]) {
+                Control.setTaskbarMessage(args.join(" "));
+                _StdOut.putText("Status bar updated. ");
             }
  
  
