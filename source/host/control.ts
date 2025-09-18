@@ -27,9 +27,9 @@ module TSOS {
 
     export class Control {
  
-        // In Control.ts, inside the Control class
+        // setss task bar 
         public static taskbar: HTMLDivElement = <HTMLDivElement>document.getElementById("taskbar");
-        
+
         public static hostInit(): void {
             // This is called from index.html's onLoad event via the onDocumentLoad function pointer.
  
