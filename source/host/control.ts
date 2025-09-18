@@ -34,6 +34,9 @@ module TSOS {
             // Enable the added-in canvas text functions (see canvastext.ts for provenance and details).
             CanvasTextFunctions.enable(_DrawingContext);   // Text functionality is now built in to the HTML5 canvas. But this is old-school, and fun, so we'll keep it.
 
+            // Initialize the taskbar
+            Control.initTaskbar();
+
             // Clear the log text box.
             // Use the TypeScript cast to HTMLInputElement
             (<HTMLInputElement> document.getElementById("taHostLog")).value="";
@@ -49,6 +52,51 @@ module TSOS {
                 // the global (and properly capitalized) _GLaDOS variable.
                 _GLaDOS = new Glados();
                 _GLaDOS.init();
+            }
+        }
+
+        public static initTaskbar(): void {
+            let taskbar = document.createElement('div');
+            taskbar.id = 'taskbar';
+            taskbar.style.position = 'fixed';
+            taskbar.style.bottom = '0';
+            taskbar.style.width = '100%';
+            taskbar.style.height = '30px';
+            taskbar.style.backgroundColor = '#cccccc';
+            taskbar.style.border = '1px solid black';
+            taskbar.style.display = 'flex';
+            
+            let statusArea = document.createElement('div');
+            statusArea.id = 'taskbar-status';
+            statusArea.style.flex = '1';
+            statusArea.style.textAlign = 'center';
+            statusArea.textContent = 'Ready';
+            
+            let dateTimeArea = document.createElement('div');
+            dateTimeArea.id = 'taskbar-datetime';
+            dateTimeArea.style.width = '150px';
+            dateTimeArea.style.textAlign = 'center';
+            
+            taskbar.appendChild(statusArea);
+            taskbar.appendChild(dateTimeArea);
+            document.body.appendChild(taskbar);
+            
+            Control.updateTaskbarClock();
+            setInterval(Control.updateTaskbarClock, 1000);
+        }
+
+        public static updateTaskbarClock(): void {
+            const dateTimeElement = document.getElementById('taskbar-datetime');
+            if (dateTimeElement) {
+                const now = new Date();
+                dateTimeElement.textContent = now.toLocaleString();
+            }
+        }
+
+        public static updateTaskbarStatus(message: string): void {
+            const statusElement = document.getElementById('taskbar-status');
+            if (statusElement) {
+                statusElement.textContent = message;
             }
         }
 

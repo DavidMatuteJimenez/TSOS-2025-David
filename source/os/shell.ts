@@ -19,7 +19,6 @@ module TSOS {
 
         constructor() {
         }
-
         public init() {
             var sc: ShellCommand;
             //
@@ -73,11 +72,27 @@ module TSOS {
                                   "<string> - Sets the prompt.");
             this.commandList[this.commandList.length] = sc;
 
+            // status <string>
+            sc = new ShellCommand(this.shellStatus,
+                                  "status",
+                                  "<string> - Sets the status message displayed in the taskbar.");
+            this.commandList[this.commandList.length] = sc;
+
             // ps  - list the running processes and their IDs
             // kill <id> - kills the specified process id.
 
             // Display the initial prompt.
             this.putPrompt();
+        }
+
+        public shellStatus(args: string[]) {
+            if (args.length > 0) {
+                var statusMessage = args.join(' ');
+                Control.updateTaskbarStatus(statusMessage);
+                _StdOut.putText("Status set to: " + statusMessage);
+            } else {
+                _StdOut.putText("Usage: status <string>  Please supply a status message.");
+            }
         }
 
         public putPrompt() {
@@ -251,6 +266,9 @@ module TSOS {
                         break;
                     case "prompt":
                         _StdOut.putText("prompt - sets the prompt.");
+                        break;
+                    case "status":
+                        _StdOut.putText("status - Sets the status message displayed in the taskbar.");
                         break;
                     // TODO: Make descriptive MANual page entries for the the rest of the shell commands here.
                     default:
