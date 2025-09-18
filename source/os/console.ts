@@ -41,13 +41,18 @@ module TSOS {
                     _OsShell.handleInput(this.buffer);
                     // ... and reset our buffer.
                     this.buffer = "";
-                } else {
+                    //backspace
+                } else if((chr === String.fromCharCode(8))) {
+
+                } 
+            
+                else {
                     // This is a "normal" character, so ...
                     // ... draw it on the screen...
                     this.putText(chr);
                     // ... and add it to our buffer.
                     this.buffer += chr;
-                }
+                } 
                 // TODO: Add a case for Ctrl-C that would allow the user to break the current program.
             }
         }
@@ -79,7 +84,13 @@ module TSOS {
             this.currentYPosition += _DefaultFontSize + 
                                      _DrawingContext.fontDescent(this.currentFont, this.currentFontSize) +
                                      _FontHeightMargin;
-
+            if (this.currentYPosition >= _Canvas.height) {
+    
+            let screenshotData = _DrawingContext.getImageData(0, 0, _Canvas.width, _Canvas.height);
+            this.clearScreen(); 
+            _DrawingContext.putImageData(screenshotData, 0, 0 - (_DefaultFontSize * 1.5)); 
+            this.currentYPosition = _Canvas.height - _DefaultFontSize; 
+        }
             // TODO: Handle scrolling. (iProject 1)
         }
     }
