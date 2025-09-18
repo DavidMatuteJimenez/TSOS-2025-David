@@ -86,14 +86,36 @@ module TSOS {
                                   "prompt",
                                   "<string> - Sets the prompt.");
             this.commandList[this.commandList.length] = sc;
- 
- 
+            
+            //Shows date and time 
+            sc = new ShellCommand(this.shellDate,
+                                "date",
+                                "- Displays the current date and time.");
+            this.commandList[this.commandList.length] = sc;
+
+            //whereami
+            sc = new ShellCommand(this.shellWhereAmI,
+                                "whereami",
+                                "- Displays users current location");
+            this.commandList[this.commandList.length] = sc;
+
             // ps  - list the running processes and their IDs
             // kill <id> - kills the specified process id.
  
  
             // Display the initial prompt.
             this.putPrompt();
+        }
+
+        //function to tell date and time
+        public shellDate(args: string[]) {
+            const now: Date = new Date();
+            _StdOut.putText(now.toLocaleString());
+        }
+
+        // fuction that displays a message on where the user is at  
+        public shellWhereAmI(args: string[]) {
+            _StdOut.putText("You are here. ");
         }
  
  
