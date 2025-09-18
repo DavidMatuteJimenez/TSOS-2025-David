@@ -8,15 +8,12 @@
       TSOS - a browser-based virtual Operating System in TypeScript
    </title>
 
-   <!-- Globals CONSTANTS and _Variables. Must included be first. -->
    <script type="text/javascript" src="distrib/globals.js"></script>
 
-   <!-- Host (Virtual Machine / Hardware Simulation) Routines -->
    <script type="text/javascript" src="distrib/host/control.js"></script>
    <script type="text/javascript" src="distrib/host/devices.js"></script>
    <script type="text/javascript" src="distrib/host/cpu.js"></script>
 
-   <!-- Virtual OS Routines: Make sure Kernel code is last, since it needs those above it. -->
    <script type="text/javascript" src="distrib/os/interrupt.js"></script>
    <script type="text/javascript" src="distrib/os/canvastext.js"></script>
    <script type="text/javascript" src="distrib/os/console.js"></script>
@@ -28,9 +25,7 @@
    <script type="text/javascript" src="distrib/os/userCommand.js"></script>
    <script type="text/javascript" src="distrib/os/kernel.js"></script>
 
-   <!-- Other Routines -->
    <script type="text/javascript" src="distrib/utils.js"></script>
-   <!-- Uncomment the line below to enable GLaDOS testing. -->
    <script type="text/javascript" src="http://alanclasses.github.io/TSOS/test/glados-ip0.js"></script>
 
 </head>
@@ -66,6 +61,14 @@
              tabindex="2"
              onclick="TSOS.Control.hostBtnReset_click(this);">
    </div>
+   
+   <div id="taskbar" style="background-color: #333; color: white; padding: 5px; font-family: monospace; display: flex; justify-content: space-between;">
+        <span id="taskbarStatus">Status: taskbar</span>
+        <div>
+            <span id="taskbarDate"></span>
+            <span id="taskbarTime"></span>
+        </div>
+    </div>
 
    <div id="divConsole" style="margin:4px; width:500px; height:500px; float:left;">
       <canvas id="display"

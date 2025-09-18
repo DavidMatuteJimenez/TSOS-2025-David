@@ -27,7 +27,9 @@ module TSOS {
 
     export class Control {
  
- 
+        // In Control.ts, inside the Control class
+        public static taskbar: HTMLDivElement = <HTMLDivElement>document.getElementById("taskbar");
+        
         public static hostInit(): void {
             // This is called from index.html's onLoad event via the onDocumentLoad function pointer.
  
@@ -53,7 +55,8 @@ module TSOS {
             // Use the TypeScript cast to HTMLInputElement
             (<HTMLInputElement> document.getElementById("btnStartOS")).focus();
  
- 
+            // In Control.ts, inside the Control class
+
             // Check for our testing and enrichment core, which
             // may be referenced here (from index.html) as function Glados().
             if (typeof Glados === "function") {
