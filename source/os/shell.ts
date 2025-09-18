@@ -106,17 +106,6 @@ module TSOS {
             // Display the initial prompt.
             this.putPrompt();
         }
-
-        //function to tell date and time
-        public shellDate(args: string[]) {
-            const now: Date = new Date();
-            _StdOut.putText(now.toLocaleString());
-        }
-
-        // fuction that displays a message on where the user is at  
-        public shellWhereAmI(args: string[]) {
-            _StdOut.putText("You are here. ");
-        }
  
  
         public putPrompt() {
@@ -360,6 +349,17 @@ module TSOS {
                 _StdOut.putText("Usage: prompt <string>  Please supply a string.");
             }
         }
+
+        //function to tell date and time
+        public shellDate(args: string[]) {
+            const now: Date = new Date();
+            _StdOut.putText(now.toLocaleString());
+            }
+        
+        // fuction that displays a message on where the user is at  
+        public shellWhereAmI(args: string[]) {
+            _StdOut.putText("You are here. ");
+            }
  
  
     }
