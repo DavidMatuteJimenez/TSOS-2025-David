@@ -23,7 +23,7 @@
 var TSOS;
 (function (TSOS) {
     class Control {
-        // setss task bar 
+        // sets task bar 
         static setTaskbarMessage(message) {
             document.getElementById("taskbar").innerHTML = message;
         }

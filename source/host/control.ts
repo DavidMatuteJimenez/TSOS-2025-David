@@ -27,7 +27,7 @@ module TSOS {
 
     export class Control {
  
-        // setss task bar 
+        // sets task bar 
         public static setTaskbarMessage(message: string) {
             document.getElementById("taskbar").innerHTML = message
         }

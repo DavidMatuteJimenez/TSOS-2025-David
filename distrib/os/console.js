@@ -44,6 +44,13 @@ var TSOS;
                     //backspace
                 }
                 else if ((chr === String.fromCharCode(8))) {
+                    // Only has any effect if the buffer is not empty
+                    if (this.buffer.length > 0) {
+                        // Remove from the screen
+                        this.deleteChar();
+                        // Remove last char from the buffer
+                        this.buffer = this.buffer.slice(0, -1);
+                    }
                 }
                 else {
                     // This is a "normal" character, so ...
@@ -53,6 +60,16 @@ var TSOS;
                     this.buffer += chr;
                 }
                 // TODO: Add a case for Ctrl-C that would allow the user to break the current program.
+            }
+        }
+        deleteChar() {
+            if (this.currentXPosition > 0) {
+                // Move cursor back
+                this.currentXPosition -= this.currentFontSize / 2;
+                // Overwrite with space
+                this.putText(" ");
+                // Move cursor back again
+                this.currentXPosition -= this.currentFontSize / 2;
             }
         }
         putText(text) {

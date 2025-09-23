@@ -42,10 +42,16 @@ module TSOS {
                     // ... and reset our buffer.
                     this.buffer = "";
                     //backspace
-                } else if((chr === String.fromCharCode(8))) {
-
-                } 
-            
+                } else if((chr === String.fromCharCode(8))) {// backspace
+                if (this.buffer.length > 0) 
+                {
+                    // Remove from the screen
+                    this.deleteChar();
+                    // Remove last char from the buffer
+                    this.buffer = this.buffer.slice(0, -1);
+                }
+            } 
+        
                 else {
                     // This is a "normal" character, so ...
                     // ... draw it on the screen...
@@ -56,6 +62,20 @@ module TSOS {
                 // TODO: Add a case for Ctrl-C that would allow the user to break the current program.
             }
         }
+        //function to delete character 
+        public deleteChar(): void {
+            if (this.currentXPosition > 0) {
+                // Move cursor back
+                this.currentXPosition -= this.currentFontSize / 2;
+        
+                // Overwrite with space
+                this.putText(" ");
+        
+                // Move cursor back again
+                this.currentXPosition -= this.currentFontSize / 2;
+            }
+        }
+        
 
         public putText(text): void {
             /*  My first inclination here was to write two functions: putChar() and putString().
