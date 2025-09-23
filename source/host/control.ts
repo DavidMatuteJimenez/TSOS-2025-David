@@ -32,6 +32,10 @@ module TSOS {
             document.getElementById("taskbar").innerHTML = message
         }
 
+        public static setDateAndTime() {
+            document.getElementById("dateAndTime").innerHTML = new Date().toLocaleString();
+        }
+
         public static hostInit(): void {
             // This is called from index.html's onLoad event via the onDocumentLoad function pointer.
  

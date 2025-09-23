@@ -71,7 +71,9 @@ module TSOS {
                         219: isShifted ? "{" : "[",
                         220: isShifted ? "|" : "\\",
                         221: isShifted ? "}" : "]",
-                        222: isShifted ? "\"" : "'"
+                        222: isShifted ? "\"" : "'",
+                        8: String.fromCharCode(8),
+                        9: String.fromCharCode(9)
                     };
             
                     if (symbolMap[keyCode] !== undefined) {

@@ -69,13 +69,10 @@ module TSOS {
         public deleteChar(): void {
             if (this.currentXPosition > 0) {
                 // Move cursor back
-                this.currentXPosition -= this.currentFontSize / 2;
+                var charWidth = _DrawingContext.measureText(this.currentFont, this.currentFontSize, this.buffer[this.buffer.length -1]);
+                this.currentXPosition -= charWidth;
         
-                // Overwrite with space
-                this.putText(" ");
-        
-                // Move cursor back again
-                this.currentXPosition -= this.currentFontSize / 2;
+               _DrawingContext.clearRect(this.currentXPosition, this.currentYPosition - this.currentFontSize, charWidth, this.currentFontSize + _FontHeightMargin)
             }
         }
 

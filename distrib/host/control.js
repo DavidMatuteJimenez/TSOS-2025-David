@@ -27,6 +27,9 @@ var TSOS;
         static setTaskbarMessage(message) {
             document.getElementById("taskbar").innerHTML = message;
         }
+        static setDateAndTime() {
+            document.getElementById("dateAndTime").innerHTML = new Date().toLocaleString();
+        }
         static hostInit() {
             // This is called from index.html's onLoad event via the onDocumentLoad function pointer.
             // Get a global reference to the canvas.  TODO: Should we move this stuff into a Display Device Driver?
