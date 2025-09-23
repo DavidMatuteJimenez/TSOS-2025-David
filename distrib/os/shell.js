@@ -53,7 +53,11 @@ var TSOS;
             //whereami
             sc = new TSOS.ShellCommand(this.shellWhereAmI, "whereami", "- Displays users current location");
             this.commandList[this.commandList.length] = sc;
+            //status
             sc = new TSOS.ShellCommand(this.shellStatus, "status", "- Displays status message");
+            this.commandList[this.commandList.length] = sc;
+            //load - validates program input
+            sc = new TSOS.ShellCommand(this.shellLoad, "load", "- Validates user program input from HTML textarea (hex digits and spaces only)");
             this.commandList[this.commandList.length] = sc;
             // ps  - list the running processes and their IDs
             // kill <id> - kills the specified process id.
@@ -284,6 +288,27 @@ var TSOS;
         shellStatus(args) {
             TSOS.Control.setTaskbarMessage(args.join(" "));
             _StdOut.putText("Status bar updated. ");
+        }
+        shellLoad(args) {
+            const inputElement = document.getElementById("taProgramInput");
+            if (!inputElement) {
+                _StdOut.putText("Error: Program input area not found.");
+                return;
+            }
+            const userInput = inputElement.value.trim();
+            if (userInput.length === 0) {
+                _StdOut.putText("Error: No input to load.");
+                return;
+            }
+            const hexRegex = /^[0-9A-Fa-f\s]+$/;
+            if (!hexRegex.test(userInput)) {
+                _StdOut.putText("Error: Invalid input. Only hex digits (0-9, A-F) and spaces are allowed.");
+                return;
+            }
+            const normalizedInput = userInput.toUpperCase().replace(/\s+/g, " ").trim();
+            _StdOut.putText("Program loaded successfully:");
+            _StdOut.advanceLine();
+            _StdOut.putText(normalizedInput);
         }
     }
     TSOS.Shell = Shell;

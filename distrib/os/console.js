@@ -99,7 +99,6 @@ var TSOS;
                 this.putText(">"); // reprint prompt
                 this.putText(this.buffer); // reprint current buffer
             }
-            // No match: do nothing
         }
         putText(text) {
             /*  My first inclination here was to write two functions: putChar() and putString().
