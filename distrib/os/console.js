@@ -43,14 +43,16 @@ var TSOS;
                     this.buffer = "";
                     //backspace
                 }
-                else if ((chr === String.fromCharCode(8))) {
-                    // Only has any effect if the buffer is not empty
+                else if ((chr === String.fromCharCode(8))) { // backspace
                     if (this.buffer.length > 0) {
                         // Remove from the screen
                         this.deleteChar();
                         // Remove last char from the buffer
                         this.buffer = this.buffer.slice(0, -1);
                     }
+                }
+                else if (chr === String.fromCharCode(9)) { // Tab
+                    this.handleTabCompletion();
                 }
                 else {
                     // This is a "normal" character, so ...
@@ -62,6 +64,7 @@ var TSOS;
                 // TODO: Add a case for Ctrl-C that would allow the user to break the current program.
             }
         }
+        //function to delete character 
         deleteChar() {
             if (this.currentXPosition > 0) {
                 // Move cursor back
@@ -71,6 +74,32 @@ var TSOS;
                 // Move cursor back again
                 this.currentXPosition -= this.currentFontSize / 2;
             }
+        }
+        //function for tab completion
+        // Handle command completion for Tab key
+        handleTabCompletion() {
+            // Get all command names from the shell
+            const commands = _OsShell.commandList.map(cmd => cmd.command);
+            // Find matches starting with current buffer
+            const matches = commands.filter(c => c.startsWith(this.buffer));
+            if (matches.length === 1) {
+                // Only one match: auto-complete
+                while (this.buffer.length > 0) {
+                    this.deleteChar();
+                    this.buffer = this.buffer.slice(0, -1);
+                }
+                this.buffer = matches[0];
+                this.putText(this.buffer);
+            }
+            else if (matches.length > 1) {
+                // Multiple matches: display options
+                this.advanceLine();
+                this.putText(matches.join("    "));
+                this.advanceLine();
+                this.putText(">"); // reprint prompt
+                this.putText(this.buffer); // reprint current buffer
+            }
+            // No match: do nothing
         }
         putText(text) {
             /*  My first inclination here was to write two functions: putChar() and putString().

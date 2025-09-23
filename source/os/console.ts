@@ -51,6 +51,9 @@ module TSOS {
                     this.buffer = this.buffer.slice(0, -1);
                 }
             } 
+                else if (chr === String.fromCharCode(9)) { // Tab
+                this.handleTabCompletion();
+            }
         
                 else {
                     // This is a "normal" character, so ...
@@ -75,7 +78,34 @@ module TSOS {
                 this.currentXPosition -= this.currentFontSize / 2;
             }
         }
-        
+
+        //function for tab completion
+         // Handle command completion for Tab key
+         public handleTabCompletion(): void {
+            // Get all command names from the shell
+            const commands = _OsShell.commandList.map(cmd => cmd.command);
+
+            // Find matches starting with current buffer
+            const matches = commands.filter(c => c.startsWith(this.buffer));
+
+            if (matches.length === 1) {
+                // Only one match: auto-complete
+                while (this.buffer.length > 0) {
+                    this.deleteChar();
+                    this.buffer = this.buffer.slice(0, -1);
+                }
+                this.buffer = matches[0];
+                this.putText(this.buffer);
+            } 
+            else if (matches.length > 1) {
+                // Multiple matches: display options
+                this.advanceLine();
+                this.putText(matches.join("    "));
+                this.advanceLine();
+                this.putText(">"); // reprint prompt
+                this.putText(this.buffer); // reprint current buffer
+            }
+        }
 
         public putText(text): void {
             /*  My first inclination here was to write two functions: putChar() and putString().
