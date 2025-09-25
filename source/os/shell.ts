@@ -111,6 +111,13 @@ module TSOS {
                             "- Validates user program input from HTML textarea (hex digits and spaces only)");
             this.commandList[this.commandList.length] = sc;
 
+            this.commandList[this.commandList.length] = new ShellCommand(
+                this.shellBsod,
+                "bsod",
+                "- Triggers a kernel trap error for testing BSOD."
+            );
+            
+
             // ps  - list the running processes and their IDs
             // kill <id> - kills the specified process id.
  
@@ -401,6 +408,10 @@ module TSOS {
                 _StdOut.putText("Program loaded successfully:");
                 _StdOut.advanceLine();
                 _StdOut.putText(normalizedInput);
+            }
+
+            public shellBsod(args: string[]): void {
+                _Kernel.krnTrapError("Test BSOD triggered by user.");
             }
     }
  }
