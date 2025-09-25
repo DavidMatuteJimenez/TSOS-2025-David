@@ -169,25 +169,18 @@ module TSOS {
 
         public krnTrapError(msg) {
             Control.hostLog("OS ERROR - TRAP: " + msg);
+            _Console.clearScreen();
+            const image = new Image();
+            image.src = "./bsod.jpg"
+            image.onload = () => {
+                _DrawingContext.drawImage(image, 0, 0);
+            };
+            image.onerror = (error) => {
+                console.error('failed to load image', error);
+            }
 
-    // Clear the console
-    _StdOut.clearScreen();
-    _StdOut.resetXY();
-
-    // Set text color and error
-    _StdOut.putText("================================");
-    _StdOut.advanceLine();
-    _StdOut.putText("      *** KERNEL PANIC ***      ");
-    _StdOut.advanceLine();
-    _StdOut.putText("================================");
-    _StdOut.advanceLine();
-    _StdOut.putText("OS ERROR - TRAP: " + msg);
-    _StdOut.advanceLine();
-    _StdOut.putText("System halted.");
-    _StdOut.advanceLine();
-
-    // Shutdown kernel
-    this.krnShutdown();
+            // Shutdown kernel
+            this.krnShutdown();
         }
     }
 }

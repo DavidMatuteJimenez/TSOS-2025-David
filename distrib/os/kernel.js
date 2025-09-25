@@ -149,7 +149,16 @@ var TSOS;
         }
         krnTrapError(msg) {
             TSOS.Control.hostLog("OS ERROR - TRAP: " + msg);
-            // TODO: Display error on console, perhaps in some sort of colored screen. (Maybe blue?)
+            _Console.clearScreen();
+            const image = new Image();
+            image.src = "./bsod.jpg";
+            image.onload = () => {
+                _DrawingContext.drawImage(image, 0, 0);
+            };
+            image.onerror = (error) => {
+                console.error('failed to load image', error);
+            };
+            // Shutdown kernel
             this.krnShutdown();
         }
     }

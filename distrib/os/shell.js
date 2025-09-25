@@ -59,6 +59,7 @@ var TSOS;
             //load - validates program input
             sc = new TSOS.ShellCommand(this.shellLoad, "load", "- Validates user program input from HTML textarea (hex digits and spaces only)");
             this.commandList[this.commandList.length] = sc;
+            this.commandList[this.commandList.length] = new TSOS.ShellCommand(this.shellBsod, "bsod", "- Triggers a kernel trap error for testing BSOD.");
             // ps  - list the running processes and their IDs
             // kill <id> - kills the specified process id.
             // Display the initial prompt.
@@ -309,6 +310,9 @@ var TSOS;
             _StdOut.putText("Program loaded successfully:");
             _StdOut.advanceLine();
             _StdOut.putText(normalizedInput);
+        }
+        shellBsod(args) {
+            _Kernel.krnTrapError("Test BSOD triggered by user.");
         }
     }
     TSOS.Shell = Shell;
