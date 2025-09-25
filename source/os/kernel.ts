@@ -173,7 +173,11 @@ module TSOS {
             const image = new Image();
             image.src = "./bsod.jpg"
             image.onload = () => {
-                _DrawingContext.drawImage(image, 0, 0);
+            const aspectRatio = image.height / image.width;
+            const targetHeight = _Canvas.width * aspectRatio;
+            _DrawingContext.fillStyle = "#fefefe";
+            _DrawingContext.fillRect(0, 0, _Canvas.width, _Canvas.height);
+                _DrawingContext.drawImage(image, 0, 0, _Canvas.width, targetHeight);
             };
             image.onerror = (error) => {
                 console.error('failed to load image', error);
