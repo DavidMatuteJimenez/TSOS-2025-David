@@ -151,13 +151,41 @@ var TSOS;
                 do the same thing, thereby encouraging confusion and decreasing readability, I
                 decided to write one function and use the term "text" to connote string or char.
             */
-            if (text !== "") {
+            if (text === "") {
+                return;
+            }
+            let lines = [""];
+            let cursePosition = this.currentXPosition;
+            for (const char of text) {
+                if (char === "/r" || char === "/n") {
+                    lines.push("");
+                    cursePosition = 0;
+                    continue;
+                }
+                var width = _DrawingContext.measureText(this.currentFont, this.currentFontSize, char);
+                if (cursePosition + width >= _Canvas.width) {
+                    lines.push(char);
+                    cursePosition = width;
+                }
+                else {
+                    lines[lines.length - 1] += char;
+                    cursePosition += width;
+                }
+            }
+            for (let i = 0; i < lines.length - 1; i++) {
+                _DrawingContext.drawText(this.currentFont, this.currentFontSize, this.currentXPosition, this.currentYPosition, lines[i]);
+                this.currentXPosition = 0;
+                this.advanceLine();
+            }
+            _DrawingContext.drawText(this.currentFont, this.currentFontSize, this.currentXPosition, this.currentYPosition, lines[lines.length - 1]);
+            this.currentXPosition = cursePosition;
+            /*if (text !== "") {
                 // Draw the text at the current X and Y coordinates.
                 _DrawingContext.drawText(this.currentFont, this.currentFontSize, this.currentXPosition, this.currentYPosition, text);
                 // Move the current X position.
                 var offset = _DrawingContext.measureText(this.currentFont, this.currentFontSize, text);
                 this.currentXPosition = this.currentXPosition + offset;
-            }
+            } */
         }
         advanceLine() {
             this.currentXPosition = 0;
