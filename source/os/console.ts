@@ -9,6 +9,9 @@ module TSOS {
 
     export class Console {
 
+        public commandHistory: string[] = [];
+        public historyIndex: number = -1;
+
         constructor(public currentFont = _DefaultFontFamily,
                     public currentFontSize = _DefaultFontSize,
                     public currentXPosition = 0,
@@ -36,8 +39,14 @@ module TSOS {
                 var chr = _KernelInputQueue.dequeue();
                 // Check to see if it's "special" (enter or ctrl-c) or "normal" (anything else that the keyboard device driver gave us).
                 if (chr === String.fromCharCode(13)) { // the Enter key
+                    // Save command to history if it's not empty    
+                    if (this.buffer.trim() !== "") {
+                        this.commandHistory.push(this.buffer);
+                        this.historyIndex = this.commandHistory.length;
+                    }
                     // The enter key marks the end of a console command, so ...
                     // ... tell the shell ...
+
                     _OsShell.handleInput(this.buffer);
                     // ... and reset our buffer.
                     this.buffer = "";
@@ -64,6 +73,53 @@ module TSOS {
                 } 
                 // TODO: Add a case for Ctrl-C that would allow the user to break the current program.
             }
+        }
+                // Handle command history recall
+        public recallHistory(direction: string): void {
+            if (this.commandHistory.length === 0) {
+                return; // No history to recall
+            }
+        
+            // Clear the current buffer from the screen
+            this.clearCurrentLine();
+        
+            if (direction === "up") {
+                // Move backward in history
+                if (this.historyIndex > 0) {
+                    this.historyIndex--;
+                }
+                this.buffer = this.commandHistory[this.historyIndex];
+            } else if (direction === "down") {
+                // Move forward in history
+                 if (this.historyIndex < this.commandHistory.length - 1) {
+                    this.historyIndex++;
+                    this.buffer = this.commandHistory[this.historyIndex];
+                } else {
+                    // At the end of history, clear the buffer
+                    this.historyIndex = this.commandHistory.length;
+                    this.buffer = "";
+                }
+            }
+        
+            // Display the recalled command
+            this.putText(this.buffer);
+        }
+        
+        // Clear the current line (everything after the prompt)
+        public clearCurrentLine(): void {
+             // Measure the current buffer width
+            var bufferWidth = _DrawingContext.measureText(this.currentFont, this.currentFontSize, this.buffer);
+                    
+            // Clear the area where the buffer is displayed
+             _DrawingContext.clearRect(
+                this.currentXPosition - bufferWidth,
+                this.currentYPosition - this.currentFontSize,
+                bufferWidth,
+                this.currentFontSize + _FontHeightMargin
+            );
+                    
+            // Reset X position to where the prompt ends
+            this.currentXPosition -= bufferWidth;
         }
         //function to delete character 
         public deleteChar(): void {

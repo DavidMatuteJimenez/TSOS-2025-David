@@ -17,8 +17,7 @@ var TSOS;
         commandList = [];
         curses = "[fuvg],[cvff],[shpx],[phag],[pbpxfhpxre],[zbgureshpxre],[gvgf]";
         apologies = "[sorry]";
-        constructor() {
-        }
+        constructor() { }
         init() {
             var sc;
             //
@@ -47,7 +46,7 @@ var TSOS;
             // prompt <string>
             sc = new TSOS.ShellCommand(this.shellPrompt, "prompt", "<string> - Sets the prompt.");
             this.commandList[this.commandList.length] = sc;
-            //Shows date and time 
+            //Shows date and time
             sc = new TSOS.ShellCommand(this.shellDate, "date", "- Displays the current date and time.");
             this.commandList[this.commandList.length] = sc;
             //whereami
@@ -100,13 +99,16 @@ var TSOS;
             }
             else {
                 // It's not found, so check for curses and apologies before declaring the command invalid.
-                if (this.curses.indexOf("[" + TSOS.Utils.rot13(cmd) + "]") >= 0) { // Check for curses.
+                if (this.curses.indexOf("[" + TSOS.Utils.rot13(cmd) + "]") >= 0) {
+                    // Check for curses.
                     this.execute(this.shellCurse);
                 }
-                else if (this.apologies.indexOf("[" + cmd + "]") >= 0) { // Check for apologies.
+                else if (this.apologies.indexOf("[" + cmd + "]") >= 0) {
+                    // Check for apologies.
                     this.execute(this.shellApology);
                 }
-                else { // It's just a bad command. {
+                else {
+                    // It's just a bad command. {
                     this.execute(this.shellInvalidCommand);
                 }
             }
@@ -186,7 +188,10 @@ var TSOS;
             _StdOut.putText("Commands:");
             for (var i in _OsShell.commandList) {
                 _StdOut.advanceLine();
-                _StdOut.putText("  " + _OsShell.commandList[i].command + " " + _OsShell.commandList[i].description);
+                _StdOut.putText("  " +
+                    _OsShell.commandList[i].command +
+                    " " +
+                    _OsShell.commandList[i].description);
             }
         }
         shellShutdown(args) {
@@ -261,7 +266,7 @@ var TSOS;
         shellRot13(args) {
             if (args.length > 0) {
                 // Requires Utils.ts for rot13() function.
-                _StdOut.putText(args.join(' ') + " = '" + TSOS.Utils.rot13(args.join(' ')) + "'");
+                _StdOut.putText(args.join(" ") + " = '" + TSOS.Utils.rot13(args.join(" ")) + "'");
             }
             else {
                 _StdOut.putText("Usage: rot13 <string>  Please supply a string.");
@@ -280,7 +285,7 @@ var TSOS;
             const now = new Date();
             _StdOut.putText(now.toLocaleString());
         }
-        // fuction that displays a message on where the user is at  
+        // fuction that displays a message on where the user is at
         shellWhereAmI(args) {
             _StdOut.putText("You are here. ");
         }
@@ -289,7 +294,7 @@ var TSOS;
             _StdOut.putText("Status bar updated. ");
         }
         shellLoad(args) {
-            const inputElement = document.getElementById("taProgramInput");
+            const inputElement = (document.getElementById("taProgramInput"));
             if (!inputElement) {
                 _StdOut.putText("Error: Program input area not found.");
                 return;
@@ -304,7 +309,10 @@ var TSOS;
                 _StdOut.putText("Error: Invalid input. Only hex digits (0-9, A-F) and spaces are allowed.");
                 return;
             }
-            const normalizedInput = userInput.toUpperCase().replace(/\s+/g, " ").trim();
+            const normalizedInput = userInput
+                .toUpperCase()
+                .replace(/\s+/g, " ")
+                .trim();
             _StdOut.putText("Program loaded successfully:");
             _StdOut.advanceLine();
             _StdOut.putText(normalizedInput);

@@ -58,6 +58,12 @@ module TSOS {
                     chr = String.fromCharCode(keyCode);
                     _KernelInputQueue.enqueue(chr);
                 }
+                else if (keyCode === 38) {   // Up arrow
+                    _Console.recallHistory("up");
+                }
+                else if (keyCode === 40) {   // Down arrow
+                    _Console.recallHistory("down");
+                }
                 // Punctuation and symbols
                 else {
                     var symbolMap = {
