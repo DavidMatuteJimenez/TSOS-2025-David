@@ -37,8 +37,9 @@ var TSOS;
                 // Get the next character from the kernel input queue.
                 var chr = _KernelInputQueue.dequeue();
                 // Check to see if it's "special" (enter or ctrl-c) or "normal" (anything else that the keyboard device driver gave us).
-                if (chr === String.fromCharCode(13)) { // the Enter key
-                    // Save command to history if it's not empty    
+                if (chr === String.fromCharCode(13)) {
+                    // the Enter key
+                    // Save command to history if it's not empty
                     if (this.buffer.trim() !== "") {
                         this.commandHistory.push(this.buffer);
                         this.historyIndex = this.commandHistory.length;
@@ -50,7 +51,8 @@ var TSOS;
                     this.buffer = "";
                     //backspace
                 }
-                else if ((chr === String.fromCharCode(8))) { // backspace
+                else if (chr === String.fromCharCode(8)) {
+                    // backspace
                     if (this.buffer.length > 0) {
                         // Remove from the screen
                         this.deleteChar();
@@ -58,7 +60,8 @@ var TSOS;
                         this.buffer = this.buffer.slice(0, -1);
                     }
                 }
-                else if (chr === String.fromCharCode(9)) { // Tab
+                else if (chr === String.fromCharCode(9)) {
+                    // Tab
                     this.handleTabCompletion();
                 }
                 else {
@@ -109,7 +112,7 @@ var TSOS;
             // Reset X position to where the prompt ends
             this.currentXPosition -= bufferWidth;
         }
-        //function to delete character 
+        //function to delete character
         deleteChar() {
             if (this.currentXPosition > 0) {
                 // Move cursor back
@@ -122,9 +125,9 @@ var TSOS;
         // Handle command completion for Tab key
         handleTabCompletion() {
             // Get all command names from the shell
-            const commands = _OsShell.commandList.map(cmd => cmd.command);
+            const commands = _OsShell.commandList.map((cmd) => cmd.command);
             // Find matches starting with current buffer
-            const matches = commands.filter(c => c.startsWith(this.buffer));
+            const matches = commands.filter((c) => c.startsWith(this.buffer));
             if (matches.length === 1) {
                 // Only one match: auto-complete
                 while (this.buffer.length > 0) {
@@ -145,12 +148,12 @@ var TSOS;
         }
         putText(text) {
             /*  My first inclination here was to write two functions: putChar() and putString().
-                Then I remembered that JavaScript is (sadly) untyped and it won't differentiate
-                between the two. (Although TypeScript would. But we're compiling to JavaScipt anyway.)
-                So rather than be like PHP and write two (or more) functions that
-                do the same thing, thereby encouraging confusion and decreasing readability, I
-                decided to write one function and use the term "text" to connote string or char.
-            */
+                      Then I remembered that JavaScript is (sadly) untyped and it won't differentiate
+                      between the two. (Although TypeScript would. But we're compiling to JavaScipt anyway.)
+                      So rather than be like PHP and write two (or more) functions that
+                      do the same thing, thereby encouraging confusion and decreasing readability, I
+                      decided to write one function and use the term "text" to connote string or char.
+                  */
             if (text === "") {
                 return;
             }
@@ -180,12 +183,12 @@ var TSOS;
             _DrawingContext.drawText(this.currentFont, this.currentFontSize, this.currentXPosition, this.currentYPosition, lines[lines.length - 1]);
             this.currentXPosition = cursePosition;
             /*if (text !== "") {
-                // Draw the text at the current X and Y coordinates.
-                _DrawingContext.drawText(this.currentFont, this.currentFontSize, this.currentXPosition, this.currentYPosition, text);
-                // Move the current X position.
-                var offset = _DrawingContext.measureText(this.currentFont, this.currentFontSize, text);
-                this.currentXPosition = this.currentXPosition + offset;
-            } */
+                      // Draw the text at the current X and Y coordinates.
+                      _DrawingContext.drawText(this.currentFont, this.currentFontSize, this.currentXPosition, this.currentYPosition, text);
+                      // Move the current X position.
+                      var offset = _DrawingContext.measureText(this.currentFont, this.currentFontSize, text);
+                      this.currentXPosition = this.currentXPosition + offset;
+                  } */
         }
         advanceLine() {
             this.currentXPosition = 0;
@@ -194,13 +197,14 @@ var TSOS;
              * Font descent measures from the baseline to the lowest point in the font.
              * Font height margin is extra spacing between the lines.
              */
-            this.currentYPosition += _DefaultFontSize +
-                _DrawingContext.fontDescent(this.currentFont, this.currentFontSize) +
-                _FontHeightMargin;
+            this.currentYPosition +=
+                _DefaultFontSize +
+                    _DrawingContext.fontDescent(this.currentFont, this.currentFontSize) +
+                    _FontHeightMargin;
             if (this.currentYPosition >= _Canvas.height) {
                 let screenshotData = _DrawingContext.getImageData(0, 0, _Canvas.width, _Canvas.height);
                 this.clearScreen();
-                _DrawingContext.putImageData(screenshotData, 0, 0 - (_DefaultFontSize * 1.5));
+                _DrawingContext.putImageData(screenshotData, 0, 0 - _DefaultFontSize * 1.5);
                 this.currentYPosition = _Canvas.height - _DefaultFontSize;
             }
             // TODO: Handle scrolling. (iProject 1)
