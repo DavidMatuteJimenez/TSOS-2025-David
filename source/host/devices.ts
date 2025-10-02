@@ -31,6 +31,12 @@ module TSOS {
             _OSclock++;
             // Call the kernel clock pulse event handler.
             _Kernel.krnOnCPUClockPulse();
+
+            // Update GUI displays.
+            Control.updateCpuDisplay();
+            Control.updateMemoryDisplay();
+            Control.updatePcbDisplay();
+
             Control.setDateAndTime();
         }
 
