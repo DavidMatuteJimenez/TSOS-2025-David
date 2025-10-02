@@ -29,7 +29,7 @@ module TSOS {
                 _Kernel.krnTrapError("Memory access violation: Address out of bounds.");
                 return;
             }
-            this.memory[address] = value;
+            this.memory[address] = value & 0xFF;
         }
     }
 }
