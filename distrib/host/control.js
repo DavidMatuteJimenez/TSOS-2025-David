@@ -45,6 +45,9 @@ var TSOS;
             // Use the TypeScript cast to HTMLInputElement
             document.getElementById("btnStartOS").focus();
             // In Control.ts, inside the Control class
+            this.updateCpuDisplay();
+            this.updateMemoryDisplay();
+            this.updatePcbDisplay();
             // Check for our testing and enrichment core, which
             // may be referenced here (from index.html) as function Glados().
             if (typeof Glados === "function") {
@@ -80,6 +83,10 @@ var TSOS;
             // ... Create and initialize the CPU (because it's part of the hardware)  ...
             _CPU = new TSOS.Cpu(); // Note: We could simulate multi-core systems by instantiating more than one instance of the CPU here.
             _CPU.init(); //       There's more to do, like dealing with scheduling and such, but this would be a start. Pretty cool.
+            // ... Create and initialize Memory and its Accessor ...
+            _Memory = new TSOS.Memory();
+            _Memory.init();
+            _MemoryAccessor = new TSOS.MemoryAccessor();
             // ... then set the host clock pulse ...
             _hardwareClockID = setInterval(TSOS.Devices.hostClockPulse, CPU_CLOCK_INTERVAL);
             // .. and call the OS Kernel Bootstrap routine.
@@ -98,6 +105,59 @@ var TSOS;
         static hostBtnReset_click(btn) {
             // The easiest and most thorough way to do this is to reload (not refresh) the document.
             location.reload();
+        }
+        // GUI Display Update Routines
+        //
+        static updateCpuDisplay() {
+            if (_CPU) {
+                document.getElementById('cpu-pc').innerText = _CPU.PC.toString(16).toUpperCase().padStart(4, '0');
+                document.getElementById('cpu-ir').innerText = _CPU.IR.toString(16).toUpperCase().padStart(2, '0');
+                document.getElementById('cpu-acc').innerText = _CPU.Acc.toString(16).toUpperCase().padStart(2, '0');
+                document.getElementById('cpu-x').innerText = _CPU.Xreg.toString(16).toUpperCase().padStart(2, '0');
+                document.getElementById('cpu-y').innerText = _CPU.Yreg.toString(16).toUpperCase().padStart(2, '0');
+                document.getElementById('cpu-z').innerText = _CPU.Zflag.toString();
+            }
+            else {
+                // clear if no CPU
+                document.getElementById('cpu-pc').innerText = "0000";
+                document.getElementById('cpu-ir').innerText = "00";
+                document.getElementById('cpu-acc').innerText = "00";
+                document.getElementById('cpu-x').innerText = "00";
+                document.getElementById('cpu-y').innerText = "00";
+                document.getElementById('cpu-z').innerText = "0";
+            }
+        }
+        static updateMemoryDisplay() {
+            const memoryTableBody = document.getElementById('memory-table-body');
+            memoryTableBody.innerHTML = '';
+            if (_MemoryAccessor) {
+                for (let i = 0; i < 256; i += 8) {
+                    const row = memoryTableBody.insertRow();
+                    const rowHeader = `0x${i.toString(16).toUpperCase().padStart(3, '0')}`;
+                    row.insertCell(0).innerText = rowHeader;
+                    for (let j = 0; j < 8; j++) {
+                        const address = i + j;
+                        const value = _MemoryAccessor.read(address);
+                        row.insertCell(j + 1).innerText = value.toString(16).toUpperCase().padStart(2, '0');
+                    }
+                }
+            }
+        }
+        static updatePcbDisplay() {
+            const pcbTableBody = document.getElementById('pcb-table-body');
+            pcbTableBody.innerHTML = ''; // Clear existing table
+            if (_Kernel && _Kernel.residentList.length > 0) {
+                for (const pcb of _Kernel.residentList) {
+                    const row = pcbTableBody.insertRow();
+                    row.insertCell(0).innerText = pcb.pid.toString();
+                    row.insertCell(1).innerText = pcb.state;
+                    row.insertCell(2).innerText = pcb.pc.toString(16).toUpperCase();
+                    row.insertCell(3).innerText = pcb.acc.toString(16).toUpperCase();
+                    row.insertCell(4).innerText = pcb.xReg.toString(16).toUpperCase();
+                    row.insertCell(5).innerText = pcb.yReg.toString(16).toUpperCase();
+                    row.insertCell(6).innerText = pcb.zFlag.toString();
+                }
+            }
         }
     }
     TSOS.Control = Control;

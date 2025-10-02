@@ -9,6 +9,9 @@
 var TSOS;
 (function (TSOS) {
     class Kernel {
+        residentList = [];
+        pidCounter = 0;
+        runningPcb = null;
         //
         // OS Startup and Shutdown Routines
         //
@@ -128,6 +131,22 @@ var TSOS;
         // - ReadFile
         // - WriteFile
         // - CloseFile
+        endProgram() {
+            if (this.runningPcb) {
+                this.runningPcb.state = "Terminated";
+                // Save final CPU state back to PCB
+                this.runningPcb.pc = _CPU.PC;
+                this.runningPcb.acc = _CPU.Acc;
+                this.runningPcb.xReg = _CPU.Xreg;
+                this.runningPcb.yReg = _CPU.Yreg;
+                this.runningPcb.zFlag = _CPU.Zflag;
+                this.runningPcb = null;
+                _CPU.isExecuting = false;
+                _MemoryManager.clearMemory(); // For project 2, clear memory after run.
+                _Console.advanceLine();
+                _OsShell.putPrompt();
+            }
+        }
         //
         // OS Utility Routines
         //

@@ -158,6 +158,7 @@ module TSOS {
         public static updateCpuDisplay(): void {
             if (_CPU) {
                 document.getElementById('cpu-pc').innerText = _CPU.PC.toString(16).toUpperCase().padStart(4, '0');
+                document.getElementById('cpu-ir').innerText = _CPU.IR.toString(16).toUpperCase().padStart(2, '0');
                 document.getElementById('cpu-acc').innerText = _CPU.Acc.toString(16).toUpperCase().padStart(2, '0');
                 document.getElementById('cpu-x').innerText = _CPU.Xreg.toString(16).toUpperCase().padStart(2, '0');
                 document.getElementById('cpu-y').innerText = _CPU.Yreg.toString(16).toUpperCase().padStart(2, '0');
@@ -165,6 +166,7 @@ module TSOS {
             } else {
                  // clear if no CPU
                 document.getElementById('cpu-pc').innerText = "0000";
+                document.getElementById('cpu-ir').innerText = "00";
                 document.getElementById('cpu-acc').innerText = "00";
                 document.getElementById('cpu-x').innerText = "00";
                 document.getElementById('cpu-y').innerText = "00";

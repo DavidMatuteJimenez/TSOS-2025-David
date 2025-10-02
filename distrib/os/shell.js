@@ -58,6 +58,9 @@ var TSOS;
             //load - validates program input
             sc = new TSOS.ShellCommand(this.shellLoad, "load", "- Validates user program input from HTML textarea (hex digits and spaces only)");
             this.commandList[this.commandList.length] = sc;
+            //run
+            sc = new TSOS.ShellCommand(this.shellRun, "run", "<pid> - Runs a loaded program.");
+            this.commandList[this.commandList.length] = sc;
             this.commandList[this.commandList.length] = new TSOS.ShellCommand(this.shellBsod, "bsod", "- Triggers a kernel trap error for testing BSOD.");
             // ps  - list the running processes and their IDs
             // kill <id> - kills the specified process id.
@@ -229,6 +232,9 @@ var TSOS;
                     case "prompt":
                         _StdOut.putText("prompt - sets the prompt.");
                         break;
+                    case "run":
+                        _StdOut.putText("run <pid> - Executes a program that has been loaded into memory.");
+                        break;
                     // TODO: Make descriptive MANual page entries for the the rest of the shell commands here.
                     default:
                         _StdOut.putText("No manual entry for " + args[0] + ".");
@@ -293,29 +299,83 @@ var TSOS;
             TSOS.Control.setTaskbarMessage(args.join(" "));
             _StdOut.putText("Status bar updated. ");
         }
+        /*public shellLoad(args: string[]) {
+          const inputElement = <HTMLTextAreaElement>(
+            document.getElementById("taProgramInput")
+          );
+    
+          if (!inputElement) {
+            _StdOut.putText("Error: Program input area not found.");
+            return;
+          }
+    
+          const userInput = inputElement.value.trim();
+          if (userInput.length === 0) {
+            _StdOut.putText("Error: No input to load.");
+            return;
+          }
+    
+          const hexRegex = /^[0-9A-Fa-f\s]+$/;
+          if (!hexRegex.test(userInput)) {
+            _StdOut.putText(
+              "Error: Invalid input. Only hex digits (0-9, A-F) and spaces are allowed."
+            );
+            return;
+          }
+    
+          const normalizedInput = userInput
+            .toUpperCase()
+            .replace(/\s+/g, " ")
+            .trim();
+          _StdOut.putText("Program loaded successfully:");
+          _StdOut.advanceLine();
+          _StdOut.putText(normalizedInput);
+        }*/
         shellLoad(args) {
             const inputElement = (document.getElementById("taProgramInput"));
-            if (!inputElement) {
-                _StdOut.putText("Error: Program input area not found.");
-                return;
-            }
             const userInput = inputElement.value.trim();
             if (userInput.length === 0) {
                 _StdOut.putText("Error: No input to load.");
                 return;
             }
-            const hexRegex = /^[0-9A-Fa-f\s]+$/;
+            const hexRegex = /^[0-9A-Fa-f\s]+$/i;
             if (!hexRegex.test(userInput)) {
                 _StdOut.putText("Error: Invalid input. Only hex digits (0-9, A-F) and spaces are allowed.");
                 return;
             }
-            const normalizedInput = userInput
-                .toUpperCase()
-                .replace(/\s+/g, " ")
-                .trim();
-            _StdOut.putText("Program loaded successfully:");
-            _StdOut.advanceLine();
-            _StdOut.putText(normalizedInput);
+            const opCodes = userInput.toUpperCase().split(/\s+/);
+            const success = _MemoryManager.loadProgram(opCodes);
+            if (success) {
+                const newPid = _Kernel.pidCounter++; // assign a Process ID (PID) 
+                const newPcb = new TSOS.Pcb(newPid); // create a Process Control Block (PCB) 
+                newPcb.state = "Resident";
+                _Kernel.residentList.push(newPcb);
+                _StdOut.putText(`Program loaded. PID: ${newPid}`); // return the PID to the console and display it [cite: 11]
+            }
+            else {
+                _StdOut.putText("Error: Memory is full. Cannot load program.");
+            }
+        }
+        shellRun(args) {
+            if (args.length === 0) {
+                _StdOut.putText("Usage: run <pid>. Please provide a Process ID.");
+                return;
+            }
+            const pidToRun = parseInt(args[0]);
+            const pcbToRun = _Kernel.residentList.find(p => p.pid === pidToRun && p.state === "Resident");
+            if (!pcbToRun) {
+                _StdOut.putText(`Error: Process with PID ${pidToRun} not found or is not ready to run.`);
+                return;
+            }
+            // Load PCB state into CPU
+            _CPU.PC = pcbToRun.pc;
+            _CPU.Acc = pcbToRun.acc;
+            _CPU.Xreg = pcbToRun.xReg;
+            _CPU.Yreg = pcbToRun.yReg;
+            _CPU.Zflag = pcbToRun.zFlag;
+            pcbToRun.state = "Running";
+            _Kernel.runningPcb = pcbToRun;
+            _CPU.isExecuting = true;
         }
         shellBsod(args) {
             _Kernel.krnTrapError("Test BSOD triggered by user.");

@@ -16,6 +16,7 @@
         export class Cpu {
     
             constructor(public PC: number = 0,
+                        public IR: number = 0,
                         public Acc: number = 0,
                         public Xreg: number = 0,
                         public Yreg: number = 0,
@@ -26,6 +27,7 @@
     
             public init(): void {
                 this.PC = 0;
+                this.IR = 0;
                 this.Acc = 0;
                 this.Xreg = 0;
                 this.Yreg = 0;
@@ -37,14 +39,14 @@
                 _Kernel.krnTrace('CPU cycle');
     
                 // 1. FETCH
-                const opCode = _MemoryAccessor.read(this.PC);
+                this.IR = _MemoryAccessor.read(this.PC);
                 this.PC++;
     
                 let tempAddress = 0;
                 let tempValue = 0;
     
                 // 2. DECODE & 3. EXECUTE
-                switch (opCode) {
+                switch (this.IR) {
                     case 0xA9: // LDA - Load Accumulator with constant
                         this.Acc = _MemoryAccessor.read(this.PC);
                         this.PC++;
@@ -145,7 +147,7 @@
                         break;
                     
                     default:
-                        _Kernel.krnTrapError(`Invalid op code: ${opCode.toString(16).toUpperCase()} at PC=${(this.PC - 1).toString(16).toUpperCase()}`);
+                        _Kernel.krnTrapError(`Invalid op code: ${this.IR.toString(16).toUpperCase()} at PC=${(this.PC - 1).toString(16).toUpperCase()}`);
                         this.isExecuting = false;
                         _Kernel.endProgram();
                         break;
