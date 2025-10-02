@@ -10,6 +10,10 @@
 module TSOS {
 
     export class Kernel {
+
+        public residentList: Pcb[] = [];
+        public pidCounter: number = 0;
+        public runningPcb: Pcb = null;
         //
         // OS Startup and Shutdown Routines
         //
@@ -145,6 +149,23 @@ module TSOS {
         // - ReadFile
         // - WriteFile
         // - CloseFile
+        public endProgram(): void {
+            if (this.runningPcb) {
+                this.runningPcb.state = "Terminated";
+                // Save final CPU state back to PCB
+                this.runningPcb.pc = _CPU.PC;
+                this.runningPcb.acc = _CPU.Acc;
+                this.runningPcb.xReg = _CPU.Xreg;
+                this.runningPcb.yReg = _CPU.Yreg;
+                this.runningPcb.zFlag = _CPU.Zflag;
+
+                this.runningPcb = null;
+                _CPU.isExecuting = false;
+                _MemoryManager.clearMemory(); // For project 2, clear memory after run.
+                _Console.advanceLine();
+                _OsShell.putPrompt();
+            }
+        }
 
 
         //
