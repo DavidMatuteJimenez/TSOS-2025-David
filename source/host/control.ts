@@ -173,7 +173,6 @@ module TSOS {
         }
 
         public static updateMemoryDisplay(): void {
-            //const memoryTableBody = document.getElementById('memory-table-body');
             const memoryTableBody = <HTMLTableSectionElement>document.getElementById('memory-table-body');
             memoryTableBody.innerHTML = '';
             if (_MemoryAccessor) {
@@ -191,7 +190,6 @@ module TSOS {
         }
 
         public static updatePcbDisplay(): void {
-            //const pcbTableBody = document.getElementById('pcb-table-body');
             const pcbTableBody = <HTMLTableSectionElement>document.getElementById('pcb-table-body');
             pcbTableBody.innerHTML = ''; // Clear existing table
             if (_Kernel && _Kernel.residentList.length > 0) {
