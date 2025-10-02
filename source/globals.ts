@@ -47,6 +47,7 @@ var _KernelInterruptQueue: TSOS.Queue = null;
 var _KernelInputQueue: TSOS.Queue = null; 
 var _KernelBuffers = null; 
 
+//OS managers
 var _MemoryManager: TSOS.MemoryManager = null;
 
 // Standard input and output
