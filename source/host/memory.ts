@@ -6,12 +6,12 @@ module TSOS {
         private memory: number[];
 
         constructor() {
-            this.memory = new Array(256).fill(0);
+            this.memory = new Array(256).fill(0x00);
         }
 
         public init(): void {
             // Initialize all memory locations to 0.
-            this.memory.fill(0);
+            this.memory.fill(0x00);
         }
 
         public read(address: number): number {
