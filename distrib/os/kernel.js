@@ -27,8 +27,8 @@ var TSOS;
             // Initialize standard input and output to the _Console.
             _StdIn = _Console;
             _StdOut = _Console;
-            //instance for memory manager 
-            _MemoryManager = new TSOS.MemoryManager();
+            //instance for memory manager. after this code got added the command prompts stopped showing up
+            //_MemoryManager = new MemoryManager();
             // Load the Keyboard Device Driver
             this.krnTrace("Loading the keyboard device driver.");
             _krnKeyboardDriver = new TSOS.DeviceDriverKeyboard(); // Construct it.
