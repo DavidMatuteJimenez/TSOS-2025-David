@@ -65,6 +65,16 @@ var TSOS;
             // ps  - list the running processes and their IDs
             // kill <id> - kills the specified process id.
             // Display the initial prompt.
+            _StdOut.putText("Commands:");
+            for (var i in this.commandList) {
+                _StdOut.advanceLine();
+                _StdOut.putText("  " +
+                    this.commandList[i].command +
+                    " " +
+                    this.commandList[i].description);
+            }
+            _StdOut.advanceLine();
+            _StdOut.advanceLine();
             this.putPrompt();
         }
         putPrompt() {

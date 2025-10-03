@@ -141,6 +141,20 @@ module TSOS {
       // kill <id> - kills the specified process id.
 
       // Display the initial prompt.
+// added this so the shell commands can show up on screen when i start the browser
+      _StdOut.putText("Commands:");
+      for (var i in this.commandList) {
+        _StdOut.advanceLine();
+        _StdOut.putText(
+          "  " +
+          this.commandList[i].command +
+          " " +
+          this.commandList[i].description
+        );
+      }
+      _StdOut.advanceLine();
+      _StdOut.advanceLine();
+//ends here 
       this.putPrompt();
     }
 
@@ -461,7 +475,7 @@ module TSOS {
         }
       }
 
-    public shellRun(args: string[]) { // New shell command to run a program [cite: 12]
+    public shellRun(args: string[]) { 
       if (args.length === 0) {
           _StdOut.putText("Usage: run <pid>. Please provide a Process ID.");
           return;
