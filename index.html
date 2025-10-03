@@ -2,22 +2,69 @@
 <html lang="en">
 <head>
   <style>
-         table { width: 40%; border-collapse: collapse; min-width: 520px; }
-   thead th {
-     text-align: left;
-     padding: 12px 16px;
-     background: #0f172a;
-     color: #fff;
-     font-size: 0.95rem;
-     letter-spacing: 0.02em;
-   }
-   tbody td {
-     padding: 12px 16px;
-     border-top: 1px solid #e6eef6;
-     font-size: 0.95rem;
-   }
-   tbody tr:nth-child(even) { background: #fbfdff; }
-   caption { padding: 12px 16px; text-align: left; font-weight: 600; color:#0f172a; }
+/* === CPU Display Styles === */
+/* Layout fix */
+#cpuMemoryContainer {
+    display: flex;
+    flex-direction: column; /* stack vertically */
+    gap: 20px; /* space between CPU and Memory */
+    margin: 20px 0;
+  }
+#cpuDisplay table { 
+      width: 40%; 
+      border-collapse: collapse; 
+      min-width: 520px;
+    }
+    #cpuDisplay thead th {
+      text-align: left;
+      padding: 12px 16px;
+      background: #0f172a;
+      color: #fff;
+      font-size: 0.95rem;
+      letter-spacing: 0.02em;
+    }
+    #cpuDisplay tbody td {
+      padding: 12px 16px;
+      border-top: 1px solid #e6eef6;
+      font-size: 0.95rem;
+    }
+    #cpuDisplay tbody tr:nth-child(even) { background: #fbfdff; }
+    #cpuDisplay caption { 
+      padding: 12px 16px; 
+      text-align: left; 
+      font-weight: 600; 
+      color:#0f172a; 
+    }
+
+    /* === Memory Display Styles === */
+    .memory-container {
+      width: 200px;   /* adjust as needed */
+      height: 100px;  /* scrollable height */
+      overflow: auto;
+      border: 1px solid #ccc;
+      font-family: monospace;
+    }
+    .memory-container table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+    .memory-container th, 
+    .memory-container td {
+      border: 1px solid #ddd;
+      text-align: center;
+      padding: 4px;
+    }
+    .memory-container th {
+      background: #f4f4f4;
+      position: sticky;
+      top: 0;
+      z-index: 2; /* keeps header above */
+    }
+    .memory-container .address {
+      background: #f9f9f9;
+      font-weight: bold;
+      text-align: left;
+    }
   </style>
   <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
   <meta name="author"             content="Alan G. Labouseur" />
@@ -30,7 +77,7 @@
   <script type="text/javascript" src="distrib/globals.js"></script>
   <script type="text/javascript"src="distrib/host/memory.js"></script>
   <script type="text/javascript"src="distrib/host/memoryAccessor.js"></script>
-  <!--<script type="text/javascript"src="distrib/host/memoryManagers.js"></script> -->
+  <script type="text/javascript"src="distrib/os/memoryManagers.js"></script> 
   <!-- <script type="text/javascript"src="distrib/host/pcb.js"></script> -->
   <script type="text/javascript" src="distrib/host/control.js"></script>
   <script type="text/javascript" src="distrib/host/devices.js"></script>
@@ -98,12 +145,6 @@
  
   <div id="Date and Time" style="background-color: #333; color: white; padding: 5px; font-family: monospace; display: flex; justify-content: space-between;">
        <span id="dateAndTime"></span>
-       <script>
-         //added this because date and time was not showing up on the task bar 
-         setInterval(function() {
-           document.getElementById('dateAndTime').textContent = new Date().toLocaleString();
-         }, 1000);
-       </script>
    </div>
    <div id="taskbar" style="background-color: #333; color: white; padding: 5px; font-family: monospace; display: flex; justify-content: space-between;">
      <span id="taskbarStatus">Status: taskbar</span>
@@ -146,66 +187,54 @@
 </div>
 
 
-<div id="memoryDisplay" style="margin-left:520px;">
-  <label>
-     
-     <br>
+<div id="cpuMemoryContainer">
+  
+   <!-- Memory Display -->
+   <div class="memory-container">
      <table>
-        <caption id="tbl-caption">Memory</caption>
-        <thead>
-          <tr>
-            <th scope="col">PC</th>
-            <th scope="col">IR</th>
-            <th scope="col">ACC</th>
-            <th scope="col">X</th>
-            <th scope="col">Y</th>
-            <th scope="col">Z</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <!-- Replace these sample values with your actual data -->
-            <td id = "cpu-pc">0</td>
-            <td id = "cpu-ir">0</td>
-            <td id = "cpu-acc">0</td>
-            <td id = "cpu-x">0</td>
-            <td id = "cpu-y">0</td>
-            <td id = "cpu-z">0</td>
-          </tr>
-        </tbody>
-      </table>
-  </label>
-</div>
+       <thead>
+         <tr>
+           <th>Address</th>
+           <th>+0</th><th>+1</th><th>+2</th><th>+3</th>
+           <th>+4</th><th>+5</th><th>+6</th><th>+7</th>
+           <th>+8</th><th>+9</th><th>+A</th><th>+B</th>
+           <th>+C</th><th>+D</th><th>+E</th><th>+F</th>
+         </tr>
+       </thead>
+       <tbody id = "memoryDisplayTbody">
 
-<div id="cpuDisplay" style="margin-left:520px;">
-  <label>
-     <br>
+       </tbody>
+     </table>
+   </div>
+ 
+   <!-- CPU Display -->
+   <div id="cpuDisplay">
      <table>
-        <caption id="tbl-caption">CPU</caption>
-        <thead>
-          <tr>
-            <th scope="col">PC</th>
-            <th scope="col">IR</th>
-            <th scope="col">ACC</th>
-            <th scope="col">X</th>
-            <th scope="col">Y</th>
-            <th scope="col">Z</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <!-- Replace these sample values with your actual data -->
-            <td id = "cpu-pc">0</td>
-            <td id = "cpu-ir">0</td>
-            <td id = "cpu-acc">0</td>
-            <td id = "cpu-x">0</td>
-            <td id = "cpu-y">0</td>
-            <td id = "cpu-z">0</td>
-          </tr>
-        </tbody>
-      </table>
-  </label>
-</div>
+       <caption id="tbl-caption">CPU</caption>
+       <thead>
+         <tr>
+           <th scope="col">PC</th>
+           <th scope="col">IR</th>
+           <th scope="col">ACC</th>
+           <th scope="col">X</th>
+           <th scope="col">Y</th>
+           <th scope="col">Z</th>
+         </tr>
+       </thead>
+       <tbody>
+         <tr>
+           <td id="cpu-pc">0</td>
+           <td id="cpu-ir">0</td>
+           <td id="cpu-acc">0</td>
+           <td id="cpu-x">0</td>
+           <td id="cpu-y">0</td>
+           <td id="cpu-z">0</td>
+         </tr>
+       </tbody>
+     </table>
+   </div>
+ 
+ </div>
 
 
 <p class="footerText" style="clear:both;">

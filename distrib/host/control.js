@@ -31,6 +31,7 @@ var TSOS;
             document.getElementById("dateAndTime").innerHTML = new Date().toLocaleString();
         }
         static hostInit() {
+            Control.createMemoryDisplay();
             // This is called from index.html's onLoad event via the onDocumentLoad function pointer.
             // Get a global reference to the canvas.  TODO: Should we move this stuff into a Display Device Driver?
             _Canvas = document.getElementById('display');
@@ -128,7 +129,7 @@ var TSOS;
             }
         }
         static updateMemoryDisplay() {
-            const memoryTableBody = document.getElementById('memory-table-body');
+            /*const memoryTableBody = <HTMLTableSectionElement>document.getElementById('memory-table-body');
             memoryTableBody.innerHTML = '';
             if (_MemoryAccessor) {
                 for (let i = 0; i < 256; i += 8) {
@@ -141,7 +142,21 @@ var TSOS;
                         row.insertCell(j + 1).innerText = value.toString(16).toUpperCase().padStart(2, '0');
                     }
                 }
+            }*/
+            let tBody = document.getElementById("memoryDisplayTbody");
+            let maxAddress = 0xF;
+            let content = "";
+            for (let a = 0; a <= maxAddress; a++) {
+                let address = a * 0x10;
+                let rowAddress = address.toString(16).toUpperCase().padStart(4, '0');
+                content += `<tr><td class="address">${rowAddress}</td>`;
+                for (let i = 0; i <= maxAddress; i++) {
+                    let memValue = _MemoryAccessor.read(address + i).toString(16).toUpperCase().padStart(2, '0');
+                    content += `<td>${memValue}</td>`;
+                }
+                content += `</tr>`;
             }
+            tBody.innerHTML = content;
         }
         static updatePcbDisplay() {
             const pcbTableBody = document.getElementById('pcb-table-body');
@@ -158,6 +173,22 @@ var TSOS;
                     row.insertCell(6).innerText = pcb.zFlag.toString();
                 }
             }
+        }
+        static createMemoryDisplay() {
+            let tBody = document.getElementById("memoryDisplayTbody");
+            let maxAddress = 0xF;
+            let content = "";
+            for (let a = 0; a <= maxAddress; a++) {
+                let rowAddress = (a * 0x10).toString(16).toUpperCase().padStart(4, '0');
+                content += `<tr>
+           <td class="address">${rowAddress}</td>
+           <td>00</td><td>00</td><td>00</td><td>00</td>
+           <td>00</td><td>00</td><td>00</td><td>00</td>
+           <td>00</td><td>00</td><td>00</td><td>00</td>
+           <td>00</td><td>00</td><td>00</td><td>00</td>
+         </tr>`;
+            }
+            tBody.innerHTML = content;
         }
     }
     TSOS.Control = Control;
