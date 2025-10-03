@@ -31,7 +31,6 @@ var TSOS;
             document.getElementById("dateAndTime").innerHTML = new Date().toLocaleString();
         }
         static hostInit() {
-            Control.createMemoryDisplay();
             // This is called from index.html's onLoad event via the onDocumentLoad function pointer.
             // Get a global reference to the canvas.  TODO: Should we move this stuff into a Display Device Driver?
             _Canvas = document.getElementById('display');
@@ -46,9 +45,9 @@ var TSOS;
             // Use the TypeScript cast to HTMLInputElement
             document.getElementById("btnStartOS").focus();
             // In Control.ts, inside the Control class
-            this.updateCpuDisplay();
-            this.updateMemoryDisplay();
-            this.updatePcbDisplay();
+            //this.updateCpuDisplay();
+            //this.updateMemoryDisplay();
+            //this.updatePcbDisplay();
             // Check for our testing and enrichment core, which
             // may be referenced here (from index.html) as function Glados().
             if (typeof Glados === "function") {
@@ -93,6 +92,7 @@ var TSOS;
             // .. and call the OS Kernel Bootstrap routine.
             _Kernel = new TSOS.Kernel();
             _Kernel.krnBootstrap(); // _GLaDOS.afterStartup() will get called in there, if configured.
+            Control.createMemoryDisplay();
         }
         static hostBtnHaltOS_click(btn) {
             Control.hostLog("Emergency halt", "host");

@@ -37,7 +37,6 @@ module TSOS {
         }
 
         public static hostInit(): void {
-            Control.createMemoryDisplay()
             // This is called from index.html's onLoad event via the onDocumentLoad function pointer.
  
  
@@ -64,9 +63,9 @@ module TSOS {
  
             // In Control.ts, inside the Control class
 
-            this.updateCpuDisplay();
-            this.updateMemoryDisplay();
-            this.updatePcbDisplay();
+            //this.updateCpuDisplay();
+            //this.updateMemoryDisplay();
+            //this.updatePcbDisplay();
 
             // Check for our testing and enrichment core, which
             // may be referenced here (from index.html) as function Glados().
@@ -135,6 +134,7 @@ module TSOS {
             // .. and call the OS Kernel Bootstrap routine.
             _Kernel = new Kernel();
             _Kernel.krnBootstrap();  // _GLaDOS.afterStartup() will get called in there, if configured.
+            Control.createMemoryDisplay()
         }
  
  
