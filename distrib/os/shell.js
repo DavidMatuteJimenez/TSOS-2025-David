@@ -65,6 +65,7 @@ var TSOS;
             // ps  - list the running processes and their IDs
             // kill <id> - kills the specified process id.
             // Display the initial prompt.
+            // added this so the shell commands can show up on screen when i start the browser
             _StdOut.putText("Commands:");
             for (var i in this.commandList) {
                 _StdOut.advanceLine();
@@ -75,6 +76,7 @@ var TSOS;
             }
             _StdOut.advanceLine();
             _StdOut.advanceLine();
+            //ends here 
             this.putPrompt();
         }
         putPrompt() {

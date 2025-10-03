@@ -33,6 +33,9 @@ module TSOS {
             _StdIn  = _Console;
             _StdOut = _Console;
 
+            //instance for memory manager 
+            _MemoryManager = new MemoryManager();
+
             // Load the Keyboard Device Driver
             this.krnTrace("Loading the keyboard device driver.");
             _krnKeyboardDriver = new DeviceDriverKeyboard();     // Construct it.
