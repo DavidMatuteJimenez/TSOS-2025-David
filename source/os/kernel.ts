@@ -32,6 +32,7 @@ module TSOS {
             // Initialize standard input and output to the _Console.
             _StdIn  = _Console;
             _StdOut = _Console;
+            
 
             //instance for memory manager. after this code got added the command prompts stopped showing up
             _MemoryManager = new MemoryManager();

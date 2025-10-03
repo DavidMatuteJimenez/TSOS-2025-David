@@ -10,12 +10,12 @@
     gap: 20px; /* space between CPU and Memory */
     margin: 20px 0;
   }
-#cpuDisplay table { 
+.pcbCpuDisplay table { 
       width: 40%; 
       border-collapse: collapse; 
       min-width: 520px;
     }
-    #cpuDisplay thead th {
+    .pcbCpuDisplay thead th {
       text-align: left;
       padding: 12px 16px;
       background: #0f172a;
@@ -23,13 +23,13 @@
       font-size: 0.95rem;
       letter-spacing: 0.02em;
     }
-    #cpuDisplay tbody td {
+    .pcbCpuDisplay tbody td {
       padding: 12px 16px;
       border-top: 1px solid #e6eef6;
       font-size: 0.95rem;
     }
-    #cpuDisplay tbody tr:nth-child(even) { background: #fbfdff; }
-    #cpuDisplay caption { 
+    .pcbCpuDisplayy tbody tr:nth-child(even) { background: #fbfdff; }
+    .pcbCpuDisplay caption { 
       padding: 12px 16px; 
       text-align: left; 
       font-weight: 600; 
@@ -208,7 +208,7 @@
    </div>
  
    <!-- CPU Display -->
-   <div id="cpuDisplay">
+   <div id="cpuDisplay" class = "pcbCpuDisplay">
      <table>
        <caption id="tbl-caption">CPU</caption>
        <thead>
@@ -233,39 +233,41 @@
        </tbody>
      </table>
    </div>
- 
- </div>
-
- <!-- CPU Display -->
- <div id="pcbDisplay">
+ <!-- PCB Display -->
+ <div id ="pcbDisplay" class = "pcbCpuDisplay">
    <table>
      <caption id="tbl-caption">Proccess </caption>
      <thead>
        <tr>
+         <th scope="col">PID</th>
          <th scope="col">PC</th>
          <th scope="col">IR</th>
          <th scope="col">ACC</th>
          <th scope="col">X</th>
          <th scope="col">Y</th>
          <th scope="col">Z</th>
-         <th scope="col">Z</th>
+         <th scope="col">Priority</th>
+         <th scope="col">State</th>
+         <th scope="col">Location</th>
        </tr>
      </thead>
      <tbody>
        <tr>
-         <td id="cpu-pc">0</td>
-         <td id="cpu-ir">0</td>
-         <td id="cpu-acc">0</td>
-         <td id="cpu-x">0</td>
-         <td id="cpu-y">0</td>
-         <td id="cpu-z">0</td>
+         <td id="pcb-PID">0</td>
+         <td id="pcb-PC">0</td>
+         <td id="cpcb-IR">0</td>
+         <td id="pcb-ACC">0</td>
+         <td id="pcb-X">0</td>
+         <td id="pcb-Y">0</td>
+         <td id="pcb-Z">0</td>
+         <td id="pcb-Priority">0</td>
+         <td id="pcb-State">0</td>
+         <td id="pcb-Location">0</td>
        </tr>
      </tbody>
    </table>
  </div>
-
-
-
+ </div>
 
 <p class="footerText" style="clear:both;">
   <br>
