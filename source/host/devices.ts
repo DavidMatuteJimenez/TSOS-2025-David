@@ -32,7 +32,7 @@ module TSOS {
             // Call the kernel clock pulse event handler.
             _Kernel.krnOnCPUClockPulse();
 
-            // Update GUI displays.
+            // Update GUI displays.s
             Control.updateCpuDisplay();
             Control.updateMemoryDisplay();
             Control.updatePcbDisplay();
