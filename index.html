@@ -98,6 +98,11 @@
  
   <div id="Date and Time" style="background-color: #333; color: white; padding: 5px; font-family: monospace; display: flex; justify-content: space-between;">
        <span id="dateAndTime"></span>
+       <script>
+         setInterval(function() {
+           document.getElementById('dateAndTime').textContent = new Date().toLocaleString();
+         }, 1000);
+       </script>
    </div>
    <div id="taskbar" style="background-color: #333; color: white; padding: 5px; font-family: monospace; display: flex; justify-content: space-between;">
      <span id="taskbarStatus">Status: taskbar</span>
