@@ -29,9 +29,8 @@ module TSOS {
  
         // sets task bar 
         public static setTaskbarMessage(message: string) {
-            document.getElementById("taskbar").innerHTML = message
+            document.getElementById("taskbarStatus").innerHTML = message
         }
-
         public static setDateAndTime() {
             document.getElementById("dateAndTime").innerHTML = new Date().toLocaleString();
         }
