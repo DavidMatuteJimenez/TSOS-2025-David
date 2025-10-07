@@ -134,6 +134,9 @@ module TSOS {
             _Kernel = new Kernel();
             _Kernel.krnBootstrap();  // _GLaDOS.afterStartup() will get called in there, if configured.
             Control.createMemoryDisplay()
+
+            Control.setDateAndTime();
+            //Control.setTaskbarMessage("System Running");
         }
  
  

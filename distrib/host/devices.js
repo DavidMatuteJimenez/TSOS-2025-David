@@ -28,7 +28,7 @@ var TSOS;
             _OSclock++;
             // Call the kernel clock pulse event handler.
             _Kernel.krnOnCPUClockPulse();
-            // Update GUI displays.
+            // Update GUI displays.s
             TSOS.Control.updateCpuDisplay();
             TSOS.Control.updateMemoryDisplay();
             TSOS.Control.updatePcbDisplay();

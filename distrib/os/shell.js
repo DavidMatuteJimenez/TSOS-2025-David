@@ -381,6 +381,7 @@ var TSOS;
             }
             // Load PCB state into CPU
             _CPU.PC = pcbToRun.pc;
+            _CPU.IR = pcbToRun.ir;
             _CPU.Acc = pcbToRun.acc;
             _CPU.Xreg = pcbToRun.xReg;
             _CPU.Yreg = pcbToRun.yReg;

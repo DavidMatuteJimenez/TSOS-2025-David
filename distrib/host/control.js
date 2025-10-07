@@ -25,7 +25,7 @@ var TSOS;
     class Control {
         // sets task bar 
         static setTaskbarMessage(message) {
-            document.getElementById("taskbar").innerHTML = message;
+            document.getElementById("taskbarStatus").innerHTML = message;
         }
         static setDateAndTime() {
             document.getElementById("dateAndTime").innerHTML = new Date().toLocaleString();
@@ -93,6 +93,8 @@ var TSOS;
             _Kernel = new TSOS.Kernel();
             _Kernel.krnBootstrap(); // _GLaDOS.afterStartup() will get called in there, if configured.
             Control.createMemoryDisplay();
+            Control.setDateAndTime();
+            //Control.setTaskbarMessage("System Running");
         }
         static hostBtnHaltOS_click(btn) {
             Control.hostLog("Emergency halt", "host");
@@ -159,7 +161,7 @@ var TSOS;
             tBody.innerHTML = content;
         }
         static updatePcbDisplay() {
-            const pcbTableBody = document.getElementById('pcb-table-body');
+            /*const pcbTableBody = <HTMLTableSectionElement>document.getElementById('pcb-table-body');
             pcbTableBody.innerHTML = ''; // Clear existing table
             if (_Kernel && _Kernel.residentList.length > 0) {
                 for (const pcb of _Kernel.residentList) {
@@ -172,6 +174,31 @@ var TSOS;
                     row.insertCell(5).innerText = pcb.yReg.toString(16).toUpperCase();
                     row.insertCell(6).innerText = pcb.zFlag.toString();
                 }
+            }*/
+            if (_Kernel.runningPcb) {
+                document.getElementById('pcb-PID').innerText = _Kernel.runningPcb.pid.toString();
+                document.getElementById('pcb-PC').innerText = _Kernel.runningPcb.pc.toString(16).toUpperCase().padStart(4, '0');
+                document.getElementById('pcb-IR').innerText = _Kernel.runningPcb.ir.toString(16).toUpperCase().padStart(2, '0');
+                document.getElementById('pcb-ACC').innerText = _Kernel.runningPcb.acc.toString(16).toUpperCase().padStart(2, '0');
+                document.getElementById('pcb-X').innerText = _Kernel.runningPcb.xReg.toString(16).toUpperCase().padStart(2, '0');
+                document.getElementById('pcb-Y').innerText = _Kernel.runningPcb.yReg.toString(16).toUpperCase().padStart(2, '0');
+                document.getElementById('pcb-Z').innerText = _Kernel.runningPcb.zFlag.toString();
+                document.getElementById('pcb-Priority').innerText = _Kernel.runningPcb.priority.toString();
+                document.getElementById('pcb-State').innerText = _Kernel.runningPcb.state;
+                document.getElementById('pcb-Location').innerText = _Kernel.runningPcb.location.toString();
+            }
+            else {
+                // clear if no CPU
+                document.getElementById('pcb-PID').innerText = "0";
+                document.getElementById('pcb-PC').innerText = "00";
+                document.getElementById('pcb-IR').innerText = "00";
+                document.getElementById('pcb-ACC').innerText = "00";
+                document.getElementById('pcb-X').innerText = "00";
+                document.getElementById('pcb-Y').innerText = "00";
+                document.getElementById('pcb-Z').innerText = "0";
+                document.getElementById('pcb-Priority').innerText = "n/a";
+                document.getElementById('pcb-State').innerText = "n/a";
+                document.getElementById('pcb-Location').innerText = "n/a";
             }
         }
         static createMemoryDisplay() {
