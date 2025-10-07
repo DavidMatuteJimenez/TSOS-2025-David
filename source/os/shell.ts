@@ -489,12 +489,13 @@ module TSOS {
           return;
       }
       
-      // Load PCB state into CPU
-      _CPU.PC = pcbToRun.pc;
-      _CPU.Acc = pcbToRun.acc;
-      _CPU.Xreg = pcbToRun.xReg;
-      _CPU.Yreg = pcbToRun.yReg;
-      _CPU.Zflag = pcbToRun.zFlag;
+       // Load PCB state into CPU
+    _CPU.PC = pcbToRun.pc;
+    _CPU.IR = pcbToRun.ir;
+    _CPU.Acc = pcbToRun.acc;
+    _CPU.Xreg = pcbToRun.xReg;
+    _CPU.Yreg = pcbToRun.yReg;
+    _CPU.Zflag = pcbToRun.zFlag;
       
       pcbToRun.state = "Running";
       _Kernel.runningPcb = pcbToRun;
