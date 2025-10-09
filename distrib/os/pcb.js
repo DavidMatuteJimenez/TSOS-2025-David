@@ -11,7 +11,7 @@ var TSOS;
         zFlag;
         priority;
         location;
-        constructor(pid, state = "new", pc = 0, ir = 0, acc = 0, xReg = 0, yReg = 0, zFlag = 0, priority = "new", location = 0) {
+        constructor(pid, state = "resident", pc = 0, ir = 0, acc = 0, xReg = 0, yReg = 0, zFlag = 0, priority = 0, location = "memory") {
             this.pid = pid;
             this.state = state;
             this.pc = pc;

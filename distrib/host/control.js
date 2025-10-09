@@ -23,6 +23,7 @@
 var TSOS;
 (function (TSOS) {
     class Control {
+        static paused = false;
         // sets task bar 
         static setTaskbarMessage(message) {
             document.getElementById("taskbarStatus").innerHTML = message;
@@ -110,10 +111,10 @@ var TSOS;
             location.reload();
         }
         static onPauseClick(btn) {
-            _CPU.isExecuting = !_CPU.isExecuting;
+            Control.paused = !Control.paused;
             let button = document.getElementById("btnStepOS");
-            button.innerHTML = _CPU.isExecuting ? "pause" : "continue";
-            button.disabled = _CPU.isExecuting;
+            btn.value = Control.paused ? "continue" : "pause";
+            button.disabled = !Control.paused;
         }
         static onStepClick(btn) {
             _CPU.cycle();
@@ -185,6 +186,12 @@ var TSOS;
                 }
             }*/
             if (_Kernel.runningPcb) {
+                _Kernel.runningPcb.pc = _CPU.PC;
+                _Kernel.runningPcb.ir = _CPU.IR;
+                _Kernel.runningPcb.acc = _CPU.Acc;
+                _Kernel.runningPcb.xReg = _CPU.Xreg;
+                _Kernel.runningPcb.yReg = _CPU.Yreg;
+                _Kernel.runningPcb.zFlag = _CPU.Zflag;
                 document.getElementById('pcb-PID').innerText = _Kernel.runningPcb.pid.toString();
                 document.getElementById('pcb-PC').innerText = _Kernel.runningPcb.pc.toString(16).toUpperCase().padStart(4, '0');
                 document.getElementById('pcb-IR').innerText = _Kernel.runningPcb.ir.toString(16).toUpperCase().padStart(2, '0');

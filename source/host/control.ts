@@ -26,6 +26,7 @@ module TSOS {
 
 
     export class Control {
+        public static paused: boolean = false
  
         // sets task bar 
         public static setTaskbarMessage(message: string) {
@@ -157,10 +158,10 @@ module TSOS {
         }
 
         public static onPauseClick (btn): void {
-            _CPU.isExecuting = !_CPU.isExecuting;
+            Control.paused = !Control.paused;
             let button =(document.getElementById("btnStepOS")as HTMLInputElement);
-            button.innerHTML = _CPU.isExecuting? "pause": "continue"
-            button.disabled = _CPU.isExecuting
+            btn.value = Control.paused? "continue": "pause"
+            button.disabled = !Control.paused
         }
 
         public static onStepClick (btn): void {
@@ -239,6 +240,13 @@ module TSOS {
                 }
             }*/
                 if (_Kernel.runningPcb) {
+                    _Kernel.runningPcb.pc = _CPU.PC
+                    _Kernel.runningPcb.ir = _CPU.IR
+                    _Kernel.runningPcb.acc = _CPU.Acc
+                    _Kernel.runningPcb.xReg = _CPU.Xreg
+                    _Kernel.runningPcb.yReg = _CPU.Yreg
+                    _Kernel.runningPcb.zFlag = _CPU.Zflag
+
                     document.getElementById('pcb-PID').innerText = _Kernel.runningPcb.pid.toString();
                     document.getElementById('pcb-PC').innerText = _Kernel.runningPcb.pc.toString(16).toUpperCase().padStart(4, '0');
                     document.getElementById('pcb-IR').innerText = _Kernel.runningPcb.ir.toString(16).toUpperCase().padStart(2, '0');
