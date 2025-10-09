@@ -141,6 +141,23 @@
             value="Reset"
             tabindex="2"
             onclick="TSOS.Control.hostBtnReset_click(this);">
+      
+            <input type="button"
+            id = "btnPauseOS"
+            name="pauseBtnOS"
+            class="normal_button"
+            value="pause"
+            tabindex="1"
+            onclick="TSOS.Control.onPauseClick(this);">
+    
+            <input type="button"
+            id = "btnStepOS"
+            name="stepBtnOS"
+            class="normal_button"
+            disabled="disabled"
+            value="step"
+            tabindex="1"
+            onclick="TSOS.Control.onStepClick(this);">
   </div>
  
   <div id="Date and Time" style="background-color: #333; color: white; padding: 5px; font-family: monospace; display: flex; justify-content: space-between;">

@@ -156,6 +156,17 @@ module TSOS {
             location.reload();
         }
 
+        public static onPauseClick (btn): void {
+            _CPU.isExecuting = !_CPU.isExecuting;
+            let button =(document.getElementById("btnStepOS")as HTMLInputElement);
+            button.innerHTML = _CPU.isExecuting? "pause": "continue"
+            button.disabled = _CPU.isExecuting
+        }
+
+        public static onStepClick (btn): void {
+            _CPU.cycle()
+        }
+
         // GUI Display Update Routines
         //
         public static updateCpuDisplay(): void {

@@ -109,6 +109,15 @@ var TSOS;
             // The easiest and most thorough way to do this is to reload (not refresh) the document.
             location.reload();
         }
+        static onPauseClick(btn) {
+            _CPU.isExecuting = !_CPU.isExecuting;
+            let button = document.getElementById("btnStepOS");
+            button.innerHTML = _CPU.isExecuting ? "pause" : "continue";
+            button.disabled = _CPU.isExecuting;
+        }
+        static onStepClick(btn) {
+            _CPU.cycle();
+        }
         // GUI Display Update Routines
         //
         static updateCpuDisplay() {
