@@ -130,7 +130,6 @@ var TSOS;
                             charCode = _MemoryAccessor.read(tempAddress);
                         }
                     }
-                    _Kernel.endProgram(); // Project 2 has one program, so SYS call will also end it.
                     break;
                 default:
                     _Kernel.krnTrapError(`Invalid op code: ${this.IR.toString(16).toUpperCase()} at PC=${(this.PC - 1).toString(16).toUpperCase()}`);

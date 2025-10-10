@@ -143,7 +143,6 @@
                                 charCode = _MemoryAccessor.read(tempAddress);
                             }
                         }
-                        _Kernel.endProgram(); // Project 2 has one program, so SYS call will also end it.
                         break;
                     
                     default:
