@@ -1,2 +1,5 @@
+build:
+	clang++ -std=c++20 -Wall -o schedSim sched_start.cpp
+
 run:
-	clang -std=c++20 -Wall -o schedSim sched_start.cpp
+	build && ./schedSim
