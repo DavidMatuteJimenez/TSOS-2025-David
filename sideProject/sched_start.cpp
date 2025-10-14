@@ -23,7 +23,7 @@ using std::vector;
 #include <cmath>        // tgamma (for factorial)
 #include <iterator>     // size for arrays
 
-
+#include <cstring>      // strcmp// added 
 //
 // Global structures, constants, and variables
 //
