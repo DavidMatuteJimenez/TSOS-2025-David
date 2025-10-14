@@ -1,5 +1,11 @@
-build:
-	clang++ -std=c++20 -Wall -o schedSim sched_start.cpp
+CC=clang++
+CPPARGS=-std=c++20 -Wall
+CPPDEBUGARGS=-g -O0
+BIN=schedSim
+SRC=sched_start.cpp
 
-run:
-	build && ./schedSim
+build:
+	$(CC) $(CPPARGS) -o $(BIN) $(SRC)
+
+run: build
+	./$(BIN)
