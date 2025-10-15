@@ -96,7 +96,23 @@ float calcAverageWaitTime(Process processes[],
    u_long wtSum = 0;
    // . . .
 
-   
+   for (int i = 0; i < _NumProcesses; i++) {
+      int completionTime = 0;
+      
+      // Find the last occurrence of this process in the timeline
+      
+      //calculated wait time for each process
+      for (size_t time = 0; time < timeline.length(); time++) {
+         if (timeline[time] == processes[i].id) {
+            completionTime = time + 1;  // +1 because time is 0-indexed
+         }
+      }
+      
+      // Wait time = turnaround time - burst time
+      // Wait time = (completion time - arrival time) - cycles
+      int waitTime = (completionTime - processes[i].arrivalTime) - processes[i].cycles;
+      wtSum += waitTime;
+   }
    return (static_cast<float>(wtSum) / _NumProcesses);
 }
 
