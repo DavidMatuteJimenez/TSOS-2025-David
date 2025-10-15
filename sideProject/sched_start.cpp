@@ -58,14 +58,17 @@ bool checkTimelineValidity(Process processes[],
       //finds the corresponding process in the process arrray
       for (int i = 0; i < _NumProcesses; i++){
          if (processes[i].id == processId) {
-            isValid = false;
-            return isValid; // to check for error 
+            //isValid = false;
+            //return isValid; // to check for error
+            if (static_cast<int>(time) < processes[i].arrivalTime) {
+               return false;  // Invalid - process runs before arrival
          }
          break;
+         }
       }
    }
    // . . .
-   return isValid;
+   return true; // replaced isValid with true
 }
 
 float calcAverageTurnaroundTime(Process processes[],
@@ -100,7 +103,7 @@ float calcAverageWaitTime(Process processes[],
       int completionTime = 0;
       
       // Find the last occurrence of this process in the timeline
-      
+
       //calculated wait time for each process
       for (size_t time = 0; time < timeline.length(); time++) {
          if (timeline[time] == processes[i].id) {
