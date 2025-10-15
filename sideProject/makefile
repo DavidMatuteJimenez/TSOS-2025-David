@@ -5,7 +5,7 @@ BIN=schedSim
 SRC=sched_start.cpp
 
 build:
-	$(CC) $(CPPARGS) -o $(BIN) $(SRC)
+	$(CC) $(CPPARGS) $(CPPDEBUGARGS) -o $(BIN) $(SRC)
 
 run: build
 	./$(BIN)
