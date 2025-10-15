@@ -48,7 +48,7 @@ bool checkTimelineValidity(Process processes[],
                            string  timeline)
 {
    // A timeline is valid if it never tries to schedule a process into a time slot before it has arrived.
-   bool isValid = true;
+   //bool isValid = true;
 
    //This is for each time slot in the timeline
    for (size_t time = 0; time < timeline.length(); time++) {
@@ -58,8 +58,6 @@ bool checkTimelineValidity(Process processes[],
       //finds the corresponding process in the process arrray
       for (int i = 0; i < _NumProcesses; i++){
          if (processes[i].id == processId) {
-            //isValid = false;
-            //return isValid; // to check for error
             if (static_cast<int>(time) < processes[i].arrivalTime) {
                return false;  // Invalid - process runs before arrival
          }
