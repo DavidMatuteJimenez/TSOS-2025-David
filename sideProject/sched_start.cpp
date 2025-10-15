@@ -72,6 +72,22 @@ float calcAverageTurnaroundTime(Process processes[],
                                 const string& timeline) {
    u_long ttSum = 0;
    // . . .
+
+   //calculates turnaround time fro each process
+   for (int i = 0; i < _NumProcesses; i++) {
+      int completionTime = 0;
+      
+      // Find the last occurrence of this process in the timeline
+      for (size_t time = 0; time < timeline.length(); time++) {
+         if (timeline[time] == processes[i].id) {
+            completionTime = time + 1;  // +1 because time is 0-indexed
+         }
+      }
+      
+      // Turnaround time = completion time - arrival time
+      int turnaroundTime = completionTime - processes[i].arrivalTime;
+      ttSum += turnaroundTime;
+   }
    return (static_cast<float>(ttSum) / _NumProcesses);
 }
 
@@ -79,6 +95,8 @@ float calcAverageWaitTime(Process processes[],
                           string  timeline) {
    u_long wtSum = 0;
    // . . .
+
+   
    return (static_cast<float>(wtSum) / _NumProcesses);
 }
 
