@@ -1,0 +1,19 @@
+   Process pA{};
+   pA.id          = 'A';
+   pA.cycles      = 3;
+   pA.arrivalTime = 0;
+
+   Process pB{};
+   pB.id          = 'B';
+   pB.cycles      = 1;
+   pB.arrivalTime = 1;
+
+   Process pC{};
+   pC.id          = 'C';
+   pC.cycles      = 2;
+   pC.arrivalTime = 2;
+
+   // Put those process structures in an array Processes.
+   vector<Process>processes = {pA, pB, pC};
+   Process* processes_ptr = &processes[0];
+   int size = processes.size();

@@ -36,7 +36,7 @@ struct Process
    int  arrivalTime;
 };
 
-const int _NumProcesses = 3;  // TODO (bonus): Remove this and make it dynamic, from the command line.
+  // TODO (bonus): Remove this and make it dynamic, from the command line.
 bool _DEBUG = false;
 bool CSV   = false;
 
@@ -44,7 +44,8 @@ bool CSV   = false;
 //
 // Support Routines
 //
-bool checkTimelineValidity(Process processes[],
+bool checkTimelineValidity(Process* processes,
+                           int size,
                            string  timeline)
 {
    // A timeline is valid if it never tries to schedule a process into a time slot before it has arrived.
@@ -56,7 +57,7 @@ bool checkTimelineValidity(Process processes[],
 
 
       //finds the corresponding process in the process arrray
-      for (int i = 0; i < _NumProcesses; i++){
+      for (int i = 0; i < size; i++){
          if (processes[i].id == processId) {
             if (static_cast<int>(time) < processes[i].arrivalTime) {
                return false;  // Invalid - process runs before arrival
@@ -69,13 +70,14 @@ bool checkTimelineValidity(Process processes[],
    return true; // replaced isValid with true
 }
 
-float calcAverageTurnaroundTime(Process processes[],
+float calcAverageTurnaroundTime(Process* processes,
+                           int size,
                                 const string& timeline) {
    u_long ttSum = 0;
    // . . .
 
    //calculates turnaround time fro each process
-   for (int i = 0; i < _NumProcesses; i++) {
+   for (int i = 0; i < size; i++) {
       int completionTime = 0;
       
       // Find the last occurrence of this process in the timeline
@@ -89,15 +91,16 @@ float calcAverageTurnaroundTime(Process processes[],
       int turnaroundTime = completionTime - processes[i].arrivalTime;
       ttSum += turnaroundTime;
    }
-   return (static_cast<float>(ttSum) / _NumProcesses);
+   return (static_cast<float>(ttSum) / size);
 }
 
-float calcAverageWaitTime(Process processes[],
+float calcAverageWaitTime(Process* processes,
+                           int size,
                           string  timeline) {
    u_long wtSum = 0;
    // . . .
 
-   for (int i = 0; i < _NumProcesses; i++) {
+   for (int i = 0; i < size; i++) {
       int completionTime = 0;
       
       // Find the last occurrence of this process in the timeline
@@ -114,7 +117,7 @@ float calcAverageWaitTime(Process processes[],
       int waitTime = (completionTime - processes[i].arrivalTime) - processes[i].cycles;
       wtSum += waitTime;
    }
-   return (static_cast<float>(wtSum) / _NumProcesses);
+   return (static_cast<float>(wtSum) / size);
 }
 
 
@@ -142,23 +145,7 @@ int main(int argc, char* argv[])
    } // end if
 
    // Define processes. TODO (bonus): Make dynamic. Read from a file.
-   Process pA{};
-   pA.id          = 'A';
-   pA.cycles      = 3;
-   pA.arrivalTime = 0;
-
-   Process pB{};
-   pB.id          = 'B';
-   pB.cycles      = 1;
-   pB.arrivalTime = 1;
-
-   Process pC{};
-   pC.id          = 'C';
-   pC.cycles      = 2;
-   pC.arrivalTime = 2;
-
-   // Put those process structures in an array Processes.
-   Process processes[_NumProcesses] = {pA, pB, pC};
+  #include "./experiments.txt"
 
    // Other initializations
    string timeline = "";
@@ -185,7 +172,7 @@ int main(int argc, char* argv[])
    bool thereAreMorePermutations = true;
    while (thereAreMorePermutations) {
       // Is this timeline possibility valid? I.e., Does it use a process BEFORE it arrives? If so, it's not valid.
-      timelineIsValid = checkTimelineValidity(processes, timeline);
+      timelineIsValid = checkTimelineValidity(processes_ptr, size, timeline);
       cout << timeline << " ";
       if (timelineIsValid) {
          cout << "valid";
@@ -207,8 +194,8 @@ int main(int argc, char* argv[])
    float avgWaitTime       = 0.0;
    cout << validTimelines.size() << " Valid Timelines:" << endl;
    for (auto & validTimeline : validTimelines) {
-      avgTurnaroundTime = calcAverageTurnaroundTime(processes, validTimeline);
-      avgWaitTime       = calcAverageWaitTime(processes, validTimeline);
+      avgTurnaroundTime = calcAverageTurnaroundTime(processes_ptr, size, validTimeline);
+      avgWaitTime       = calcAverageWaitTime(processes_ptr, size, validTimeline);
       cout << validTimeline << ": avgTT = " << setprecision(3) << avgTurnaroundTime
            << "  avgWT = " << avgWaitTime << endl;
       if (CSV) {
