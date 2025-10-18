@@ -145,7 +145,7 @@ int main(int argc, char* argv[])
    } // end if
 
    // Define processes. TODO (bonus): Make dynamic. Read from a file.
-  #include "./experiments.txt"
+  #include "./experiment1.txt"
 
    // Other initializations
    string timeline = "";
