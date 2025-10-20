@@ -146,6 +146,7 @@ var TSOS;
                 this.putText(this.buffer); // reprint current buffer
             }
         }
+        //
         putText(text) {
             /*  My first inclination here was to write two functions: putChar() and putString().
                       Then I remembered that JavaScript is (sadly) untyped and it won't differentiate
