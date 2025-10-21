@@ -62,8 +62,15 @@ var TSOS;
             sc = new TSOS.ShellCommand(this.shellRun, "run", "<pid> - Runs a loaded program.");
             this.commandList[this.commandList.length] = sc;
             this.commandList[this.commandList.length] = new TSOS.ShellCommand(this.shellBsod, "bsod", "- Triggers a kernel trap error for testing BSOD.");
-            // ps  - list the running processes and their IDs
-            // kill <id> - kills the specified process id.
+            //clearmem
+            sc = new TSOS.ShellCommand(this.shellClearMem, "clearmem", "- clear	all	memory	segments.");
+            //runall
+            sc = new TSOS.ShellCommand(this.shellAllRun, "runall", "- execute	all	programs	at	once.");
+            //ps
+            sc = new TSOS.ShellCommand(this.shellPS, "ps", "- display	the	PID	and	state	of	all	processes.");
+            sc = new TSOS.ShellCommand(this.shellKill, "Kill<pid>", "- kill	one	process.");
+            sc = new TSOS.ShellCommand(this.shellKillAll, "killall", "- kill	all	process.");
+            sc = new TSOS.ShellCommand(this.shellQ, "q", "- let the user set	the	Round	Robin	quantum	.");
             // Display the initial prompt.
             // added this so the shell commands can show up on screen when i start the browser
             _StdOut.putText("Commands:");

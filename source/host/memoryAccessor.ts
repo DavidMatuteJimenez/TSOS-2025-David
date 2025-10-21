@@ -2,11 +2,21 @@
 module TSOS {
     export class MemoryAccessor {
         public read(address: number): number {
-            return _Memory.read(address);
+            if (address < 0 || address >= _Memory.memory.length) {
+                // Handle out-of-bounds access
+                _Kernel.krnTrapError("Memory access violation: Address out of bounds.");
+                return 0;
+            }
+            return _Memory.memory[address];
         }
 
         public write(address: number, value: number): void {
-            _Memory.write(address, value);
+            if (address < 0 || address >= _Memory.memory.length) {
+                // Handle out-of-bounds access
+                _Kernel.krnTrapError("Memory access violation: Address out of bounds.");
+                return;
+            }
+            _Memory.memory[address] = value & 0xFF;
         }
 
         // Helper function to read a two-byte address 
