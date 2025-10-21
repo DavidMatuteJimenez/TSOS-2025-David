@@ -137,9 +137,44 @@ module TSOS {
         "- Triggers a kernel trap error for testing BSOD."
       );
 
-      // ps  - list the running processes and their IDs
-      // kill <id> - kills the specified process id.
+      //clearmem
+      sc = new ShellCommand(
+        this.shellClearMem,
+        "clearmem",
+        "- clear	all	memory	segments."
+      );
 
+      //runall
+      sc = new ShellCommand(
+        this.shellAllRun,
+        "runall",
+        "- execute	all	programs	at	once."
+      );
+
+      //ps
+      sc = new ShellCommand(
+        this.shellPS,
+        "ps",
+        "- display	the	PID	and	state	of	all	processes."
+      );
+
+      sc = new ShellCommand(
+        this.shellKill,
+        "Kill<pid>",
+        "- kill	one	process."
+      );
+
+      sc = new ShellCommand(
+        this.shellKillAll,
+        "killall",
+        "- kill	all	process."
+      );
+
+      sc = new ShellCommand(
+        this.shellQ,
+        "q",
+        "- let the user set	the	Round	Robin	quantum	."
+      );
       // Display the initial prompt.
 // added this so the shell commands can show up on screen when i start the browser
       _StdOut.putText("Commands:");
@@ -337,7 +372,6 @@ module TSOS {
           case "prompt":
             _StdOut.putText("prompt - sets the prompt.");
             break;
-
           case "run":
             _StdOut.putText("run <pid> - Executes a program that has been loaded into memory.");
             break;
