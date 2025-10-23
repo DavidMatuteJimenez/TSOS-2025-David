@@ -12,6 +12,7 @@ var TSOS;
         residentList = [];
         pidCounter = 0;
         runningPcb = null;
+        _Dispacher = null;
         //
         // OS Startup and Shutdown Routines
         //
@@ -29,6 +30,8 @@ var TSOS;
             _StdOut = _Console;
             //instance for memory manager. after this code got added the command prompts stopped showing up
             _MemoryManager = new TSOS.MemoryManager();
+            _Scheduler = new TSOS.Scheduler();
+            _Dispacher = new TSOS.Dispatcher();
             // Load the Keyboard Device Driver
             this.krnTrace("Loading the keyboard device driver.");
             _krnKeyboardDriver = new TSOS.DeviceDriverKeyboard(); // Construct it.
@@ -110,6 +113,9 @@ var TSOS;
                     _krnKeyboardDriver.isr(params); // Kernel mode device driver
                     _StdIn.handleInput();
                     break;
+                case CONTEXT_SWITCH:
+                    this._Dispacher.contextSwitch(); // Kernel built-in routine for timers (not the clock).
+                    break;
                 default:
                     this.krnTrapError("Invalid Interrupt Request. irq=" + irq + " params=[" + params + "]");
             }
@@ -170,6 +176,12 @@ var TSOS;
         }
         krnTrapError(msg) {
             TSOS.Control.hostLog("OS ERROR - TRAP: " + msg);
+            if (this.runningPcb) {
+                this.runningPcb.state = "Terminated";
+                _MemoryManager.deallocatePartition(this.runningPcb.segment);
+                this.runningPcb = null;
+            }
+            _CPU.isExecuting = false;
             _Console.clearScreen();
             const image = new Image();
             image.src = "./bsod.jpg";

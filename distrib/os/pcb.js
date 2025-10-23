@@ -11,7 +11,14 @@ var TSOS;
         zFlag;
         priority;
         location;
-        constructor(pid, state = "resident", pc = 0, ir = 0, acc = 0, xReg = 0, yReg = 0, zFlag = 0, priority = 0, location = "memory") {
+        base;
+        limit;
+        segment;
+        modebit;
+        turnaroundTime;
+        waitTime;
+        creationTime;
+        constructor(pid, state = "resident", pc = 0, ir = 0, acc = 0, xReg = 0, yReg = 0, zFlag = 0, priority = 0, location = "memory", base = 0, limit = 0, segment = -1, modebit = 0, turnaroundTime = 0, waitTime = 0, creationTime = 0) {
             this.pid = pid;
             this.state = state;
             this.pc = pc;
@@ -22,6 +29,17 @@ var TSOS;
             this.zFlag = zFlag;
             this.priority = priority;
             this.location = location;
+            this.base = base;
+            this.limit = limit;
+            this.segment = segment;
+            this.modebit = modebit;
+            this.turnaroundTime = turnaroundTime;
+            this.waitTime = waitTime;
+            this.creationTime = creationTime;
+            this.creationTime = _OSclock; //added
+        }
+        toString() {
+            return `PID: ${this.pid} | State: ${this.state} | PC: 0x${this.pc.toString(16).toUpperCase().padStart(2, '0')} | Base: ${this.base} | Limit: ${this.limit} | Segment: ${this.segment}`;
         }
     }
     TSOS.Pcb = Pcb;
