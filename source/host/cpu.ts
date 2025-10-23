@@ -151,7 +151,10 @@
                         _Kernel.endProgram();
                         break;
                 }
-                
+                if (this.isExecuting) {
+                    _Scheduler.incrementCycle();
+                    _Dispacher.checkAndSwitchIfNeeded();
+                }
             
             }
         }
