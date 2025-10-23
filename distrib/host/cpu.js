@@ -139,7 +139,7 @@ var TSOS;
             }
             if (this.isExecuting) {
                 _Scheduler.incrementCycle();
-                _Dispacher.checkAndSwitchIfNeeded();
+                _Dispatcher.checkAndSwitchIfNeeded();
             }
         }
     }

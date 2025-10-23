@@ -11,7 +11,6 @@ var TSOS;
     class Kernel {
         pidCounter = 0;
         runningPcb = null;
-        _Dispacher = null;
         //
         // OS Startup and Shutdown Routines
         //
@@ -30,7 +29,7 @@ var TSOS;
             //instance for memory manager. after this code got added the command prompts stopped showing up
             _MemoryManager = new TSOS.MemoryManager();
             _Scheduler = new TSOS.Scheduler();
-            _Dispacher = new TSOS.Dispatcher();
+            _Dispatcher = new TSOS.Dispatcher();
             // Load the Keyboard Device Driver
             this.krnTrace("Loading the keyboard device driver.");
             _krnKeyboardDriver = new TSOS.DeviceDriverKeyboard(); // Construct it.
@@ -113,7 +112,7 @@ var TSOS;
                     _StdIn.handleInput();
                     break;
                 case CONTEXT_SWITCH:
-                    this._Dispacher.contextSwitch(); // Kernel built-in routine for timers (not the clock).
+                    _Dispatcher.contextSwitch(); // Kernel built-in routine for timers (not the clock).
                     break;
                 default:
                     this.krnTrapError("Invalid Interrupt Request. irq=" + irq + " params=[" + params + "]");

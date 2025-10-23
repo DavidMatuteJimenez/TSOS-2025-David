@@ -919,7 +919,7 @@ module TSOS {
 
       const pcb = _Scheduler.residentList.splice(index, 1)[0];
       _Scheduler.addToReadyQueue(pcb);
-      _Dispacher.contextSwitch();
+      _KernelInterruptQueue.enqueue(new Interrupt(CONTEXT_SWITCH, null));
       _CPU.isExecuting = true;
     }
 
@@ -951,7 +951,7 @@ module TSOS {
       }
       _Scheduler.residentList = _Scheduler.residentList.filter(p => p.state !== pcbState.resident);
 
-      _Dispacher.contextSwitch();
+      _Dispatcher.contextSwitch();
       _CPU.isExecuting = true;
       _StdOut.putText(`Executing ${residentProcesses.length} processes with Round Robin scheduling (Quantum: ${_Scheduler.quantum} cycles).`);
     }

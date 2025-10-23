@@ -61,7 +61,7 @@ var _OsShell: TSOS.Shell;
 
 var _MemoryManager: TSOS.MemoryManager;
 var _Scheduler: TSOS.Scheduler;
-var _Dispacher: TSOS.Dispatcher;
+var _Dispatcher: TSOS.Dispatcher;
 
 // At least this OS is not trying to kill you. (Yet.)
 var _SarcasticMode: boolean = false;

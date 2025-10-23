@@ -878,7 +878,7 @@ var TSOS;
             }
             const pcb = _Scheduler.residentList.splice(index, 1)[0];
             _Scheduler.addToReadyQueue(pcb);
-            _Dispacher.contextSwitch();
+            _Dispatcher.contextSwitch();
             _CPU.isExecuting = true;
         }
         shellBsod(args) {
@@ -904,7 +904,7 @@ var TSOS;
                 _Scheduler.addToReadyQueue(pcb);
             }
             _Scheduler.residentList = _Scheduler.residentList.filter(p => p.state !== TSOS.pcbState.resident);
-            _Dispacher.contextSwitch();
+            _Dispatcher.contextSwitch();
             _CPU.isExecuting = true;
             _StdOut.putText(`Executing ${residentProcesses.length} processes with Round Robin scheduling (Quantum: ${_Scheduler.quantum} cycles).`);
         }
