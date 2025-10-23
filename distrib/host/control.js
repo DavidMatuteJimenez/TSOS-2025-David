@@ -200,7 +200,7 @@ var TSOS;
                 document.getElementById('pcb-Y').innerText = _Kernel.runningPcb.yReg.toString(16).toUpperCase().padStart(2, '0');
                 document.getElementById('pcb-Z').innerText = _Kernel.runningPcb.zFlag.toString();
                 document.getElementById('pcb-Priority').innerText = _Kernel.runningPcb.priority.toString();
-                document.getElementById('pcb-State').innerText = _Kernel.runningPcb.state;
+                document.getElementById('pcb-State').innerText = _Kernel.runningPcb.state.toString();
                 document.getElementById('pcb-Location').innerText = _Kernel.runningPcb.location.toString();
             }
             else {

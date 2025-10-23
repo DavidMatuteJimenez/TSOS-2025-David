@@ -2,7 +2,7 @@ module TSOS {
     export class Pcb {
         constructor(
             public pid: number,
-            public state: string = "resident",
+            public state: pcbState = pcbState.resident,
             public pc: number = 0,
             public ir: number = 0,
             public acc: number = 0,
@@ -10,7 +10,7 @@ module TSOS {
             public yReg: number = 0,
             public zFlag: number = 0,
             public priority: number = 0,
-            public location: string = "memory",
+            public location: pcbLocation = pcbLocation.memory,
             public base: number = 0,
             public limit: number = 0,
             public segment: number = -1,
@@ -24,5 +24,16 @@ module TSOS {
         public toString(): string { // added
             return `PID: ${this.pid} | State: ${this.state} | PC: 0x${this.pc.toString(16).toUpperCase().padStart(2, '0')} | Base: ${this.base} | Limit: ${this.limit} | Segment: ${this.segment}`;
     }
+
+}
+export enum pcbState {
+    resident,
+    ready,
+    running,
+    terminated
+}
+export enum pcbLocation {
+    memory,
+    disk
 }
 }

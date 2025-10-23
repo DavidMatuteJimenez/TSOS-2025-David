@@ -14,8 +14,8 @@ module TSOS {
 
                 _Kernel.krnTrace(`Dispatcher: Context switch OUT - Process ${_Kernel.runningPcb.pid} (State: ${_Kernel.runningPcb.state}, PC: 0x${_Kernel.runningPcb.pc.toString(16).toUpperCase().padStart(2, '0')})`);
 
-                if (_Kernel.runningPcb.state !== "Terminated") {
-                    _Kernel.runningPcb.state = "Ready";
+                if (_Kernel.runningPcb.state !== pcbState.terminated) {
+                    _Kernel.runningPcb.state = pcbState.ready;
                     _Scheduler.addToReadyQueue(_Kernel.runningPcb);
                 } else {
                     _MemoryManager.deallocatePartition(_Kernel.runningPcb.segment);
@@ -27,7 +27,7 @@ module TSOS {
 
             if (nextPcb) {
                 _Kernel.runningPcb = nextPcb;
-                nextPcb.state = "Running";
+                nextPcb.state = pcbState.running;
                 nextPcb.modebit = 1;
 
                 _CPU.PC = nextPcb.pc;

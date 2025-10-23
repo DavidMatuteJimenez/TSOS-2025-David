@@ -1,12 +1,13 @@
 module TSOS {
     export class Scheduler {
+        public residentList: Pcb[] = [];
         public readyQueue: Pcb[] = [];
         public quantum: number = 6;
         public cyclesSinceLastSwitch: number = 0;
 
         public addToReadyQueue(pcb: Pcb): void {
-            if (pcb.state !== "Ready") {
-                pcb.state = "Ready";
+            if (pcb.state !== pcbState.ready) {
+                pcb.state =pcbState.ready;
             }
             this.readyQueue.push(pcb);
             _Kernel.krnTrace(`Scheduler: Process ${pcb.pid} moved to Ready queue. Queue size: ${this.readyQueue.length}`);

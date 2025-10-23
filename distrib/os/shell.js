@@ -858,8 +858,7 @@ var TSOS;
                 newPcb.base = result.base;
                 newPcb.limit = result.limit;
                 newPcb.segment = result.segment;
-                newPcb.location = `Memory Segment ${result.segment}`;
-                _Kernel.residentList.push(newPcb);
+                _Scheduler.residentList.push(newPcb);
                 _StdOut.putText(`Program loaded with PID ${newPid}`);
             }
             else {
@@ -872,12 +871,12 @@ var TSOS;
                 return;
             }
             const pid = parseInt(args[0]);
-            const index = _Kernel.residentList.findIndex(p => p.pid === pid && p.state === "Resident");
+            const index = _Scheduler.residentList.findIndex(p => p.pid === pid && p.state === TSOS.pcbState.resident);
             if (index < 0) {
                 _StdOut.putText(`Error: Process ${pid} not found or not in Resident state.`);
                 return;
             }
-            const pcb = _Kernel.residentList.splice(index, 1)[0];
+            const pcb = _Scheduler.residentList.splice(index, 1)[0];
             _Scheduler.addToReadyQueue(pcb);
             _Dispacher.contextSwitch();
             _CPU.isExecuting = true;
@@ -891,12 +890,12 @@ var TSOS;
                 return;
             }
             _MemoryManager.clearMemory();
-            _Kernel.residentList = [];
+            _Scheduler.residentList = [];
             _Scheduler.readyQueue = [];
             _StdOut.putText("All memory segments cleared.");
         }
         shellRunAll(args) {
-            const residentProcesses = _Kernel.residentList.filter(p => p.state === "Resident");
+            const residentProcesses = _Scheduler.residentList.filter(p => p.state === TSOS.pcbState.resident);
             if (residentProcesses.length === 0) {
                 _StdOut.putText("Error: No resident processes to execute.");
                 return;
@@ -904,7 +903,7 @@ var TSOS;
             for (const pcb of residentProcesses) {
                 _Scheduler.addToReadyQueue(pcb);
             }
-            _Kernel.residentList = _Kernel.residentList.filter(p => p.state !== "Resident");
+            _Scheduler.residentList = _Scheduler.residentList.filter(p => p.state !== TSOS.pcbState.resident);
             _Dispacher.contextSwitch();
             _CPU.isExecuting = true;
             _StdOut.putText(`Executing ${residentProcesses.length} processes with Round Robin scheduling (Quantum: ${_Scheduler.quantum} cycles).`);
@@ -913,17 +912,17 @@ var TSOS;
             _StdOut.putText("PID  | State       | Location");
             _StdOut.advanceLine();
             _StdOut.putText("-----|-----------|-----------");
-            for (const pcb of _Kernel.residentList) {
+            for (const pcb of _Scheduler.residentList) {
                 _StdOut.advanceLine();
-                _StdOut.putText(`${pcb.pid.toString().padEnd(4)} | ${pcb.state.padEnd(11)} | ${pcb.location}`);
+                _StdOut.putText(`${pcb.pid.toString().padEnd(4)} | ${pcb.state.toString()} | ${pcb.location}`);
             }
             if (_Kernel.runningPcb) {
                 _StdOut.advanceLine();
-                _StdOut.putText(`${_Kernel.runningPcb.pid.toString().padEnd(4)} | ${_Kernel.runningPcb.state.padEnd(11)} | ${_Kernel.runningPcb.location}`);
+                _StdOut.putText(`${_Kernel.runningPcb.pid.toString().padEnd(4)} | ${_Kernel.runningPcb.state.toString()} | ${_Kernel.runningPcb.location}`);
             }
             for (const pcb of _Scheduler.readyQueue) {
                 _StdOut.advanceLine();
-                _StdOut.putText(`${pcb.pid.toString().padEnd(4)} | ${pcb.state.padEnd(11)} | ${pcb.location}`);
+                _StdOut.putText(`${pcb.pid.toString().padEnd(4)} | ${pcb.state.toString()} | ${pcb.location}`);
             }
         }
         shellKill(args) {
@@ -933,7 +932,7 @@ var TSOS;
             }
             const pidToKill = parseInt(args[0]);
             if (_Kernel.runningPcb && _Kernel.runningPcb.pid === pidToKill) {
-                _Kernel.runningPcb.state = "Terminated";
+                _Kernel.runningPcb.state = TSOS.pcbState.terminated;
                 _MemoryManager.deallocatePartition(_Kernel.runningPcb.segment);
                 _Kernel.runningPcb = null;
                 _CPU.isExecuting = false;
@@ -941,11 +940,11 @@ var TSOS;
                 _StdOut.putText(`Process ${pidToKill} killed.`);
                 return;
             }
-            for (let i = 0; i < _Kernel.residentList.length; i++) {
-                if (_Kernel.residentList[i].pid === pidToKill) {
-                    const pcb = _Kernel.residentList[i];
+            for (let i = 0; i < _Scheduler.residentList.length; i++) {
+                if (_Scheduler.residentList[i].pid === pidToKill) {
+                    const pcb = _Scheduler.residentList[i];
                     _MemoryManager.deallocatePartition(pcb.segment);
-                    _Kernel.residentList.splice(i, 1);
+                    _Scheduler.residentList.splice(i, 1);
                     _StdOut.putText(`Process ${pidToKill} killed.`);
                     return;
                 }
@@ -967,10 +966,10 @@ var TSOS;
                 _Kernel.runningPcb = null;
                 _CPU.isExecuting = false;
             }
-            for (const pcb of _Kernel.residentList) {
+            for (const pcb of _Scheduler.residentList) {
                 _MemoryManager.deallocatePartition(pcb.segment);
             }
-            _Kernel.residentList = [];
+            _Scheduler.residentList = [];
             _Scheduler.readyQueue = [];
             _StdOut.putText("All processes killed.");
         }

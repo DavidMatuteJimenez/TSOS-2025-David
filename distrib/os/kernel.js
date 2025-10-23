@@ -9,7 +9,6 @@
 var TSOS;
 (function (TSOS) {
     class Kernel {
-        residentList = [];
         pidCounter = 0;
         runningPcb = null;
         _Dispacher = null;
@@ -141,7 +140,7 @@ var TSOS;
         // - CloseFile
         endProgram() {
             if (this.runningPcb) {
-                this.runningPcb.state = "Terminated";
+                this.runningPcb.state = TSOS.pcbState.terminated;
                 // Save final CPU state back to PCB
                 this.runningPcb.pc = _CPU.PC;
                 this.runningPcb.acc = _CPU.Acc;
@@ -177,7 +176,7 @@ var TSOS;
         krnTrapError(msg) {
             TSOS.Control.hostLog("OS ERROR - TRAP: " + msg);
             if (this.runningPcb) {
-                this.runningPcb.state = "Terminated";
+                this.runningPcb.state = TSOS.pcbState.terminated;
                 _MemoryManager.deallocatePartition(this.runningPcb.segment);
                 this.runningPcb = null;
             }

@@ -11,8 +11,8 @@ var TSOS;
                 _Kernel.runningPcb.yReg = _CPU.Yreg;
                 _Kernel.runningPcb.zFlag = _CPU.Zflag;
                 _Kernel.krnTrace(`Dispatcher: Context switch OUT - Process ${_Kernel.runningPcb.pid} (State: ${_Kernel.runningPcb.state}, PC: 0x${_Kernel.runningPcb.pc.toString(16).toUpperCase().padStart(2, '0')})`);
-                if (_Kernel.runningPcb.state !== "Terminated") {
-                    _Kernel.runningPcb.state = "Ready";
+                if (_Kernel.runningPcb.state !== TSOS.pcbState.terminated) {
+                    _Kernel.runningPcb.state = TSOS.pcbState.ready;
                     _Scheduler.addToReadyQueue(_Kernel.runningPcb);
                 }
                 else {
@@ -23,7 +23,7 @@ var TSOS;
             const nextPcb = _Scheduler.removeNextProcess();
             if (nextPcb) {
                 _Kernel.runningPcb = nextPcb;
-                nextPcb.state = "Running";
+                nextPcb.state = TSOS.pcbState.running;
                 nextPcb.modebit = 1;
                 _CPU.PC = nextPcb.pc;
                 _CPU.IR = nextPcb.ir;

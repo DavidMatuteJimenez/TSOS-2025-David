@@ -1,12 +1,13 @@
 var TSOS;
 (function (TSOS) {
     class Scheduler {
+        residentList = [];
         readyQueue = [];
         quantum = 6;
         cyclesSinceLastSwitch = 0;
         addToReadyQueue(pcb) {
-            if (pcb.state !== "Ready") {
-                pcb.state = "Ready";
+            if (pcb.state !== TSOS.pcbState.ready) {
+                pcb.state = TSOS.pcbState.ready;
             }
             this.readyQueue.push(pcb);
             _Kernel.krnTrace(`Scheduler: Process ${pcb.pid} moved to Ready queue. Queue size: ${this.readyQueue.length}`);

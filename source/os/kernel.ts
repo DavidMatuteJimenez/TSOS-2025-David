@@ -11,7 +11,6 @@ module TSOS {
 
     export class Kernel {
 
-        public residentList: Pcb[] = [];
         public pidCounter: number = 0;
         public runningPcb: Pcb = null;
         public _Dispacher: Dispatcher = null;
@@ -161,7 +160,7 @@ module TSOS {
         // - CloseFile
         public endProgram(): void {
             if (this.runningPcb) {
-                this.runningPcb.state = "Terminated";
+                this.runningPcb.state = pcbState.terminated;
                 // Save final CPU state back to PCB
                 this.runningPcb.pc = _CPU.PC;
                 this.runningPcb.acc = _CPU.Acc;
@@ -201,7 +200,7 @@ module TSOS {
             Control.hostLog("OS ERROR - TRAP: " + msg);
 
             if (this.runningPcb) {
-                this.runningPcb.state = "Terminated";
+                this.runningPcb.state = pcbState.terminated;
                 _MemoryManager.deallocatePartition(this.runningPcb.segment);
                 this.runningPcb = null;
             }
