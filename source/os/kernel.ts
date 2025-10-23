@@ -129,7 +129,7 @@ module TSOS {
                     _StdIn.handleInput();
                     break;
                 case CONTEXT_SWITCH:
-                    this._Dispacher.Context_SWitch();               // Kernel built-in routine for timers (not the clock).
+                    this._Dispatcher.Context_Switch();               // Kernel built-in routine for timers (not the clock).
                     break;
                 default:
                     this.krnTrapError("Invalid Interrupt Request. irq=" + irq + " params=[" + params + "]");
