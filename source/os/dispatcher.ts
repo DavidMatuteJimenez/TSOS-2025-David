@@ -2,6 +2,9 @@ module TSOS {
     export class Dispatcher {
         
         public contextSwitch(): void {
+            if (_Scheduler.getNextProcess() === null) {
+                return;
+            }
             _Kernel.krnTrace("========== CONTEXT SWITCH ==========");
 
             if (_Kernel.runningPcb) {

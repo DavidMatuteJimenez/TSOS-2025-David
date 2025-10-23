@@ -9,6 +9,7 @@
 var TSOS;
 (function (TSOS) {
     class Kernel {
+        kernelMode = true;
         pidCounter = 0;
         runningPcb = null;
         //
@@ -70,12 +71,14 @@ var TSOS;
             */
             // Check for an interrupt, if there are any. Page 560
             if (_KernelInterruptQueue.getSize() > 0) {
+                this.kernelMode = true;
                 // Process the first interrupt on the interrupt queue.
                 // TODO (maybe): Implement a priority queue based on the IRQ number/id to enforce interrupt priority.
                 var interrupt = _KernelInterruptQueue.dequeue();
                 this.krnInterruptHandler(interrupt.irq, interrupt.params);
             }
             else if (_CPU.isExecuting && !TSOS.Control.paused) { // If there are no interrupts then run one CPU cycle if there is anything being processed.
+                this.kernelMode = false;
                 _CPU.cycle();
             }
             else { // If there are no interrupts and there is nothing being executed then just be idle.

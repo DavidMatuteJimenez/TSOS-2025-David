@@ -878,7 +878,7 @@ var TSOS;
             }
             const pcb = _Scheduler.residentList.splice(index, 1)[0];
             _Scheduler.addToReadyQueue(pcb);
-            _Dispatcher.contextSwitch();
+            _KernelInterruptQueue.enqueue(new TSOS.Interrupt(CONTEXT_SWITCH, null));
             _CPU.isExecuting = true;
         }
         shellBsod(args) {

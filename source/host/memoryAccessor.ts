@@ -2,16 +2,12 @@
 module TSOS {
     export class MemoryAccessor {
         public read(address: number): number {
-            if (!_Kernel.runningPcb) {
-            if (address < 0 || address >= _Memory.memory.length) {
-                // Handle out-of-bounds access
-                _Kernel.krnTrapError("Memory access violation: Address out of bounds.");
-                return 0;
+        const physicalAddress =  _Kernel.kernelMode? address:_Kernel.runningPcb.base + address;
+            if (!_Kernel.kernelMode) {
+                if (!_Kernel.runningPcb) {
+                    _Kernel.krnTrapError("Memory access violation: Address out of bounds.");
+                    return 0;
             }
-            return _Memory.memory[address];
-        }
-        const physicalAddress = _Kernel.runningPcb.base + address;
-            
             if (address < 0 || address >= _Kernel.runningPcb.limit) {
                 _Kernel.krnTrapError(
                     `Memory access violation: Process ${_Kernel.runningPcb.pid} attempted to read address 0x${address.toString(16).toUpperCase().padStart(2, '0')} ` +
@@ -24,23 +20,18 @@ module TSOS {
                 _Kernel.krnTrapError(`Memory access violation: Physical address ${physicalAddress} out of bounds.`);
                 return 0;
             }
-
+        }
             return _Memory.memory[physicalAddress];
         }
         
 
         public write(address: number, value: number): void {
-            if (!_Kernel.runningPcb) {
-            if (address < 0 || address >= _Memory.memory.length) {
-                // Handle out-of-bounds access
-                _Kernel.krnTrapError("Memory access violation: Address out of bounds.");
-                return;
+        const physicalAddress =  _Kernel.kernelMode? address:_Kernel.runningPcb.base + address;
+            if (!_Kernel.kernelMode) {
+                if (!_Kernel.runningPcb) {
+                    _Kernel.krnTrapError("Memory access violation: Address out of bounds.");
+                    return;
             }
-            _Memory.memory[address] = value & 0xFF;
-            return;
-        }
-        const physicalAddress = _Kernel.runningPcb.base + address;
-            
             if (address < 0 || address >= _Kernel.runningPcb.limit) {
                 _Kernel.krnTrapError(
                     `Memory access violation: Process ${_Kernel.runningPcb.pid} attempted to write address 0x${address.toString(16).toUpperCase().padStart(2, '0')} ` +
@@ -53,7 +44,7 @@ module TSOS {
                 _Kernel.krnTrapError(`Memory access violation: Physical address ${physicalAddress} out of bounds.`);
                 return;
             }
-
+        }
             _Memory.memory[physicalAddress] = value & 0xFF;
         }
 

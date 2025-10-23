@@ -2,6 +2,9 @@ var TSOS;
 (function (TSOS) {
     class Dispatcher {
         contextSwitch() {
+            if (_Scheduler.getNextProcess() === null) {
+                return;
+            }
             _Kernel.krnTrace("========== CONTEXT SWITCH ==========");
             if (_Kernel.runningPcb) {
                 _Kernel.runningPcb.pc = _CPU.PC;

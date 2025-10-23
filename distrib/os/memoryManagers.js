@@ -69,12 +69,14 @@ var TSOS;
             }
         }
         clearMemory() {
+            _Kernel.kernelMode = true;
             for (let i = 0; i < _Memory.memory.length; i++) {
                 _Memory.memory[i] = 0x00;
             }
             for (let i = 0; i < this.partitions.length; i++) {
                 this.partitions[i].free = true;
             }
+            _Kernel.kernelMode = false;
             _Kernel.krnTrace("MMU: All memory cleared");
         }
         getPartitionInfo(segment) {
