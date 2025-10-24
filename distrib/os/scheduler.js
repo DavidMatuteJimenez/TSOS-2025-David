@@ -5,6 +5,7 @@ var TSOS;
         readyQueue = [];
         quantum = 6;
         cyclesSinceLastSwitch = 0;
+        terminatedPcbs = [];
         addToReadyQueue(pcb) {
             if (pcb.state !== TSOS.pcbState.ready) {
                 pcb.state = TSOS.pcbState.ready;

@@ -5,6 +5,8 @@ module TSOS {
         public quantum: number = 6;
         public cyclesSinceLastSwitch: number = 0;
 
+       public terminatedPcbs = [];
+
         public addToReadyQueue(pcb: Pcb): void {
             if (pcb.state !== pcbState.ready) {
                 pcb.state =pcbState.ready;

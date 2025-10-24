@@ -939,21 +939,21 @@ module TSOS {
     }
 
     public shellRunAll(args: string[]) {
-      const residentProcesses = _Scheduler.residentList.filter(p => p.state === pcbState.resident);
       
-      if (residentProcesses.length === 0) {
+      if (_Scheduler.residentList.length === 0) {
         _StdOut.putText("Error: No resident processes to execute.");
         return;
       }
 
-      for (const pcb of residentProcesses) {
+      for (const pcb of _Scheduler.residentList) {
         _Scheduler.addToReadyQueue(pcb);
       }
-      _Scheduler.residentList = _Scheduler.residentList.filter(p => p.state !== pcbState.resident);
+      const numProcesses = _Scheduler.residentList.length;
+      _Scheduler.residentList = [];
 
       _Dispatcher.contextSwitch();
       _CPU.isExecuting = true;
-      _StdOut.putText(`Executing ${residentProcesses.length} processes with Round Robin scheduling (Quantum: ${_Scheduler.quantum} cycles).`);
+      _StdOut.putText(`Executing ${ numProcesses} processes with Round Robin scheduling (Quantum: ${_Scheduler.quantum} cycles).`);
     }
 
     public shellPS(args: string[]) {

@@ -89,7 +89,6 @@ var TSOS;
                     // Does nothing.
                     break;
                 case 0x00: // BRK - Break
-                    this.isExecuting = false;
                     _Kernel.endProgram();
                     break;
                 case 0xEC: // CPX - Compare byte in memory to X register

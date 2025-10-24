@@ -149,9 +149,10 @@ var TSOS;
                 this.runningPcb.xReg = _CPU.Xreg;
                 this.runningPcb.yReg = _CPU.Yreg;
                 this.runningPcb.zFlag = _CPU.Zflag;
+                _MemoryManager.deallocatePartition(this.runningPcb.segment);
+                _Scheduler.terminatedPcbs.push(this.runningPcb);
                 this.runningPcb = null;
-                _CPU.isExecuting = false;
-                _MemoryManager.clearMemory(); // For project 2, clear memory after run.
+                _KernelInterruptQueue.enqueue(new TSOS.Interrupt(CONTEXT_SWITCH, null));
                 _Console.advanceLine();
                 _OsShell.putPrompt();
             }
