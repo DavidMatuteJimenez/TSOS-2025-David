@@ -27,13 +27,13 @@ module TSOS {
 
 }
 export enum pcbState {
-    resident,
-    ready,
-    running,
-    terminated
+    resident = "resident",
+    ready = "ready",
+    running = "running",
+    terminated = "terminated"
 }
 export enum pcbLocation {
-    memory,
-    disk
+    memory = "memory",
+    disk = "disk"
 }
 }

@@ -45,15 +45,15 @@ var TSOS;
     TSOS.Pcb = Pcb;
     let pcbState;
     (function (pcbState) {
-        pcbState[pcbState["resident"] = 0] = "resident";
-        pcbState[pcbState["ready"] = 1] = "ready";
-        pcbState[pcbState["running"] = 2] = "running";
-        pcbState[pcbState["terminated"] = 3] = "terminated";
+        pcbState["resident"] = "resident";
+        pcbState["ready"] = "ready";
+        pcbState["running"] = "running";
+        pcbState["terminated"] = "terminated";
     })(pcbState = TSOS.pcbState || (TSOS.pcbState = {}));
     let pcbLocation;
     (function (pcbLocation) {
-        pcbLocation[pcbLocation["memory"] = 0] = "memory";
-        pcbLocation[pcbLocation["disk"] = 1] = "disk";
+        pcbLocation["memory"] = "memory";
+        pcbLocation["disk"] = "disk";
     })(pcbLocation = TSOS.pcbLocation || (TSOS.pcbLocation = {}));
 })(TSOS || (TSOS = {}));
 //# sourceMappingURL=pcb.js.map
