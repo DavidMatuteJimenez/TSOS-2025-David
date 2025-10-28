@@ -156,14 +156,14 @@ var TSOS;
                 }
             }*/
             let tBody = document.getElementById("memoryDisplayTbody");
-            let maxAddress = 0xF;
+            let maxAddress = Math.floor((_Memory.memory.length - 1) / 0x10);
             let content = "";
             for (let a = 0; a <= maxAddress; a++) {
                 let address = a * 0x10;
                 let rowAddress = address.toString(16).toUpperCase().padStart(4, '0');
                 content += `<tr><td class="address">${rowAddress}</td>`;
-                for (let i = 0; i <= maxAddress; i++) {
-                    let memValue = _MemoryAccessor.read(address + i).toString(16).toUpperCase().padStart(2, '0');
+                for (let i = 0; i <= 0xF; i++) {
+                    let memValue = _Memory.memory[address + i].toString(16).toUpperCase().padStart(2, '0');
                     content += `<td>${memValue}</td>`;
                 }
                 content += `</tr>`;

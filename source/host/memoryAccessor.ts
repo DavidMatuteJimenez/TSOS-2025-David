@@ -9,10 +9,7 @@ module TSOS {
                     return 0;
             }
             if (address < 0 || address >= _Kernel.runningPcb.limit) {
-                _Kernel.krnTrapError(
-                    `Memory access violation: Process ${_Kernel.runningPcb.pid} attempted to read address 0x${address.toString(16).toUpperCase().padStart(2, '0')} ` +
-                    `(physical: 0x${physicalAddress.toString(16).toUpperCase().padStart(3, '0')}). Base: ${_Kernel.runningPcb.base}, Limit: ${_Kernel.runningPcb.limit}`
-                );
+                _KernelInterruptQueue.enqueue(new Interrupt(IRQ.CONTEXT_SWITCH, null));
                 return 0;
             }
 

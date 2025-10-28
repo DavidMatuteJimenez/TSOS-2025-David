@@ -6,7 +6,7 @@ module TSOS {
         public memory: number[];
 
         constructor() {
-            this.memory = new Array(756).fill(0x00);
+            this.memory = new Array(768).fill(0x00);
         }
 
         public init(): void {

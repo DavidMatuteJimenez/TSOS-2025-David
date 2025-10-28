@@ -16,12 +16,14 @@ const APP_VERSION: string = "0.07";   // What did you expect?
 
 const CPU_CLOCK_INTERVAL: number = 100;   // This is in ms (milliseconds) so 1000 = 1 second.
 
-const TIMER_IRQ: number = 0;  // Pages 23 (timer), 9 (interrupts), and 561 (interrupt priority).
-                              // NOTE: The timer is different from hardware/host clock pulses. Don't confuse these.
-const KEYBOARD_IRQ: number = 1;
-const CONTEXT_SWITCH: number = 3;
 
+enum IRQ {
+   TIMER_IRQ,
+   KEYBOARD_IRQ,
+   CONTEXT_SWITCH,
+   PSKILL,
 
+}
 //
 // Global Variables
 // TODO: Make a global object and use that instead of the "_" naming convention in the global namespace.

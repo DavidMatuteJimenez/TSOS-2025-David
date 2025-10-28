@@ -5,7 +5,7 @@ var TSOS;
         // Main memory is an array of 256 bytes.
         memory;
         constructor() {
-            this.memory = new Array(756).fill(0x00);
+            this.memory = new Array(768).fill(0x00);
         }
         init() {
             // Initialize all memory locations to 0.
