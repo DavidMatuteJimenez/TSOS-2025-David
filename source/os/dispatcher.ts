@@ -3,6 +3,9 @@ module TSOS {
         
         public contextSwitch(): void {
             if (_Scheduler.getNextProcess() === null) {
+                if (_Kernel.runningPcb === null) {
+                    _CPU.isExecuting = false;
+                }
                 return;
             }
             _Kernel.krnTrace("========== CONTEXT SWITCH ==========");

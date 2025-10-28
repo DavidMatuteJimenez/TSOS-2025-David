@@ -135,6 +135,10 @@ module TSOS {
                 case CONTEXT_SWITCH:
                     _Dispatcher.contextSwitch();               // Kernel built-in routine for timers (not the clock).
                     break;
+                case PSKILL:
+                    _StdOut.putText(params[0]+" PID: " + this.runningPcb.pid )
+                    this.endProgram();
+                    break;
                 default:
                     this.krnTrapError("Invalid Interrupt Request. irq=" + irq + " params=[" + params + "]");
             }

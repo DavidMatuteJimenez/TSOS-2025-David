@@ -3,6 +3,9 @@ var TSOS;
     class Dispatcher {
         contextSwitch() {
             if (_Scheduler.getNextProcess() === null) {
+                if (_Kernel.runningPcb === null) {
+                    _CPU.isExecuting = false;
+                }
                 return;
             }
             _Kernel.krnTrace("========== CONTEXT SWITCH ==========");
