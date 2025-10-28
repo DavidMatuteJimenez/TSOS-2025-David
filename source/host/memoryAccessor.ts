@@ -9,7 +9,7 @@ module TSOS {
                     return 0;
             }
             if (address < 0 || address >= _Kernel.runningPcb.limit) {
-                _KernelInterruptQueue.enqueue(new Interrupt(IRQ.CONTEXT_SWITCH, null));
+                _KernelInterruptQueue.enqueue(new Interrupt(CONTEXT_SWITCH, null));
                 return 0;
             }
 

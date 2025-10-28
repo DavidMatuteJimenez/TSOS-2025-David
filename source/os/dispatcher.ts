@@ -56,7 +56,7 @@ module TSOS {
         public checkAndSwitchIfNeeded(): void {
             if (_Kernel.runningPcb && _Scheduler.hasReadyProcesses() && _Scheduler.isQuantumExpired()) {
                 _Kernel.krnTrace(`Dispatcher: Quantum (${_Scheduler.quantum} cycles) expired for Process ${_Kernel.runningPcb.pid}`);
-                _KernelInterruptQueue.enqueue(new Interrupt(IRQ.CONTEXT_SWITCH, null));
+                _KernelInterruptQueue.enqueue(new Interrupt(CONTEXT_SWITCH, null));
             }
         }
     }

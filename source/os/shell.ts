@@ -919,7 +919,7 @@ module TSOS {
 
       const pcb = _Scheduler.residentList.splice(index, 1)[0];
       _Scheduler.addToReadyQueue(pcb);
-      _KernelInterruptQueue.enqueue(new Interrupt(IRQ.CONTEXT_SWITCH, null));
+      _KernelInterruptQueue.enqueue(new Interrupt(CONTEXT_SWITCH, null));
       _CPU.isExecuting = true;
     }
 
@@ -990,7 +990,7 @@ module TSOS {
         _MemoryManager.deallocatePartition(_Kernel.runningPcb.segment);
         _Kernel.runningPcb = null;
         _CPU.isExecuting = false;
-        _KernelInterruptQueue.enqueue(new Interrupt(IRQ.CONTEXT_SWITCH, null));
+        _KernelInterruptQueue.enqueue(new Interrupt(CONTEXT_SWITCH, null));
         _StdOut.putText(`Process ${pidToKill} killed.`);
         return;
       }
