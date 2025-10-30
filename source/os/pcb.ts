@@ -17,7 +17,8 @@ module TSOS {
             public modebit: number = 0,
             public turnaroundTime: number = 0,
             public waitTime: number = 0,
-            public creationTime: number = 0
+            public creationTime: number = 0,
+            public totalExecutionTime: number = 0
         ) {
             this.creationTime = _OSclock; //added
         }

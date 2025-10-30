@@ -79,8 +79,6 @@ var TSOS;
             }
             else if (_CPU.isExecuting && !TSOS.Control.paused) { // If there are no interrupts then run one CPU cycle if there is anything being processed.
                 this.kernelMode = false;
-                // NEW: Update wait times before executing cycle
-                _Scheduler.updateWaitTimes();
                 _CPU.cycle();
             }
             else { // If there are no interrupts and there is nothing being executed then just be idle.
@@ -155,8 +153,17 @@ var TSOS;
                 this.runningPcb.xReg = _CPU.Xreg;
                 this.runningPcb.yReg = _CPU.Yreg;
                 this.runningPcb.zFlag = _CPU.Zflag;
+                // NEW: Calculate turnaround time and wait time
+                this.runningPcb.turnaroundTime = _OSclock - this.runningPcb.creationTime;
+                this.runningPcb.waitTime = this.runningPcb.turnaroundTime - this.runningPcb.totalExecutionTime;
                 _MemoryManager.deallocatePartition(this.runningPcb.segment);
                 _Scheduler.terminatedPcbs.push(this.runningPcb);
+                _Console.advanceLine();
+                _StdOut.putText(`Process ${this.runningPcb.pid} finished.`);
+                _StdOut.advanceLine();
+                _StdOut.putText(`Turnaround Time: ${this.runningPcb.turnaroundTime} cycles`);
+                _StdOut.advanceLine();
+                _StdOut.putText(`Wait Time: ${this.runningPcb.waitTime} cycles`);
                 this.runningPcb = null;
                 _KernelInterruptQueue.enqueue(new TSOS.Interrupt(CONTEXT_SWITCH, null));
                 _Console.advanceLine();

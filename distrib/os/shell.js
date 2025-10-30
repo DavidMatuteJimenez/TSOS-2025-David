@@ -340,14 +340,10 @@ var TSOS;
             _CPU.isExecuting = true;
             _StdOut.putText(`Executing ${numProcesses} processes with Round Robin scheduling (Quantum: ${_Scheduler.quantum} cycles).`);
         }
-        /*public shellPS(args: string[]) {
-          _StdOut.putText("PID  | State       | Location");
-          _StdOut.advanceLine();
-          _StdOut.putText("-----|-----------|-----------");*/
         shellPS(args) {
-            _StdOut.putText("PID  | State       | Location  | Turnaround | Wait");
+            _StdOut.putText("PID  | State       | Location");
             _StdOut.advanceLine();
-            _StdOut.putText("-----|-------------|-----------|------------|------");
+            _StdOut.putText("-----|-----------|-----------");
             for (const pcb of _Scheduler.residentList) {
                 _StdOut.advanceLine();
                 _StdOut.putText(`${pcb.pid.toString().padEnd(4)} | ${pcb.state.toString()} | ${pcb.location}`);

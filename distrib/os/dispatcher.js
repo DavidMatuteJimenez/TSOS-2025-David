@@ -31,10 +31,6 @@ var TSOS;
                 _Kernel.runningPcb = nextPcb;
                 nextPcb.state = TSOS.pcbState.running;
                 nextPcb.modebit = 1;
-                // NEW: Track when process starts executing (if first time)
-                if (nextPcb.startExecutionTime === -1) {
-                    nextPcb.startExecutionTime = _OSclock;
-                }
                 _CPU.PC = nextPcb.pc;
                 _CPU.IR = nextPcb.ir;
                 _CPU.Acc = nextPcb.acc;

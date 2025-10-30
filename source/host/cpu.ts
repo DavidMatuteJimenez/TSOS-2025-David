@@ -151,6 +151,9 @@
                         break;
                 }
                 if (this.isExecuting) {
+                    if (_Kernel.runningPcb) {
+                        _Kernel.runningPcb.totalExecutionTime++;
+                    }
                     _Scheduler.incrementCycle();
                     _Dispatcher.checkAndSwitchIfNeeded();
                 }
