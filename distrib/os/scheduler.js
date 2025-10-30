@@ -6,6 +6,8 @@ var TSOS;
         quantum = 6;
         cyclesSinceLastSwitch = 0;
         terminatedPcbs = [];
+        // Track the last state of each process for accurate timing
+        lastProcessStates = new Map();
         addToReadyQueue(pcb) {
             if (pcb.state !== TSOS.pcbState.ready) {
                 pcb.state = TSOS.pcbState.ready;
@@ -54,6 +56,22 @@ var TSOS;
             }
             result += "]";
             return result;
+        }
+        // NEW: Update wait times for processes not currently running
+        updateWaitTimes() {
+            const runningPid = _Kernel.runningPcb ? _Kernel.runningPcb.pid : -1;
+            // Update wait time for processes in ready queue
+            for (const pcb of this.readyQueue) {
+                if (pcb.pid !== runningPid) {
+                    pcb.totalWaitTime++;
+                }
+            }
+            // Update wait time for processes in resident list
+            for (const pcb of this.residentList) {
+                if (pcb.pid !== runningPid) {
+                    pcb.totalWaitTime++;
+                }
+            }
         }
     }
     TSOS.Scheduler = Scheduler;

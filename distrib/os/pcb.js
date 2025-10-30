@@ -18,7 +18,15 @@ var TSOS;
         turnaroundTime;
         waitTime;
         creationTime;
-        constructor(pid, state = pcbState.resident, pc = 0, ir = 0, acc = 0, xReg = 0, yReg = 0, zFlag = 0, priority = 0, location = pcbLocation.memory, base = 0, limit = 0, segment = -1, modebit = 0, turnaroundTime = 0, waitTime = 0, creationTime = 0) {
+        startExecutionTime;
+        totalExecutionTime;
+        totalWaitTime;
+        constructor(pid, state = pcbState.resident, pc = 0, ir = 0, acc = 0, xReg = 0, yReg = 0, zFlag = 0, priority = 0, location = pcbLocation.memory, base = 0, limit = 0, segment = -1, modebit = 0, turnaroundTime = 0, waitTime = 0, creationTime = 0, 
+        // NEW TIMING PROPERTIES
+        startExecutionTime = -1, // When first moved to running
+        totalExecutionTime = 0, // Total cycles spent executing
+        totalWaitTime = 0 // Total cycles spent waiting
+        ) {
             this.pid = pid;
             this.state = state;
             this.pc = pc;
@@ -36,6 +44,9 @@ var TSOS;
             this.turnaroundTime = turnaroundTime;
             this.waitTime = waitTime;
             this.creationTime = creationTime;
+            this.startExecutionTime = startExecutionTime;
+            this.totalExecutionTime = totalExecutionTime;
+            this.totalWaitTime = totalWaitTime;
             this.creationTime = _OSclock; //added
         }
         toString() {

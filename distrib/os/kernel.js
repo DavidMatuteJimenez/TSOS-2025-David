@@ -79,6 +79,8 @@ var TSOS;
             }
             else if (_CPU.isExecuting && !TSOS.Control.paused) { // If there are no interrupts then run one CPU cycle if there is anything being processed.
                 this.kernelMode = false;
+                // NEW: Update wait times before executing cycle
+                _Scheduler.updateWaitTimes();
                 _CPU.cycle();
             }
             else { // If there are no interrupts and there is nothing being executed then just be idle.
