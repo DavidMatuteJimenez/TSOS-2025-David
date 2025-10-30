@@ -18,7 +18,7 @@ module TSOS {
             public turnaroundTime: number = 0,
             public waitTime: number = 0,
             public creationTime: number = 0,
-            public totalExecutionTime: number = 0
+            public totalExecutionTime: number = 0// added this 
         ) {
             this.creationTime = _OSclock; //added
         }

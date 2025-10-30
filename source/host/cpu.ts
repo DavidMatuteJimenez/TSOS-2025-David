@@ -153,7 +153,7 @@
                 if (this.isExecuting) {
                     if (_Kernel.runningPcb) {
                         _Kernel.runningPcb.totalExecutionTime++;
-                    }
+                    }// added this
                     _Scheduler.incrementCycle();
                     _Dispatcher.checkAndSwitchIfNeeded();
                 }

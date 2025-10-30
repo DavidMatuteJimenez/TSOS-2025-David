@@ -19,7 +19,8 @@ var TSOS;
         waitTime;
         creationTime;
         totalExecutionTime;
-        constructor(pid, state = pcbState.resident, pc = 0, ir = 0, acc = 0, xReg = 0, yReg = 0, zFlag = 0, priority = 0, location = pcbLocation.memory, base = 0, limit = 0, segment = -1, modebit = 0, turnaroundTime = 0, waitTime = 0, creationTime = 0, totalExecutionTime = 0) {
+        constructor(pid, state = pcbState.resident, pc = 0, ir = 0, acc = 0, xReg = 0, yReg = 0, zFlag = 0, priority = 0, location = pcbLocation.memory, base = 0, limit = 0, segment = -1, modebit = 0, turnaroundTime = 0, waitTime = 0, creationTime = 0, totalExecutionTime = 0 // added this 
+        ) {
             this.pid = pid;
             this.state = state;
             this.pc = pc;

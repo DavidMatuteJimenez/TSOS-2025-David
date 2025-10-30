@@ -245,7 +245,10 @@ module TSOS {
          <td >${pcb.zFlag.toString()}</td>
          <td >${pcb.priority.toString()}</td>
          <td >${pcb.state.toString()}</td>
-         <td >${pcb.location.toString()}</td></tr>`
+         <td >${pcb.location.toString()}</td>
+         <td >${pcb.base.toString()}</td>
+         <td >${pcb.limit.toString()}</td>
+         <td >${pcb.segment.toString()}</td></tr>`
             }
 
             document.getElementById("pcbDisplayBody").innerHTML = pcbDisplayContent;

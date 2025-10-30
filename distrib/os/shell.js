@@ -415,6 +415,7 @@ var TSOS;
                 _StdOut.putText("Error: Quantum must be a positive integer.");
                 return;
             }
+            document.getElementById('quantumDisplay').innerHTML = "Quantum is: " + newQuantum;
             _Scheduler.setQuantum(newQuantum);
             _StdOut.putText(`Quantum set to ${newQuantum} cycles.`);
         }
