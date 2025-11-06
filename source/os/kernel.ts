@@ -38,6 +38,13 @@ module TSOS {
             _Scheduler = new Scheduler();
             _Dispatcher = new Dispatcher();
 
+            // Initialize Disk and FileSystem 
+            this.krnTrace("Initializing Disk and FileSystem.");
+            _Disk = new Disk();
+            _FileSystem = new FileSystem(_Disk);
+            this.krnTrace("Disk and FileSystem initialized.");
+            // Initialize Disk and FileSystem
+
             // Load the Keyboard Device Driver
             this.krnTrace("Loading the keyboard device driver.");
             _krnKeyboardDriver = new DeviceDriverKeyboard();     // Construct it.
