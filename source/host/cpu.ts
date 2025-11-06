@@ -145,10 +145,8 @@
                         break;
                     
                     default:
-                        _Kernel.krnTrapError(`Invalid op code: ${this.IR.toString(16).toUpperCase()} at PC=${(this.PC - 1).toString(16).toUpperCase()}`);
-                        this.isExecuting = false;
-                        _Kernel.endProgram();
-                        break;
+                        _KernelInterruptQueue.enqueue(new Interrupt(PSKILL,["illegal instruction, terminated"]));
+                        return;
                 }
                 if (this.isExecuting) {
                     if (_Kernel.runningPcb) {
