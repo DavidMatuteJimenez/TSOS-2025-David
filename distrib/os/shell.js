@@ -48,6 +48,22 @@ var TSOS;
             this.commandList[this.commandList.length] = sc;
             sc = new TSOS.ShellCommand(this.shellQ, "q", "<int> - set the Round Robin quantum (measured in CPU cycles).");
             this.commandList[this.commandList.length] = sc;
+            sc = new TSOS.ShellCommand(this.shellFormat, "format", "- Initialize the disk.");
+            this.commandList[this.commandList.length] = sc;
+            sc = new TSOS.ShellCommand(this.shellCreate, "create", "<filename> - Create a file.");
+            this.commandList[this.commandList.length] = sc;
+            sc = new TSOS.ShellCommand(this.shellWrite, "write", "<filename> \"data\" - Write data to a file.");
+            this.commandList[this.commandList.length] = sc;
+            sc = new TSOS.ShellCommand(this.shellRead, "read", "<filename> - Read and display file contents.");
+            this.commandList[this.commandList.length] = sc;
+            sc = new TSOS.ShellCommand(this.shellDelete, "delete", "<filename> - Delete a file.");
+            this.commandList[this.commandList.length] = sc;
+            sc = new TSOS.ShellCommand(this.shellCopy, "copy", "<source> <dest> - Copy a file.");
+            this.commandList[this.commandList.length] = sc;
+            sc = new TSOS.ShellCommand(this.shellRename, "rename", "<oldname> <newname> - Rename a file.");
+            this.commandList[this.commandList.length] = sc;
+            sc = new TSOS.ShellCommand(this.shellLs, "ls", "- List all files on disk.");
+            this.commandList[this.commandList.length] = sc;
             _StdOut.putText("Commands:");
             for (var i in this.commandList) {
                 _StdOut.advanceLine();
@@ -209,6 +225,30 @@ var TSOS;
                         break;
                     case "clearmem":
                         _StdOut.putText("clearmem - Clears all memory and resets all partitions.");
+                        break;
+                    case "format":
+                        _StdOut.putText("format - Initializes all disk blocks.");
+                        break;
+                    case "create":
+                        _StdOut.putText("create <filename> - Creates a new file on disk.");
+                        break;
+                    case "write":
+                        _StdOut.putText("write <filename> \"data\" - Writes data to a file.");
+                        break;
+                    case "read":
+                        _StdOut.putText("read <filename> - Reads and displays file contents.");
+                        break;
+                    case "delete":
+                        _StdOut.putText("delete <filename> - Deletes a file from disk.");
+                        break;
+                    case "copy":
+                        _StdOut.putText("copy <source> <dest> - Copies a file.");
+                        break;
+                    case "rename":
+                        _StdOut.putText("rename <oldname> <newname> - Renames a file.");
+                        break;
+                    case "ls":
+                        _StdOut.putText("ls - Lists all files currently on disk.");
                         break;
                     default:
                         _StdOut.putText("No manual entry for " + args[0] + ".");
@@ -418,6 +458,84 @@ var TSOS;
             document.getElementById('quantumDisplay').innerHTML = "Quantum is: " + newQuantum;
             _Scheduler.setQuantum(newQuantum);
             _StdOut.putText(`Quantum set to ${newQuantum} cycles.`);
+        }
+        shellFormat(args) {
+            const result = _FileSystem.format();
+            _StdOut.putText(result);
+        }
+        shellCreate(args) {
+            if (args.length === 0) {
+                _StdOut.putText("Usage: create <filename>");
+                return;
+            }
+            const filename = args[0];
+            const result = _FileSystem.create(filename);
+            _StdOut.putText(result);
+        }
+        shellWrite(args) {
+            if (args.length < 2) {
+                _StdOut.putText("Usage: write <filename> \"data\"");
+                return;
+            }
+            const filename = args[0];
+            // Join remaining args and remove quotes if present
+            let data = args.slice(1).join(" ");
+            // Remove surrounding quotes if present
+            if ((data.startsWith('"') && data.endsWith('"')) ||
+                (data.startsWith("'") && data.endsWith("'"))) {
+                data = data.slice(1, -1);
+            }
+            const result = _FileSystem.write(filename, data);
+            _StdOut.putText(result);
+        }
+        shellRead(args) {
+            if (args.length === 0) {
+                _StdOut.putText("Usage: read <filename>");
+                return;
+            }
+            const filename = args[0];
+            const result = _FileSystem.read(filename);
+            if (result.success) {
+                _StdOut.putText(`Contents of "${filename}":`);
+                _StdOut.advanceLine();
+                _StdOut.putText(result.data);
+            }
+            else {
+                _StdOut.putText(result.message);
+            }
+        }
+        shellDelete(args) {
+            if (args.length === 0) {
+                _StdOut.putText("Usage: delete <filename>");
+                return;
+            }
+            const filename = args[0];
+            const result = _FileSystem.delete(filename);
+            _StdOut.putText(result);
+        }
+        shellCopy(args) {
+            if (args.length < 2) {
+                _StdOut.putText("Usage: copy <source> <dest>");
+                return;
+            }
+            const source = args[0];
+            const dest = args[1];
+            const result = _FileSystem.copy(source, dest);
+            _StdOut.putText(result);
+        }
+        shellRename(args) {
+            if (args.length < 2) {
+                _StdOut.putText("Usage: rename <oldname> <newname>");
+                return;
+            }
+            const oldname = args[0];
+            const newname = args[1];
+            const result = _FileSystem.rename(oldname, newname);
+            _StdOut.putText(result);
+        }
+        shellLs(args) {
+            const result = _FileSystem.ls();
+            _StdOut.putText(result);
         }
     }
     TSOS.Shell = Shell;
