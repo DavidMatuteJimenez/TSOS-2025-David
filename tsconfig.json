@@ -1,6 +1,7 @@
 {
     "compilerOptions": {
-      "target"              : "ES2023",
+      "target"              : "es2022",
+      "lib"                 : ["ES2017", "DOM"],
       "rootDir"             : "source",
       "outDir"              : "distrib",
       "sourceMap"           : true,

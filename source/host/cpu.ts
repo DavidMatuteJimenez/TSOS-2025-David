@@ -113,8 +113,8 @@
                         this.PC++;
                         if (this.Zflag === 0) {
                             this.PC += jump;
-                            if (this.PC >= 256) {
-                                this.PC -= 256; // Wrap around
+                            if (this.PC >= MEMORY_PARTITION_SIZE) {
+                                this.PC -= MEMORY_PARTITION_SIZE; // Wrap around
                             }
                         }
                         break;

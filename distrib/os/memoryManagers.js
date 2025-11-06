@@ -3,15 +3,20 @@ var TSOS;
     class MemoryManager {
         partitions = [];
         constructor() {
-            this.partitions = [
-                { free: true, base: 0, limit: 256 },
-                { free: true, base: 256, limit: 256 },
-                { free: true, base: 512, limit: 256 }
-            ];
+            // Calculate partitions dynamically based on constants
+            this.partitions = [];
+            for (let i = 0; i < MEMORY_NUM_PARTITIONS; i++) {
+                const base = i * MEMORY_PARTITION_SIZE;
+                this.partitions.push({
+                    free: true,
+                    base: base,
+                    limit: base + MEMORY_PARTITION_SIZE // limit = base + size
+                });
+            }
         }
         allocatePartition(opCodes) {
             for (let i = 0; i < this.partitions.length; i++) {
-                if (this.partitions[i].free && opCodes.length <= this.partitions[i].limit) {
+                if (this.partitions[i].free && opCodes.length <= MEMORY_PARTITION_SIZE) {
                     const base = this.partitions[i].base;
                     for (let j = 0; j < opCodes.length; j++) {
                         const value = parseInt(opCodes[j], 16);
@@ -32,7 +37,7 @@ var TSOS;
         }
         deallocatePartition(segment) {
             if (segment >= 0 && segment < this.partitions.length) {
-                for (let i = 0; i < this.partitions[segment].limit; i++) {
+                for (let i = 0; i < MEMORY_PARTITION_SIZE; i++) {
                     _Memory.memory[this.partitions[segment].base + i] = 0x00;
                 }
                 this.partitions[segment].free = true;

@@ -8,7 +8,7 @@ module TSOS {
                     _Kernel.krnTrapError("Memory access violation: Address out of bounds.");
                     return 0;
             }
-            if (address < 0 || address >= _Kernel.runningPcb.limit) {
+            if (address < 0 || address >= (_Kernel.runningPcb.limit - _Kernel.runningPcb.base)) {
                 _KernelInterruptQueue.enqueue(new Interrupt(PSKILL,["Memory access violation: Address out of bounds."]));
                 return 0;
             }
@@ -29,7 +29,7 @@ module TSOS {
                     _Kernel.krnTrapError("Memory access violation: Address out of bounds.");
                     return;
             }
-            if (address < 0 || address >= _Kernel.runningPcb.limit) {
+            if (address < 0 || address >= (_Kernel.runningPcb.limit - _Kernel.runningPcb.base)) {
                 _KernelInterruptQueue.enqueue(new Interrupt(PSKILL,["Memory access violation: Address out of bounds."]));
                 return;
             }

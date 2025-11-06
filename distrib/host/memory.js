@@ -2,10 +2,10 @@
 var TSOS;
 (function (TSOS) {
     class Memory {
-        // Main memory is an array of 256 bytes.
+        // Main memory is an array of MEMORY_TOTAL_SIZE bytes.
         memory;
         constructor() {
-            this.memory = new Array(768).fill(0x00);
+            this.memory = new Array(MEMORY_TOTAL_SIZE).fill(0x00);
         }
         init() {
             // Initialize all memory locations to 0.
