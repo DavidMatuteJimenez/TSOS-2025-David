@@ -11,7 +11,7 @@ var TSOS;
         data;
         constructor() {
             // Initialize disk with zeross
-            this.data = new Uint8Array(this.TOTAL_BLOCsKS * this.BLOCK_SIZE);
+            this.data = new Uint8Array(Disk.TOTAL_BLOCKS * Disk.BLOCK_SIZE);
             this.data.fill(0x00);
         }
         // Get linear block number from track/sector/block
