@@ -31,6 +31,12 @@ var TSOS;
             _MemoryManager = new TSOS.MemoryManager();
             _Scheduler = new TSOS.Scheduler();
             _Dispatcher = new TSOS.Dispatcher();
+            // Initialize Disk and FileSystem 
+            this.krnTrace("Initializing Disk and FileSystem.");
+            _Disk = new TSOS.Disk();
+            _FileSystem = new TSOS.FileSystem(_Disk);
+            this.krnTrace("Disk and FileSystem initialized.");
+            // Initialize Disk and FileSystem
             // Load the Keyboard Device Driver
             this.krnTrace("Loading the keyboard device driver.");
             _krnKeyboardDriver = new TSOS.DeviceDriverKeyboard(); // Construct it.
