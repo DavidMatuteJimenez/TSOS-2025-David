@@ -5,6 +5,8 @@ var TSOS;
         files = new Map();
         maxFilesPerDirectory = 8; // Simple limit for directory
         sessionStorageKey = "TSOS_DISK_DATA";
+        usedBlocks = new Set(); // Track used blocks
+        nextAvailableBlock = 0; // Simple block counter
         constructor(disk) {
             this.disk = disk;
             this.loadFromSessionStorage();
@@ -13,6 +15,8 @@ var TSOS;
         format() {
             this.disk.format();
             this.files.clear();
+            this.usedBlocks.clear();
+            this.nextAvailableBlock = 0;
             this.saveToSessionStorage();
             return "Disk formatted successfully.";
         }
@@ -49,7 +53,11 @@ var TSOS;
             if (bytes.length > this.calculateMaxFileSize()) {
                 return `Error: Data too large for file. Maximum: ${this.calculateMaxFileSize()} bytes.`;
             }
-            // Store data in disk starting at track 1 (track 0 is metadata)
+            // Free old blocks if file had data
+            if (entry.size > 0) {
+                this.freeBlocksForFile(entry);
+            }
+            // Allocate new blocks
             const blockAddress = this.allocateBlocks(bytes.length);
             if (!blockAddress) {
                 return `Error: Not enough disk space.`;
@@ -69,7 +77,18 @@ var TSOS;
                 blockData.set(bytes.slice(byteOffset, byteOffset + bytesToWrite));
                 this.disk.writeBlock(currentTrack, currentSector, currentBlock, blockData);
                 byteOffset += bytesToWrite;
-                this.advanceBlockAddress(currentTrack, currentSector, currentBlock);
+                // Move to next block if more data to write
+                if (byteOffset < bytes.length) {
+                    const nextAddr = this.advanceBlockAddress(currentTrack, currentSector, currentBlock);
+                    if (nextAddr) {
+                        currentTrack = nextAddr.track;
+                        currentSector = nextAddr.sector;
+                        currentBlock = nextAddr.block;
+                    }
+                    else {
+                        break; // No more blocks available
+                    }
+                }
             }
             this.files.set(filename, entry);
             this.saveToSessionStorage();
@@ -94,7 +113,18 @@ var TSOS;
                 const bytesToRead = Math.min(TSOS.Disk.BLOCK_SIZE, entry.size - byteOffset);
                 data.set(blockData.slice(0, bytesToRead), byteOffset);
                 byteOffset += bytesToRead;
-                this.advanceBlockAddress(currentTrack, currentSector, currentBlock);
+                // Move to next block if more data to read
+                if (byteOffset < entry.size) {
+                    const next = this.advanceBlockAddress(currentTrack, currentSector, currentBlock);
+                    if (next) {
+                        currentTrack = next.track;
+                        currentSector = next.sector;
+                        currentBlock = next.block;
+                    }
+                    else {
+                        break; // End of disk
+                    }
+                }
             }
             const content = this.bytesToString(data);
             return { success: true, data: content, message: `Read "${filename}" (${entry.size} bytes).` };
@@ -103,6 +133,9 @@ var TSOS;
             if (!this.files.has(filename)) {
                 return `Error: File "${filename}" does not exist.`;
             }
+            const entry = this.files.get(filename);
+            // Free blocks used by the file
+            this.freeBlocksForFile(entry);
             this.files.delete(filename);
             this.saveToSessionStorage();
             return `File "${filename}" deleted successfully.`;
@@ -184,13 +217,102 @@ var TSOS;
             return availableBlocks * TSOS.Disk.BLOCK_SIZE;
         }
         allocateBlocks(size) {
-            // Simple allocation: find first available space starting from track 1, sector 0, block 0
-            // For now, just use track 1 sequentially
-            return { track: 1, sector: 0, block: 0 };
+            const blocksNeeded = Math.ceil(size / TSOS.Disk.BLOCK_SIZE);
+            if (blocksNeeded === 0)
+                return { track: 1, sector: 0, block: 0 }; // Empty file
+            // Find consecutive free blocks starting from track 1 (track 0 reserved for metadata)
+            for (let track = 1; track < TSOS.Disk.TRACKS; track++) {
+                for (let sector = 0; sector < TSOS.Disk.SECTORS; sector++) {
+                    for (let block = 0; block < TSOS.Disk.BLOCKS_PER_SECTOR; block++) {
+                        const blockKey = `${track}-${sector}-${block}`;
+                        if (!this.usedBlocks.has(blockKey)) {
+                            // Check if we can allocate consecutive blocks
+                            let canAllocate = true;
+                            let checkTrack = track;
+                            let checkSector = sector;
+                            let checkBlock = block;
+                            // Check consecutive blocks
+                            for (let i = 0; i < blocksNeeded; i++) {
+                                const checkKey = `${checkTrack}-${checkSector}-${checkBlock}`;
+                                if (this.usedBlocks.has(checkKey)) {
+                                    canAllocate = false;
+                                    break;
+                                }
+                                // Move to next block for next iteration
+                                if (i < blocksNeeded - 1) {
+                                    const next = this.advanceBlockAddress(checkTrack, checkSector, checkBlock);
+                                    if (!next) {
+                                        canAllocate = false;
+                                        break;
+                                    }
+                                    checkTrack = next.track;
+                                    checkSector = next.sector;
+                                    checkBlock = next.block;
+                                }
+                            }
+                            if (canAllocate) {
+                                // Mark blocks as used
+                                let allocTrack = track;
+                                let allocSector = sector;
+                                let allocBlock = block;
+                                for (let i = 0; i < blocksNeeded; i++) {
+                                    const allocKey = `${allocTrack}-${allocSector}-${allocBlock}`;
+                                    this.usedBlocks.add(allocKey);
+                                    if (i < blocksNeeded - 1) {
+                                        const next = this.advanceBlockAddress(allocTrack, allocSector, allocBlock);
+                                        if (next) {
+                                            allocTrack = next.track;
+                                            allocSector = next.sector;
+                                            allocBlock = next.block;
+                                        }
+                                    }
+                                }
+                                return { track, sector, block };
+                            }
+                        }
+                    }
+                }
+            }
+            return null; // No space available
         }
         advanceBlockAddress(track, sector, block) {
-            // This is a placeholder - in actual use, you'd track position differently
-            // For sequential reads/writes, increment block, then sector, then track
+            // Increment block, then sector, then track
+            block++;
+            if (block >= TSOS.Disk.BLOCKS_PER_SECTOR) {
+                block = 0;
+                sector++;
+                if (sector >= TSOS.Disk.SECTORS) {
+                    sector = 0;
+                    track++;
+                    if (track >= TSOS.Disk.TRACKS) {
+                        return null; // End of disk
+                    }
+                }
+            }
+            return { track, sector, block };
+        }
+        freeBlocksForFile(entry) {
+            if (entry.size === 0)
+                return;
+            const blocksUsed = Math.ceil(entry.size / TSOS.Disk.BLOCK_SIZE);
+            let currentTrack = entry.startTrack;
+            let currentSector = entry.startSector;
+            let currentBlock = entry.startBlock;
+            for (let i = 0; i < blocksUsed; i++) {
+                const blockKey = `${currentTrack}-${currentSector}-${currentBlock}`;
+                this.usedBlocks.delete(blockKey);
+                if (i < blocksUsed - 1) {
+                    const next = this.advanceBlockAddress(currentTrack, currentSector, currentBlock);
+                    if (next) {
+                        currentTrack = next.track;
+                        currentSector = next.sector;
+                        currentBlock = next.block;
+                    }
+                    else {
+                        break;
+                    }
+                }
+            }
         }
         saveToSessionStorage() {
             try {
@@ -202,9 +324,13 @@ var TSOS;
                     name,
                     ...entry
                 }));
+                // Serialize used blocks
+                const usedBlocksArray = Array.from(this.usedBlocks);
                 const storageData = {
                     diskData: diskDataB64,
                     files: filesData,
+                    usedBlocks: usedBlocksArray,
+                    nextAvailableBlock: this.nextAvailableBlock,
                     timestamp: Date.now()
                 };
                 sessionStorage.setItem(this.sessionStorageKey, JSON.stringify(storageData));
@@ -238,6 +364,15 @@ var TSOS;
                         createdDate: fileEntry.createdDate
                     });
                 }
+                // Restore used blocks
+                this.usedBlocks.clear();
+                if (storageData.usedBlocks) {
+                    for (const blockKey of storageData.usedBlocks) {
+                        this.usedBlocks.add(blockKey);
+                    }
+                }
+                // Restore next available block
+                this.nextAvailableBlock = storageData.nextAvailableBlock || 0;
                 _Kernel.krnTrace("FileSystem: Data restored from sessionStorage");
             }
             catch (e) {

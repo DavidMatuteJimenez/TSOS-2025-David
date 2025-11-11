@@ -134,6 +134,7 @@ module TSOS {
             // .. and call the OS Kernel Bootstrap routine.
             _Kernel = new Kernel();
             _Kernel.krnBootstrap();  // _GLaDOS.afterStartup() will get called in there, if configured.
+            // Initialize the displays.
             Control.createMemoryDisplay()
 
             Control.setDateAndTime();
