@@ -17,7 +17,6 @@ module TSOS {
         private sessionStorageKey: string = "TSOS_DISK_DATA";
         private usedBlocks: Set<string> = new Set(); // Track used blocks
         private nextAvailableBlock: number = 0; // Simple block counter
-        private isFormatted: boolean = false; // Track if disk has been formatted
 
         constructor(disk: Disk) {
             this.disk = disk;
@@ -31,17 +30,11 @@ module TSOS {
             this.files.clear();
             this.usedBlocks.clear();
             this.nextAvailableBlock = 0;
-            this.isFormatted = true;
             this.saveToSessionStorage();
             return "Disk formatted successfully.";
         }
 
         public create(filename: string): string {
-            // Check if disk is formatted
-            if (!this.isFormatted) {
-                return `Error: Disk not formatted. Run 'format' command first.`;
-            }
-
             // Validate filename
             if (!this.validateFilename(filename)) {
                 return `Error: Invalid filename "${filename}". Use alphanumeric, hyphens, underscores only.`;
@@ -71,10 +64,6 @@ module TSOS {
         }
 
         public write(filename: string, data: string): string {
-            if (!this.isFormatted) {
-                return `Error: Disk not formatted. Run 'format' command first.`;
-            }
-
             if (!this.files.has(filename)) {
                 return `Error: File "${filename}" does not exist.`;
             }
@@ -136,10 +125,6 @@ module TSOS {
         }
 
         public read(filename: string): { success: boolean; data: string; message: string } {
-            if (!this.isFormatted) {
-                return { success: false, data: "", message: `Error: Disk not formatted. Run 'format' command first.` };
-            }
-
             if (!this.files.has(filename)) {
                 return { success: false, data: "", message: `Error: File "${filename}" does not exist.` };
             }
@@ -181,10 +166,6 @@ module TSOS {
         }
 
         public delete(filename: string): string {
-            if (!this.isFormatted) {
-                return `Error: Disk not formatted. Run 'format' command first.`;
-            }
-
             if (!this.files.has(filename)) {
                 return `Error: File "${filename}" does not exist.`;
             }
@@ -200,10 +181,6 @@ module TSOS {
         }
 
         public copy(sourceFilename: string, destFilename: string): string {
-            if (!this.isFormatted) {
-                return `Error: Disk not formatted. Run 'format' command first.`;
-            }
-
             if (!this.files.has(sourceFilename)) {
                 return `Error: Source file "${sourceFilename}" does not exist.`;
             }
@@ -230,10 +207,6 @@ module TSOS {
         }
 
         public rename(oldFilename: string, newFilename: string): string {
-            if (!this.isFormatted) {
-                return `Error: Disk not formatted. Run 'format' command first.`;
-            }
-
             if (!this.files.has(oldFilename)) {
                 return `Error: File "${oldFilename}" does not exist.`;
             }
@@ -251,10 +224,6 @@ module TSOS {
         }
 
         public ls(): string {
-            if (!this.isFormatted) {
-                return `Error: Disk not formatted. Run 'format' command first.`;
-            }
-
             if (this.files.size === 0) {
                 return "Disk is empty.";
             }
@@ -429,7 +398,6 @@ module TSOS {
                     files: filesData,
                     usedBlocks: usedBlocksArray,
                     nextAvailableBlock: this.nextAvailableBlock,
-                    isFormatted: this.isFormatted,
                     timestamp: Date.now()
                 };
 
@@ -445,7 +413,6 @@ module TSOS {
                 const stored = sessionStorage.getItem(this.sessionStorageKey);
                 if (!stored) {
                     _Kernel.krnTrace("FileSystem: No saved data in sessionStorage");
-                    this.isFormatted = false;
                     return;
                 }
 
@@ -480,13 +447,9 @@ module TSOS {
                 // Restore next available block
                 this.nextAvailableBlock = storageData.nextAvailableBlock || 0;
 
-                // Restore format status
-                this.isFormatted = storageData.isFormatted || false;
-
                 _Kernel.krnTrace("FileSystem: Data restored from sessionStorage");
             } catch (e) {
                 _Kernel.krnTrace(`FileSystem: Error loading from sessionStorage: ${e}`);
-                this.isFormatted = false;
             }
         }
 

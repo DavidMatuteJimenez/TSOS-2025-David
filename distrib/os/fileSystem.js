@@ -7,7 +7,6 @@ var TSOS;
         sessionStorageKey = "TSOS_DISK_DATA";
         usedBlocks = new Set(); // Track used blocks
         nextAvailableBlock = 0; // Simple block counter
-        isFormatted = false; // Track if disk has been formatted
         constructor(disk) {
             this.disk = disk;
             this.loadFromSessionStorage();
@@ -18,15 +17,10 @@ var TSOS;
             this.files.clear();
             this.usedBlocks.clear();
             this.nextAvailableBlock = 0;
-            this.isFormatted = true;
             this.saveToSessionStorage();
             return "Disk formatted successfully.";
         }
         create(filename) {
-            // Check if disk is formatted
-            if (!this.isFormatted) {
-                return `Error: Disk not formatted. Run 'format' command first.`;
-            }
             // Validate filename
             if (!this.validateFilename(filename)) {
                 return `Error: Invalid filename "${filename}". Use alphanumeric, hyphens, underscores only.`;
@@ -51,9 +45,6 @@ var TSOS;
             return `File "${filename}" created successfully.`;
         }
         write(filename, data) {
-            if (!this.isFormatted) {
-                return `Error: Disk not formatted. Run 'format' command first.`;
-            }
             if (!this.files.has(filename)) {
                 return `Error: File "${filename}" does not exist.`;
             }
@@ -104,9 +95,6 @@ var TSOS;
             return `Data written to "${filename}" successfully (${bytes.length} bytes).`;
         }
         read(filename) {
-            if (!this.isFormatted) {
-                return { success: false, data: "", message: `Error: Disk not formatted. Run 'format' command first.` };
-            }
             if (!this.files.has(filename)) {
                 return { success: false, data: "", message: `Error: File "${filename}" does not exist.` };
             }
@@ -142,9 +130,6 @@ var TSOS;
             return { success: true, data: content, message: `Read "${filename}" (${entry.size} bytes).` };
         }
         delete(filename) {
-            if (!this.isFormatted) {
-                return `Error: Disk not formatted. Run 'format' command first.`;
-            }
             if (!this.files.has(filename)) {
                 return `Error: File "${filename}" does not exist.`;
             }
@@ -156,9 +141,6 @@ var TSOS;
             return `File "${filename}" deleted successfully.`;
         }
         copy(sourceFilename, destFilename) {
-            if (!this.isFormatted) {
-                return `Error: Disk not formatted. Run 'format' command first.`;
-            }
             if (!this.files.has(sourceFilename)) {
                 return `Error: Source file "${sourceFilename}" does not exist.`;
             }
@@ -180,9 +162,6 @@ var TSOS;
             return writeResult;
         }
         rename(oldFilename, newFilename) {
-            if (!this.isFormatted) {
-                return `Error: Disk not formatted. Run 'format' command first.`;
-            }
             if (!this.files.has(oldFilename)) {
                 return `Error: File "${oldFilename}" does not exist.`;
             }
@@ -197,9 +176,6 @@ var TSOS;
             return `File "${oldFilename}" renamed to "${newFilename}" successfully.`;
         }
         ls() {
-            if (!this.isFormatted) {
-                return `Error: Disk not formatted. Run 'format' command first.`;
-            }
             if (this.files.size === 0) {
                 return "Disk is empty.";
             }
@@ -355,7 +331,6 @@ var TSOS;
                     files: filesData,
                     usedBlocks: usedBlocksArray,
                     nextAvailableBlock: this.nextAvailableBlock,
-                    isFormatted: this.isFormatted,
                     timestamp: Date.now()
                 };
                 sessionStorage.setItem(this.sessionStorageKey, JSON.stringify(storageData));
@@ -370,7 +345,6 @@ var TSOS;
                 const stored = sessionStorage.getItem(this.sessionStorageKey);
                 if (!stored) {
                     _Kernel.krnTrace("FileSystem: No saved data in sessionStorage");
-                    this.isFormatted = false;
                     return;
                 }
                 const storageData = JSON.parse(stored);
@@ -399,13 +373,10 @@ var TSOS;
                 }
                 // Restore next available block
                 this.nextAvailableBlock = storageData.nextAvailableBlock || 0;
-                // Restore format status
-                this.isFormatted = storageData.isFormatted || false;
                 _Kernel.krnTrace("FileSystem: Data restored from sessionStorage");
             }
             catch (e) {
                 _Kernel.krnTrace(`FileSystem: Error loading from sessionStorage: ${e}`);
-                this.isFormatted = false;
             }
         }
         uint8ArrayToBase64(arr) {
