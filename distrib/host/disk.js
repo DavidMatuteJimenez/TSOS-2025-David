@@ -1,76 +1,94 @@
+// ============================================================================
+// source/host/disk.ts
+// ============================================================================
 var TSOS;
 (function (TSOS) {
-    // Disk structure: 4 tracks × 8 sectors × 8 blocks per sector
-    // Each block = 64 bytes
     class Disk {
-        static TRACKS = 4;
-        static SECTORS = 8;
-        static BLOCKS_PER_SECTOR = 8;
-        static BLOCK_SIZE = 64;
-        static TOTAL_BLOCKS = this.TRACKS * this.SECTORS * this.BLOCKS_PER_SECTOR;
-        data;
+        static trackCount = 0x4; // 4 tracks
+        static sectorCount = 0x8; // 8 sectors
+        static blockCount = 0x8; // 8 blocks per sector
+        static blockSize = 0x40; // 64 bytes per block
+        static trackSize = Disk.sectorCount * Disk.blockCount * Disk.blockSize;
+        static sectorSize = Disk.blockCount * Disk.blockSize;
+        static nullChar = String.fromCharCode(0);
         constructor() {
-            // Initialize disk with zeross
-            this.data = new Uint8Array(Disk.TOTAL_BLOCKS * Disk.BLOCK_SIZE);
-            this.data.fill(0x00);
+            // Disk is ready but not automatically formatted
+            // User must run 'format' command to initialize
         }
-        // Get linear block number from track/sector/block
-        getBlockIndex(track, sector, block) {
-            if (track < 0 || track >= Disk.TRACKS ||
-                sector < 0 || sector >= Disk.SECTORS ||
-                block < 0 || block >= Disk.BLOCKS_PER_SECTOR) {
-                throw new Error(`Invalid disk address: T${track}S${sector}B${block}`);
+        getDiskSize() {
+            return Disk.trackCount * Disk.sectorCount * Disk.blockCount * Disk.blockSize;
+        }
+        /**
+         * Check if disk has been formatted
+         */
+        isFormatted() {
+            const mbr = sessionStorage.getItem("0:0:0");
+            return mbr !== null && mbr !== undefined;
+        }
+        /**
+         * Format the disk - write 0's to all blocks
+         */
+        formatDisk(update = true) {
+            try {
+                for (let t = 0; t < Disk.trackCount; ++t) {
+                    for (let s = 0; s < Disk.sectorCount; ++s) {
+                        for (let b = 0; b < Disk.blockCount; ++b) {
+                            this.writeDisk([t, s, b], "", false); // Always use update=false for formatting to avoid display issues
+                        }
+                    }
+                }
+                // Log completion
+                if (_Kernel) {
+                    _Kernel.krnTrace("Disk formatting completed - " +
+                        (Disk.trackCount * Disk.sectorCount * Disk.blockCount) + " blocks initialized");
+                }
             }
-            return (track * Disk.SECTORS * Disk.BLOCKS_PER_SECTOR) +
-                (sector * Disk.BLOCKS_PER_SECTOR) +
-                block;
-        }
-        // Read entire block from disk
-        readBlock(track, sector, block) {
-            const blockIdx = this.getBlockIndex(track, sector, block);
-            const startByte = blockIdx * Disk.BLOCK_SIZE;
-            return this.data.slice(startByte, startByte + Disk.BLOCK_SIZE);
-        }
-        // Write entire block to disk
-        writeBlock(track, sector, block, data) {
-            if (data.length > Disk.BLOCK_SIZE) {
-                throw new Error(`Data too large for block (${data.length} > ${Disk.BLOCK_SIZE})`);
+            catch (error) {
+                if (_Kernel) {
+                    _Kernel.krnTrace("Disk formatting error: " + error);
+                }
+                throw error;
             }
-            const blockIdx = this.getBlockIndex(track, sector, block);
-            const startByte = blockIdx * Disk.BLOCK_SIZE;
-            this.data.set(data, startByte);
         }
-        // Read single byte from disk
-        readByte(track, sector, block, offset) {
-            if (offset < 0 || offset >= Disk.BLOCK_SIZE) {
-                throw new Error(`Byte offset out of range: ${offset}`);
+        /**
+         * Write data to disk at specified TSB address
+         */
+        writeDisk(tsb, data, update = true) {
+            if (tsb[0] < Disk.trackCount &&
+                tsb[1] < Disk.sectorCount &&
+                tsb[2] < Disk.blockCount) {
+                // Pad data with null characters to block size
+                if (data.length < Disk.blockSize) {
+                    data += Array(Disk.blockSize - data.length + 1).join(Disk.nullChar);
+                }
+                const str = tsb[0] + ':' + tsb[1] + ':' + tsb[2];
+                sessionStorage.setItem(str, data);
+                return 0;
             }
-            const blockIdx = this.getBlockIndex(track, sector, block);
-            return this.data[blockIdx * Disk.BLOCK_SIZE + offset];
+            return 1; // Error
         }
-        // Write single byte to disk
-        writeByte(track, sector, block, offset, byte) {
-            if (offset < 0 || offset >= Disk.BLOCK_SIZE) {
-                throw new Error(`Byte offset out of range: ${offset}`);
+        /**
+         * Read data from disk at specified TSB address
+         */
+        readDisk(tsb) {
+            if (tsb[0] < Disk.trackCount &&
+                tsb[1] < Disk.sectorCount &&
+                tsb[2] < Disk.blockCount) {
+                const str = sessionStorage.getItem(tsb[0] + ':' + tsb[1] + ':' + tsb[2]);
+                return str;
             }
-            const blockIdx = this.getBlockIndex(track, sector, block);
-            this.data[blockIdx * Disk.BLOCK_SIZE + offset] = byte & 0xFF;
+            return undefined;
         }
-        // Clear entire disk
-        format() {
-            this.data.fill(0x00);
-            _Kernel.krnTrace("Disk formatted successfully");
-        }
-        // Get entire disk data for serialization
-        getDiskData() {
-            return new Uint8Array(this.data);
-        }
-        // Load disk data from serialization
-        loadDiskData(data) {
-            if (data.length !== this.data.length) {
-                throw new Error(`Invalid disk data size: ${data.length}`);
-            }
-            this.data.set(data);
+        /**
+         * Read disk using string address format "t:s:b"
+         */
+        stringReadDisk(str) {
+            const arr = str.split(':');
+            return this.readDisk([
+                parseInt(arr[0]),
+                parseInt(arr[1]),
+                parseInt(arr[2])
+            ]);
         }
     }
     TSOS.Disk = Disk;

@@ -1,473 +1,448 @@
 module TSOS {
-    // File metadata structure (stored at start of each file entry)
-    interface FileEntry {
-        name: string;           // filename
-        size: number;           // file size in bytes
-        startTrack: number;     // starting track
-        startSector: number;    // starting sector
-        startBlock: number;     // starting block
-        used: boolean;          // is entry used
-        createdDate: string;    // creation date
-    }
-
     export class FileSystem {
         private disk: Disk;
-        private files: Map<string, FileEntry> = new Map();
-        private maxFilesPerDirectory: number = 8; // Simple limit for directory
-        private sessionStorageKey: string = "TSOS_DISK_DATA";
-        private usedBlocks: Set<string> = new Set(); // Track used blocks
-        private nextAvailableBlock: number = 0; // Simple block counter
+        private swapPrefix = "~";
+        private emptyFlag = String.fromCharCode(0);
+        private nextFlag = String.fromCharCode(1);
+        private finalFlag = String.fromCharCode(2);
 
         constructor(disk: Disk) {
             this.disk = disk;
-            this.loadFromSessionStorage();
         }
 
-        // ===== PUBLIC INTERFACE =====
 
+        //Format the file system
         public format(): string {
-            this.disk.format();
-            this.files.clear();
-            this.usedBlocks.clear();
-            this.nextAvailableBlock = 0;
-            this.saveToSessionStorage();
-            return "Disk formatted successfully.";
+            this.disk.formatDisk(true);
+            // Write MBR to mark disk as formatted
+            this.disk.writeDisk([0, 0, 0], "MBR_FORMATTED", false);
+            return "Disk formatted.";
         }
 
+
+        //Create a new file
         public create(filename: string): string {
-            // Validate filename
+            if (!this.disk.isFormatted()) {
+                return "Error: Disk not formatted. Please run 'format' first.";
+            }
+
             if (!this.validateFilename(filename)) {
-                return `Error: Invalid filename "${filename}". Use alphanumeric, hyphens, underscores only.`;
+                return "Error: Invalid filename.";
             }
 
-            if (this.files.has(filename)) {
-                return `Error: File "${filename}" already exists.`;
+            // Check if file already exists
+            if (this.fileExists(filename)) {
+                return "Error: File already exists.";
             }
 
-            if (this.files.size >= this.maxFilesPerDirectory) {
-                return `Error: Directory full. Cannot create "${filename}".`;
+            // Find next open directory entry
+            const dirTsb = this.nextOpenDirEntry();
+            if (!dirTsb) {
+                return "Error: Directory is full.";
             }
 
-            const entry: FileEntry = {
-                name: filename,
-                size: 0,
-                startTrack: 0,
-                startSector: 0,
-                startBlock: 0,
-                used: true,
-                createdDate: new Date().toLocaleString()
-            };
+            // Find next open data block
+            const blockTsb = this.nextOpenBlock();
+            if (!blockTsb) {
+                return "Error: Disk is full.";
+            }
 
-            this.files.set(filename, entry);
-            this.saveToSessionStorage();
+            // Create directory entry: [T][S][B][filename...]
+            const data = String.fromCharCode(blockTsb[0]) +
+                         String.fromCharCode(blockTsb[1]) +
+                         String.fromCharCode(blockTsb[2]) +
+                         filename;
+
+            this.disk.writeDisk(dirTsb, data);
+
+            // Initialize the data block with finalFlag (empty file, no more blocks)
+            this.disk.writeDisk(blockTsb, this.finalFlag);
+
             return `File "${filename}" created successfully.`;
         }
 
+
+        //Write data to a file
         public write(filename: string, data: string): string {
-            if (!this.files.has(filename)) {
-                return `Error: File "${filename}" does not exist.`;
+            if (!this.disk.isFormatted()) {
+                return "Error: Disk not formatted. Please run 'format' first.";
             }
 
-            const entry = this.files.get(filename);
-            const bytes = this.stringToBytes(data);
-
-            if (bytes.length > this.calculateMaxFileSize()) {
-                return `Error: Data too large for file. Maximum: ${this.calculateMaxFileSize()} bytes.`;
+            // Find the file's directory entry
+            const dirTsb = this.findDirectoryEntry(filename);
+            if (!dirTsb) {
+                return "Error: File does not exist.";
             }
 
-            // Free old blocks if file had data
-            if (entry.size > 0) {
-                this.freeBlocksForFile(entry);
-            }
+            // Read directory entry to get first data block
+            const dirData = this.disk.readDisk(dirTsb);
+            const blockTsb = [
+                dirData.charCodeAt(0),
+                dirData.charCodeAt(1),
+                dirData.charCodeAt(2)
+            ];
 
-            // Allocate new blocks
-            const blockAddress = this.allocateBlocks(bytes.length);
-            if (!blockAddress) {
-                return `Error: Not enough disk space.`;
-            }
+            let currentTsb = blockTsb;
+            let dataIndex = 0;
 
-            entry.startTrack = blockAddress.track;
-            entry.startSector = blockAddress.sector;
-            entry.startBlock = blockAddress.block;
-            entry.size = bytes.length;
-
-            // Write data to disk
-            let currentTrack = blockAddress.track;
-            let currentSector = blockAddress.sector;
-            let currentBlock = blockAddress.block;
-            let byteOffset = 0;
-
-            while (byteOffset < bytes.length) {
-                const blockData = new Uint8Array(Disk.BLOCK_SIZE);
-                const bytesToWrite = Math.min(Disk.BLOCK_SIZE, bytes.length - byteOffset);
-                blockData.set(bytes.slice(byteOffset, byteOffset + bytesToWrite));
+            while (dataIndex < data.length) {
+                // block size - 4 for metadata
+                const spaceInBlock = Disk.blockSize - 4;
+                const dataToWrite = data.substring(dataIndex, dataIndex + spaceInBlock);
                 
-                this.disk.writeBlock(currentTrack, currentSector, currentBlock, blockData);
+                let blockData = "";
+                let nextTsb: number[] = undefined;
 
-                byteOffset += bytesToWrite;
-                
-                // Move to next block if more data to write
-                if (byteOffset < bytes.length) {
-                    const nextAddr = this.advanceBlockAddress(currentTrack, currentSector, currentBlock);
-                    if (nextAddr) {
-                        currentTrack = nextAddr.track;
-                        currentSector = nextAddr.sector;
-                        currentBlock = nextAddr.block;
-                    } else {
-                        break; // No more blocks available
+                // Determine block status and next block
+                if (dataIndex + spaceInBlock < data.length) {
+                    // More data to write - find next block
+                    nextTsb = this.nextOpenBlock(currentTsb);
+                    if (!nextTsb) {
+                        // No more space
+                        blockData = this.finalFlag +
+                                   String.fromCharCode(0xFF) +
+                                   String.fromCharCode(0xFF) +
+                                   String.fromCharCode(0xFF) +
+                                   dataToWrite;
+                        this.disk.writeDisk(currentTsb, blockData);
+                        return "Warning: File truncated due to insufficient space.";
                     }
+                    blockData = this.nextFlag +
+                               String.fromCharCode(nextTsb[0]) +
+                               String.fromCharCode(nextTsb[1]) +
+                               String.fromCharCode(nextTsb[2]) +
+                               dataToWrite;
+                } else {
+                    // Last block
+                    blockData = this.finalFlag +
+                               String.fromCharCode(0xFF) +
+                               String.fromCharCode(0xFF) +
+                               String.fromCharCode(0xFF) +
+                               dataToWrite;
+                }
+
+                this.disk.writeDisk(currentTsb, blockData);
+                dataIndex += spaceInBlock;
+
+                if (nextTsb) {
+                    currentTsb = nextTsb;
                 }
             }
 
-            this.files.set(filename, entry);
-            this.saveToSessionStorage();
-            return `Data written to "${filename}" successfully (${bytes.length} bytes).`;
+            return `Data written to "${filename}" successfully.`;
         }
 
+
+        //Read data from a file
         public read(filename: string): { success: boolean; data: string; message: string } {
-            if (!this.files.has(filename)) {
+            if (!this.disk.isFormatted()) {
+                return { success: false, data: "", message: "Error: Disk not formatted. Please run 'format' first." };
+            }
+
+            // Find the file's directory entry
+            const dirTsb = this.findDirectoryEntry(filename);
+            if (!dirTsb) {
                 return { success: false, data: "", message: `Error: File "${filename}" does not exist.` };
             }
 
-            const entry = this.files.get(filename);
-            if (entry.size === 0) {
-                return { success: true, data: "", message: `File "${filename}" is empty.` };
+            // Read directory entry to get first data block
+            const dirData = this.disk.readDisk(dirTsb);
+            const blockTsb = [
+                dirData.charCodeAt(0),
+                dirData.charCodeAt(1),
+                dirData.charCodeAt(2)
+            ];
+
+            let fileData = "";
+            let currentTsb = blockTsb;
+            let blockStatus = 0;
+
+            do {
+                const blockData = this.disk.readDisk(currentTsb);
+                blockStatus = blockData.charCodeAt(0);
+
+                // Extract data (skip first 4 bytes of metadata)
+                fileData += blockData.substring(4);
+
+                if (blockStatus === this.nextFlag.charCodeAt(0)) {
+                    // Move to next block
+                    currentTsb = [
+                        blockData.charCodeAt(1),
+                        blockData.charCodeAt(2),
+                        blockData.charCodeAt(3)
+                    ];
+                }
+            } while (blockStatus === this.nextFlag.charCodeAt(0));
+
+            // Trim null characters
+            fileData = fileData.replace(/\0+$/, "");
+
+            return { success: true, data: fileData, message: `Read "${filename}" successfully.` };
+        }
+
+
+        //Delete a file
+        public delete(filename: string): string {
+            if (!this.disk.isFormatted()) {
+                return "Error: Disk not formatted. Please run 'format' first.";
             }
 
-            // Read data from disk
-            let data = new Uint8Array(entry.size);
-            let currentTrack = entry.startTrack;
-            let currentSector = entry.startSector;
-            let currentBlock = entry.startBlock;
-            let byteOffset = 0;
+            // Find the file's directory entry
+            const dirTsb = this.findDirectoryEntry(filename);
+            if (!dirTsb) {
+                return `Error: File "${filename}" does not exist.`;
+            }
 
-            while (byteOffset < entry.size) {
-                const blockData = this.disk.readBlock(currentTrack, currentSector, currentBlock);
-                const bytesToRead = Math.min(Disk.BLOCK_SIZE, entry.size - byteOffset);
-                data.set(blockData.slice(0, bytesToRead), byteOffset);
+            // Read directory entry to get data blocks
+            const dirData = this.disk.readDisk(dirTsb);
+            let blockTsb = [
+                dirData.charCodeAt(0),
+                dirData.charCodeAt(1),
+                dirData.charCodeAt(2)
+            ];
 
-                byteOffset += bytesToRead;
-                
-                // Move to next block if more data to read
-                if (byteOffset < entry.size) {
-                    const next = this.advanceBlockAddress(currentTrack, currentSector, currentBlock);
-                    if (next) {
-                        currentTrack = next.track;
-                        currentSector = next.sector;
-                        currentBlock = next.block;
-                    } else {
-                        break; // End of disk
+            // Free all data blocks
+            let blockStatus = 0;
+            do {
+                const blockData = this.disk.readDisk(blockTsb);
+                blockStatus = blockData.charCodeAt(0);
+
+                // Clear the block
+                this.disk.writeDisk(blockTsb, "");
+
+                if (blockStatus === this.nextFlag.charCodeAt(0)) {
+                    blockTsb = [
+                        blockData.charCodeAt(1),
+                        blockData.charCodeAt(2),
+                        blockData.charCodeAt(3)
+                    ];
+                }
+            } while (blockStatus === this.nextFlag.charCodeAt(0));
+
+            // Clear the directory entry
+            this.disk.writeDisk(dirTsb, "");
+
+            return `File "${filename}" deleted successfully.`;
+        }
+
+
+        //List all files
+        public ls(): string {
+            if (!this.disk.isFormatted()) {
+                return "Error: Disk not formatted. Please run 'format' first.";
+            }
+
+            let output = "";
+            let fileCount = 0;
+
+            // Search directory blocks (0:0:1 to 0:7:7)
+            for (let s = 0; s < Disk.sectorCount; ++s) {
+                for (let b = 0; b < Disk.blockCount; ++b) {
+                    // Skip MBR (0:0:0)
+                    if (s === 0 && b === 0) continue;
+
+                    const dirData = this.disk.readDisk([0, s, b]);
+                    if (dirData && dirData.charCodeAt(0) !== 0) {
+                        // Extract filename (skip first 3 bytes which are TSB)
+                        const filename = this.trimFilename(dirData.substring(3));
+                        if (filename.length > 0) {
+                            output += filename + "\n";
+                            fileCount++;
+                        }
                     }
                 }
             }
 
-            const content = this.bytesToString(data);
-            return { success: true, data: content, message: `Read "${filename}" (${entry.size} bytes).` };
+            if (fileCount === 0) {
+                return "Disk is empty.";
+            }
+            return output;
         }
 
-        public delete(filename: string): string {
-            if (!this.files.has(filename)) {
-                return `Error: File "${filename}" does not exist.`;
+
+        //Copy a file
+        public copy(sourceFilename: string, destFilename: string): string {
+            if (!this.disk.isFormatted()) {
+                return "Error: Disk not formatted. Please run 'format' first.";
             }
 
-            const entry = this.files.get(filename);
-            
-            // Free blocks used by the file
-            this.freeBlocksForFile(entry);
-            
-            this.files.delete(filename);
-            this.saveToSessionStorage();
-            return `File "${filename}" deleted successfully.`;
-        }
-
-        public copy(sourceFilename: string, destFilename: string): string {
-            if (!this.files.has(sourceFilename)) {
+            // Read source file
+            const readResult = this.read(sourceFilename);
+            if (!readResult.success) {
                 return `Error: Source file "${sourceFilename}" does not exist.`;
             }
 
-            if (this.files.has(destFilename)) {
-                return `Error: Destination file "${destFilename}" already exists.`;
-            }
-
-            // Read source
-            const readResult = this.read(sourceFilename);
-            if (!readResult.success) {
-                return readResult.message;
-            }
-
-            // Create destination
+            // Create destination file
             const createResult = this.create(destFilename);
             if (createResult.includes("Error")) {
                 return createResult;
             }
 
-            // Write to destination
+            // Write data to destination
             const writeResult = this.write(destFilename, readResult.data);
-            return writeResult;
-        }
-
-        public rename(oldFilename: string, newFilename: string): string {
-            if (!this.files.has(oldFilename)) {
-                return `Error: File "${oldFilename}" does not exist.`;
+            if (writeResult.includes("Error")) {
+                return writeResult;
             }
 
-            if (this.files.has(newFilename)) {
+            return `File "${sourceFilename}" copied to "${destFilename}" successfully.`;
+        }
+
+        
+        //Rename a file
+        public rename(oldFilename: string, newFilename: string): string {
+            if (!this.disk.isFormatted()) {
+                return "Error: Disk not formatted. Please run 'format' first.";
+            }
+
+            if (!this.validateFilename(newFilename)) {
+                return "Error: Invalid filename.";
+            }
+
+            if (this.fileExists(newFilename)) {
                 return `Error: File "${newFilename}" already exists.`;
             }
 
-            const entry = this.files.get(oldFilename);
-            entry.name = newFilename;
-            this.files.delete(oldFilename);
-            this.files.set(newFilename, entry);
-            this.saveToSessionStorage();
+            // Find old file's directory entry
+            const dirTsb = this.findDirectoryEntry(oldFilename);
+            if (!dirTsb) {
+                return `Error: File "${oldFilename}" does not exist.`;
+            }
+
+            // Read the directory entry to get the data block TSB
+            const dirData = this.disk.readDisk(dirTsb);
+            const blockTsb = dirData.substring(0, 3);
+
+            // Write new directory entry with new name
+            const newDirData = blockTsb + newFilename;
+            this.disk.writeDisk(dirTsb, newDirData);
+
             return `File "${oldFilename}" renamed to "${newFilename}" successfully.`;
         }
 
-        public ls(): string {
-            if (this.files.size === 0) {
-                return "Disk is empty.";
-            }
 
-            let output = "Files on disk:\n";
-            let index = 1;
-            for (const [filename, entry] of this.files) {
-                output += `${index}. ${filename} (${entry.size} bytes, created: ${entry.createdDate})\n`;
-                index++;
-            }
-            return output;
-        }
-
-        // ===== PRIVATE HELPER METHODS =====
-
+        //helper methods
         private validateFilename(filename: string): boolean {
-            if (!filename || filename.length === 0 || filename.length > 32) {
+            if (!filename || filename.length === 0 || filename.length > 28) {
                 return false;
             }
-            // Allow alphanumeric, hyphens, underscores, dots
-            return /^[a-zA-Z0-9._-]+$/.test(filename);
-        }
-
-        private stringToBytes(str: string): Uint8Array {
-            const bytes = new Uint8Array(str.length);
-            for (let i = 0; i < str.length; i++) {
-                bytes[i] = str.charCodeAt(i) & 0xFF;
+            // Don't allow swap file prefix
+            if (filename.startsWith(this.swapPrefix)) {
+                return false;
             }
-            return bytes;
+            return true;
         }
 
-        private bytesToString(bytes: Uint8Array): string {
-            let str = "";
-            for (let i = 0; i < bytes.length; i++) {
-                if (bytes[i] === 0) break; // Stop at null terminator
-                str += String.fromCharCode(bytes[i]);
+        private trimFilename(str: string): string {
+            let lastIndex = str.length;
+            for (let i = 0; i < str.length; ++i) {
+                if (str.charCodeAt(i) === 0) {
+                    lastIndex = i;
+                    break;
+                }
             }
-            return str;
+            return str.slice(0, lastIndex);
         }
 
-        private calculateMaxFileSize(): number {
-            // Available blocks: all except track 0 (metadata track)
-            const availableBlocks = (Disk.TRACKS - 1) * Disk.SECTORS * Disk.BLOCKS_PER_SECTOR;
-            return availableBlocks * Disk.BLOCK_SIZE;
+        private fileExists(filename: string): boolean {
+            return this.findDirectoryEntry(filename) !== null;
         }
 
-        private allocateBlocks(size: number): { track: number; sector: number; block: number } | null {
-            const blocksNeeded = Math.ceil(size / Disk.BLOCK_SIZE);
-            if (blocksNeeded === 0) return { track: 1, sector: 0, block: 0 }; // Empty file
-            
-            // Find consecutive free blocks starting from track 1 (track 0 reserved for metadata)
-            for (let track = 1; track < Disk.TRACKS; track++) {
-                for (let sector = 0; sector < Disk.SECTORS; sector++) {
-                    for (let block = 0; block < Disk.BLOCKS_PER_SECTOR; block++) {
-                        const blockKey = `${track}-${sector}-${block}`;
-                        
-                        if (!this.usedBlocks.has(blockKey)) {
-                            // Check if we can allocate consecutive blocks
-                            let canAllocate = true;
-                            let checkTrack = track;
-                            let checkSector = sector;
-                            let checkBlock = block;
-                            
-                            // Check consecutive blocks
-                            for (let i = 0; i < blocksNeeded; i++) {
-                                const checkKey = `${checkTrack}-${checkSector}-${checkBlock}`;
-                                if (this.usedBlocks.has(checkKey)) {
-                                    canAllocate = false;
-                                    break;
-                                }
-                                
-                                // Move to next block for next iteration
-                                if (i < blocksNeeded - 1) {
-                                    const next = this.advanceBlockAddress(checkTrack, checkSector, checkBlock);
-                                    if (!next) {
-                                        canAllocate = false;
-                                        break;
-                                    }
-                                    checkTrack = next.track;
-                                    checkSector = next.sector;
-                                    checkBlock = next.block;
-                                }
-                            }
-                            
-                            if (canAllocate) {
-                                // Mark blocks as used
-                                let allocTrack = track;
-                                let allocSector = sector;
-                                let allocBlock = block;
-                                
-                                for (let i = 0; i < blocksNeeded; i++) {
-                                    const allocKey = `${allocTrack}-${allocSector}-${allocBlock}`;
-                                    this.usedBlocks.add(allocKey);
-                                    
-                                    if (i < blocksNeeded - 1) {
-                                        const next = this.advanceBlockAddress(allocTrack, allocSector, allocBlock);
-                                        if (next) {
-                                            allocTrack = next.track;
-                                            allocSector = next.sector;
-                                            allocBlock = next.block;
-                                        }
-                                    }
-                                }
-                                return { track, sector, block };
-                            }
+        private findDirectoryEntry(filename: string): number[] {
+            // Search directory blocks (0:0:1 to 0:7:7)
+            for (let s = 0; s < Disk.sectorCount; ++s) {
+                for (let b = 0; b < Disk.blockCount; ++b) {
+                    // Skip MBR (0:0:0)
+                    if (s === 0 && b === 0) continue;
+
+                    const dirData = this.disk.readDisk([0, s, b]);
+                    if (dirData && this.trimFilename(dirData.substring(3)) === filename) {
+                        return [0, s, b];
+                    }
+                }
+            }
+            return null;
+        }
+
+        private nextOpenDirEntry(): number[] {
+            // Search directory blocks (0:0:1 to 0:7:7)
+            for (let s = 0; s < Disk.sectorCount; ++s) {
+                for (let b = 0; b < Disk.blockCount; ++b) {
+                    // Skip MBR (0:0:0)
+                    if (s === 0 && b === 0) continue;
+
+                    const dirData = this.disk.readDisk([0, s, b]);
+                    if (!dirData || dirData.charCodeAt(0) === 0) {
+                        return [0, s, b];
+                    }
+                }
+            }
+            return null;
+        }
+
+        private nextOpenBlock(exclude: number[] = [-1, -1, -1]): number[] {
+            // Search data blocks (tracks 1-3)
+            for (let t = 1; t < Disk.trackCount; ++t) {
+                for (let s = 0; s < Disk.sectorCount; ++s) {
+                    for (let b = 0; b < Disk.blockCount; ++b) {
+                        if (exclude[0] === t && exclude[1] === s && exclude[2] === b) {
+                            continue;
+                        }
+
+                        const blockData = this.disk.readDisk([t, s, b]);
+                        if (!blockData || blockData.charCodeAt(0) === 0) {
+                            return [t, s, b];
                         }
                     }
                 }
             }
-            return null; // No space available
+            return null;
         }
 
-        private advanceBlockAddress(track: number, sector: number, block: number): { track: number; sector: number; block: number } | null {
-            // Increment block, then sector, then track
-            block++;
-            if (block >= Disk.BLOCKS_PER_SECTOR) {
-                block = 0;
-                sector++;
-                if (sector >= Disk.SECTORS) {
-                    sector = 0;
-                    track++;
-                    if (track >= Disk.TRACKS) {
-                        return null; // End of disk
-                    }
-                }
-            }
-            return { track, sector, block };
-        }
-
-        private freeBlocksForFile(entry: FileEntry): void {
-            if (entry.size === 0) return;
+        
+        //For swapping: save process to disk
+        public rollOutProcess(pid: number, bytes: number[]): number {
+            const filename = this.swapPrefix + pid;
             
-            const blocksUsed = Math.ceil(entry.size / Disk.BLOCK_SIZE);
-            let currentTrack = entry.startTrack;
-            let currentSector = entry.startSector;
-            let currentBlock = entry.startBlock;
-            
-            for (let i = 0; i < blocksUsed; i++) {
-                const blockKey = `${currentTrack}-${currentSector}-${currentBlock}`;
-                this.usedBlocks.delete(blockKey);
-                
-                if (i < blocksUsed - 1) {
-                    const next = this.advanceBlockAddress(currentTrack, currentSector, currentBlock);
-                    if (next) {
-                        currentTrack = next.track;
-                        currentSector = next.sector;
-                        currentBlock = next.block;
-                    } else {
-                        break;
-                    }
-                }
+            // Convert byte array to string
+            let byteString = "";
+            for (let i = 0; i < bytes.length; ++i) {
+                byteString += String.fromCharCode(bytes[i]);
             }
+
+            // Create and write the swap file
+            const createResult = this.create(filename);
+            if (createResult.includes("Error")) {
+                return 1; // Error
+            }
+
+            const writeResult = this.write(filename, byteString);
+            if (writeResult.includes("Error") || writeResult.includes("truncated")) {
+                return 3; // No space
+            }
+
+            return 0; // Success
         }
 
-        private saveToSessionStorage(): void {
-            try {
-                // Serialize disk data
-                const diskData = this.disk.getDiskData();
-                const diskDataB64 = this.uint8ArrayToBase64(diskData);
+        //For swapping: load process from disk
+        public rollInProcess(pid: number): number[] {
+            const filename = this.swapPrefix + pid;
+            const readResult = this.read(filename);
 
-                // Serialize file metadata
-                const filesData = Array.from(this.files.entries()).map(([name, entry]) => ({
-                    name,
-                    ...entry
-                }));
-
-                // Serialize used blocks
-                const usedBlocksArray = Array.from(this.usedBlocks);
-
-                const storageData = {
-                    diskData: diskDataB64,
-                    files: filesData,
-                    usedBlocks: usedBlocksArray,
-                    nextAvailableBlock: this.nextAvailableBlock,
-                    timestamp: Date.now()
-                };
-
-                sessionStorage.setItem(this.sessionStorageKey, JSON.stringify(storageData));
-                _Kernel.krnTrace("FileSystem: Data saved to sessionStorage");
-            } catch (e) {
-                _Kernel.krnTrace(`FileSystem: Error saving to sessionStorage: ${e}`);
+            if (!readResult.success) {
+                return undefined;
             }
-        }
 
-        private loadFromSessionStorage(): void {
-            try {
-                const stored = sessionStorage.getItem(this.sessionStorageKey);
-                if (!stored) {
-                    _Kernel.krnTrace("FileSystem: No saved data in sessionStorage");
-                    return;
-                }
-
-                const storageData = JSON.parse(stored);
-                
-                // Restore disk data
-                const diskData = this.base64ToUint8Array(storageData.diskData);
-                this.disk.loadDiskData(diskData);
-
-                // Restore file metadata
-                this.files.clear();
-                for (const fileEntry of storageData.files) {
-                    this.files.set(fileEntry.name, {
-                        name: fileEntry.name,
-                        size: fileEntry.size,
-                        startTrack: fileEntry.startTrack,
-                        startSector: fileEntry.startSector,
-                        startBlock: fileEntry.startBlock,
-                        used: fileEntry.used,
-                        createdDate: fileEntry.createdDate
-                    });
-                }
-
-                // Restore used blocks
-                this.usedBlocks.clear();
-                if (storageData.usedBlocks) {
-                    for (const blockKey of storageData.usedBlocks) {
-                        this.usedBlocks.add(blockKey);
-                    }
-                }
-
-                // Restore next available block
-                this.nextAvailableBlock = storageData.nextAvailableBlock || 0;
-
-                _Kernel.krnTrace("FileSystem: Data restored from sessionStorage");
-            } catch (e) {
-                _Kernel.krnTrace(`FileSystem: Error loading from sessionStorage: ${e}`);
+            // Convert string back to byte array
+            const bytes: number[] = [];
+            for (let i = 0; i < readResult.data.length; ++i) {
+                bytes.push(readResult.data.charCodeAt(i));
             }
-        }
 
-        private uint8ArrayToBase64(arr: Uint8Array): string {
-            let binary = "";
-            for (let i = 0; i < arr.length; i++) {
-                binary += String.fromCharCode(arr[i]);
-            }
-            return btoa(binary);
-        }
+            // Delete the swap file
+            this.delete(filename);
 
-        private base64ToUint8Array(str: string): Uint8Array {
-            const binary = atob(str);
-            const arr = new Uint8Array(binary.length);
-            for (let i = 0; i < binary.length; i++) {
-                arr[i] = binary.charCodeAt(i);
-            }
-            return arr;
+            return bytes;
         }
     }
 }
+
