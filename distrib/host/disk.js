@@ -1,6 +1,3 @@
-// ============================================================================
-// source/host/disk.ts
-// ============================================================================
 var TSOS;
 (function (TSOS) {
     class Disk {
@@ -18,16 +15,12 @@ var TSOS;
         getDiskSize() {
             return Disk.trackCount * Disk.sectorCount * Disk.blockCount * Disk.blockSize;
         }
-        /**
-         * Check if disk has been formatted
-         */
+        //Check if disk has been formatted
         isFormatted() {
             const mbr = sessionStorage.getItem("0:0:0");
             return mbr !== null && mbr !== undefined;
         }
-        /**
-         * Format the disk - write 0's to all blocks
-         */
+        // Format the disk - write 0's to all blocks
         formatDisk(update = true) {
             try {
                 for (let t = 0; t < Disk.trackCount; ++t) {
@@ -50,9 +43,7 @@ var TSOS;
                 throw error;
             }
         }
-        /**
-         * Write data to disk at specified TSB address
-         */
+        //Write data to disk at specified TSB address
         writeDisk(tsb, data, update = true) {
             if (tsb[0] < Disk.trackCount &&
                 tsb[1] < Disk.sectorCount &&
@@ -67,9 +58,7 @@ var TSOS;
             }
             return 1; // Error
         }
-        /**
-         * Read data from disk at specified TSB address
-         */
+        //Read data from disk at specified TSB address
         readDisk(tsb) {
             if (tsb[0] < Disk.trackCount &&
                 tsb[1] < Disk.sectorCount &&
@@ -79,9 +68,7 @@ var TSOS;
             }
             return undefined;
         }
-        /**
-         * Read disk using string address format "t:s:b"
-         */
+        //Read disk using string address format "t:s:b"
         stringReadDisk(str) {
             const arr = str.split(':');
             return this.readDisk([

@@ -8,9 +8,7 @@ var TSOS;
         krnDskDriverEntry() {
             this.status = "loaded";
         }
-        /**
-         * Trim filename of trailing null characters
-         */
+        //Trim filename of trailing null characters
         static trimFilename(str) {
             let lastIndex = str.length;
             for (let i = 0; i < str.length; ++i) {
@@ -21,9 +19,7 @@ var TSOS;
             }
             return str.slice(0, lastIndex);
         }
-        /**
-         * Convert string TSB to array
-         */
+        //Convert string TSB to array
         static stringToTSB(str) {
             if (str.length < 3) {
                 return undefined;

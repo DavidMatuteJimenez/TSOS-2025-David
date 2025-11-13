@@ -9,18 +9,14 @@ var TSOS;
         constructor(disk) {
             this.disk = disk;
         }
-        /**
-         * Format the file system
-         */
+        //Format the file system
         format() {
             this.disk.formatDisk(true);
             // Write MBR to mark disk as formatted
             this.disk.writeDisk([0, 0, 0], "MBR_FORMATTED", false);
             return "Disk formatted.";
         }
-        /**
-         * Create a new file
-         */
+        //Create a new file
         create(filename) {
             if (!this.disk.isFormatted()) {
                 return "Error: Disk not formatted. Please run 'format' first.";
@@ -52,9 +48,7 @@ var TSOS;
             this.disk.writeDisk(blockTsb, this.finalFlag);
             return `File "${filename}" created successfully.`;
         }
-        /**
-         * Write data to a file
-         */
+        //Write data to a file
         write(filename, data) {
             if (!this.disk.isFormatted()) {
                 return "Error: Disk not formatted. Please run 'format' first.";
@@ -74,7 +68,7 @@ var TSOS;
             let currentTsb = blockTsb;
             let dataIndex = 0;
             while (dataIndex < data.length) {
-                // How much can we write to this block? (block size - 4 for metadata)
+                // block size - 4 for metadata
                 const spaceInBlock = TSOS.Disk.blockSize - 4;
                 const dataToWrite = data.substring(dataIndex, dataIndex + spaceInBlock);
                 let blockData = "";
@@ -115,9 +109,7 @@ var TSOS;
             }
             return `Data written to "${filename}" successfully.`;
         }
-        /**
-         * Read data from a file
-         */
+        //Read data from a file
         read(filename) {
             if (!this.disk.isFormatted()) {
                 return { success: false, data: "", message: "Error: Disk not formatted. Please run 'format' first." };
@@ -155,9 +147,7 @@ var TSOS;
             fileData = fileData.replace(/\0+$/, "");
             return { success: true, data: fileData, message: `Read "${filename}" successfully.` };
         }
-        /**
-         * Delete a file
-         */
+        //Delete a file
         delete(filename) {
             if (!this.disk.isFormatted()) {
                 return "Error: Disk not formatted. Please run 'format' first.";
@@ -193,9 +183,7 @@ var TSOS;
             this.disk.writeDisk(dirTsb, "");
             return `File "${filename}" deleted successfully.`;
         }
-        /**
-         * List all files
-         */
+        //List all files
         ls() {
             if (!this.disk.isFormatted()) {
                 return "Error: Disk not formatted. Please run 'format' first.";
@@ -224,9 +212,7 @@ var TSOS;
             }
             return output;
         }
-        /**
-         * Copy a file
-         */
+        //Copy a file
         copy(sourceFilename, destFilename) {
             if (!this.disk.isFormatted()) {
                 return "Error: Disk not formatted. Please run 'format' first.";
@@ -248,9 +234,7 @@ var TSOS;
             }
             return `File "${sourceFilename}" copied to "${destFilename}" successfully.`;
         }
-        /**
-         * Rename a file
-         */
+        //Rename a file
         rename(oldFilename, newFilename) {
             if (!this.disk.isFormatted()) {
                 return "Error: Disk not formatted. Please run 'format' first.";
@@ -274,7 +258,7 @@ var TSOS;
             this.disk.writeDisk(dirTsb, newDirData);
             return `File "${oldFilename}" renamed to "${newFilename}" successfully.`;
         }
-        // ===== PRIVATE HELPER METHODS =====
+        //helper methods
         validateFilename(filename) {
             if (!filename || filename.length === 0 || filename.length > 28) {
                 return false;
@@ -345,9 +329,7 @@ var TSOS;
             }
             return null;
         }
-        /**
-         * For swapping: save process to disk
-         */
+        //For swapping: save process to disk
         rollOutProcess(pid, bytes) {
             const filename = this.swapPrefix + pid;
             // Convert byte array to string
@@ -366,9 +348,7 @@ var TSOS;
             }
             return 0; // Success
         }
-        /**
-         * For swapping: load process from disk
-         */
+        //For swapping: load process from disk
         rollInProcess(pid) {
             const filename = this.swapPrefix + pid;
             const readResult = this.read(filename);
