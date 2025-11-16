@@ -3,10 +3,17 @@ module TSOS {
         constructor() {
             super();
             this.driverEntry = this.krnDskDriverEntry;
+            this.isr = this.krnDskDispatchInterrupt;
         }
 
         public krnDskDriverEntry(): void {
             this.status = "loaded";
+            _Kernel.krnTrace("Disk System Device Driver loaded and ready.");
+        }
+
+        public krnDskDispatchInterrupt(params): void {
+            // Handle disk-related interrupts here if needed
+            _Kernel.krnTrace("Disk System Device Driver interrupt received.");
         }
 
 
@@ -34,8 +41,8 @@ module TSOS {
             ];
         }
 
-        public formatDisk(): void {
-            _FileSystem.format();
+        public formatDisk(): string {
+            return _FileSystem.format();
         }
 
         public createFile(filename: string): string {
@@ -50,12 +57,8 @@ module TSOS {
             return _FileSystem.write(filename, data);
         }
 
-        public readFile(filename: string): string {
-            const result = _FileSystem.read(filename);
-            if (result.success) {
-                return result.data;
-            }
-            return undefined;
+        public readFile(filename: string): { success: boolean; data: string; message: string } {
+            return _FileSystem.read(filename);
         }
 
         public getFilenames(): string[] {
@@ -72,6 +75,10 @@ module TSOS {
 
         public renameFile(oldName: string, newName: string): string {
             return _FileSystem.rename(oldName, newName);
+        }
+
+        public listFiles(): string {
+            return _FileSystem.ls();
         }
 
         public rollOutProcess(pid: number, bytes: number[]): number {

@@ -374,10 +374,30 @@ module TSOS {
         newPcb.base = result.base;
         newPcb.limit = result.limit;
         newPcb.segment = result.segment;
+        newPcb.location = pcbLocation.memory;
         _Scheduler.residentList.push(newPcb);
-        _StdOut.putText(`Program loaded with PID ${newPid}`);
+        _StdOut.putText(`Program loaded with PID ${newPid} in memory`);
       } else {
-        _StdOut.putText("Error: Memory is full - no partitions available.");
+        // Memory full - store process on disk
+        const newPid = _Kernel.pidCounter++;
+        const newPcb = new TSOS.Pcb(newPid);
+        
+        // Convert opCodes to byte array for swapping
+        const processData: number[] = [];
+        for (let i = 0; i < opCodes.length; i++) {
+          processData.push(parseInt(opCodes[i], 16));
+        }
+        
+        // Save to disk as swap file
+        const swapResult = _FileSystem.rollOutProcess(newPid, processData);
+        if (swapResult === 0) { // Success
+          newPcb.location = pcbLocation.disk;
+          newPcb.segment = -1; // No memory segment
+          _Scheduler.residentList.push(newPcb);
+          _StdOut.putText(`Program loaded with PID ${newPid} on disk (will swap in when needed)`);
+        } else {
+          _StdOut.putText("Error: Could not store program - disk may be full.");
+        }
       }
     }
 
@@ -396,7 +416,23 @@ module TSOS {
       }
 
       const pcb = _Scheduler.residentList.splice(index, 1)[0];
-      _Scheduler.addToReadyQueue(pcb);
+      
+      // Check if process is on disk and needs to be swapped in
+      if (pcb.location === pcbLocation.disk) {
+        const swapSuccess = _Scheduler.swapProcessToReady(pcb);
+        if (swapSuccess) {
+          _StdOut.putText(`Process ${pid} swapped in from disk and added to ready queue.`);
+        } else {
+          _StdOut.putText(`Error: Could not swap in process ${pid} from disk.`);
+          _Scheduler.residentList.push(pcb); // Put it back
+          return;
+        }
+      } else {
+        // Process already in memory
+        _Scheduler.addToReadyQueue(pcb);
+        _StdOut.putText(`Process ${pid} added to ready queue.`);
+      }
+      
       _KernelInterruptQueue.enqueue(new Interrupt(CONTEXT_SWITCH, null));
       _CPU.isExecuting = true;
     }
@@ -528,8 +564,13 @@ module TSOS {
       _StdOut.putText(`Quantum set to ${newQuantum} cycles.`);
     }
     public shellFormat(args: string[]) {
+      // Use direct FileSystem call for now to diagnose issue
       const result = _FileSystem.format();
       _StdOut.putText(result);
+      // Update disk display if available
+      if (typeof TSOS !== 'undefined' && TSOS.Control && TSOS.Control.updateDiskDisplay) {
+        TSOS.Control.updateDiskDisplay();
+      }
     }
 
     public shellCreate(args: string[]) {
@@ -538,8 +579,12 @@ module TSOS {
         return;
       }
       const filename = args[0];
-      const result = _FileSystem.create(filename);
+      const result = _krnDiskDriver.createFile(filename);
       _StdOut.putText(result);
+      // Update disk display if available
+      if (typeof TSOS !== 'undefined' && TSOS.Control && TSOS.Control.updateDiskDisplay) {
+        TSOS.Control.updateDiskDisplay();
+      }
     }
 
     public shellWrite(args: string[]) {
@@ -558,8 +603,12 @@ module TSOS {
         data = data.slice(1, -1);
       }
       
-      const result = _FileSystem.write(filename, data);
+      const result = _krnDiskDriver.writeFile(filename, data);
       _StdOut.putText(result);
+      // Update disk display if available
+      if (typeof TSOS !== 'undefined' && TSOS.Control && TSOS.Control.updateDiskDisplay) {
+        TSOS.Control.updateDiskDisplay();
+      }
     }
 
     public shellRead(args: string[]) {
@@ -569,7 +618,7 @@ module TSOS {
       }
       
       const filename = args[0];
-      const result = _FileSystem.read(filename);
+      const result = _krnDiskDriver.readFile(filename);
       
       if (result.success) {
         _StdOut.putText(`Contents of "${filename}":`);
@@ -587,8 +636,12 @@ module TSOS {
       }
       
       const filename = args[0];
-      const result = _FileSystem.delete(filename);
+      const result = _krnDiskDriver.deleteFile(filename);
       _StdOut.putText(result);
+      // Update disk display if available
+      if (typeof TSOS !== 'undefined' && TSOS.Control && TSOS.Control.updateDiskDisplay) {
+        TSOS.Control.updateDiskDisplay();
+      }
     }
 
     public shellCopy(args: string[]) {
@@ -599,8 +652,12 @@ module TSOS {
       
       const source = args[0];
       const dest = args[1];
-      const result = _FileSystem.copy(source, dest);
+      const result = _krnDiskDriver.copyFile(source, dest);
       _StdOut.putText(result);
+      // Update disk display if available
+      if (typeof TSOS !== 'undefined' && TSOS.Control && TSOS.Control.updateDiskDisplay) {
+        TSOS.Control.updateDiskDisplay();
+      }
     }
 
     public shellRename(args: string[]) {
@@ -611,12 +668,16 @@ module TSOS {
       
       const oldname = args[0];
       const newname = args[1];
-      const result = _FileSystem.rename(oldname, newname);
+      const result = _krnDiskDriver.renameFile(oldname, newname);
       _StdOut.putText(result);
+      // Update disk display if available
+      if (typeof TSOS !== 'undefined' && TSOS.Control && TSOS.Control.updateDiskDisplay) {
+        TSOS.Control.updateDiskDisplay();
+      }
     }
 
     public shellLs(args: string[]) {
-      const result = _FileSystem.ls();
+      const result = _krnDiskDriver.listFiles();
       _StdOut.putText(result);
     }
   }

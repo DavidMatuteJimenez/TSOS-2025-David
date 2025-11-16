@@ -4,9 +4,15 @@ var TSOS;
         constructor() {
             super();
             this.driverEntry = this.krnDskDriverEntry;
+            this.isr = this.krnDskDispatchInterrupt;
         }
         krnDskDriverEntry() {
             this.status = "loaded";
+            _Kernel.krnTrace("Disk System Device Driver loaded and ready.");
+        }
+        krnDskDispatchInterrupt(params) {
+            // Handle disk-related interrupts here if needed
+            _Kernel.krnTrace("Disk System Device Driver interrupt received.");
         }
         //Trim filename of trailing null characters
         static trimFilename(str) {
@@ -31,7 +37,7 @@ var TSOS;
             ];
         }
         formatDisk() {
-            _FileSystem.format();
+            return _FileSystem.format();
         }
         createFile(filename) {
             return _FileSystem.create(filename);
@@ -43,11 +49,7 @@ var TSOS;
             return _FileSystem.write(filename, data);
         }
         readFile(filename) {
-            const result = _FileSystem.read(filename);
-            if (result.success) {
-                return result.data;
-            }
-            return undefined;
+            return _FileSystem.read(filename);
         }
         getFilenames() {
             const lsOutput = _FileSystem.ls();
@@ -61,6 +63,9 @@ var TSOS;
         }
         renameFile(oldName, newName) {
             return _FileSystem.rename(oldName, newName);
+        }
+        listFiles() {
+            return _FileSystem.ls();
         }
         rollOutProcess(pid, bytes) {
             return _FileSystem.rollOutProcess(pid, bytes);

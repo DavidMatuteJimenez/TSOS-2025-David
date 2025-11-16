@@ -32,7 +32,7 @@ var TSOS;
                     };
                 }
             }
-            _Kernel.krnTrace("MMU: Memory allocation failed - no free partitions available");
+            _Kernel.krnTrace("MMU: Memory allocation failed - no free partitions available. Check for swapping opportunity.");
             return { success: false, segment: -1, base: 0, limit: 0 };
         }
         deallocatePartition(segment) {
