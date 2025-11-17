@@ -42,7 +42,7 @@
     .memory-container {
       width: 100%;
       min-width: 480px;
-      height: 150px;
+      height: 250px;
       overflow-y: auto;
       overflow-x: auto;
     }
@@ -83,7 +83,7 @@
     .pcb-container {
       width: 100%;
       min-width: 480px;
-      height: 120px;
+      height: 200px;
       overflow-y: auto;
       overflow-x: auto;
     }
@@ -220,135 +220,156 @@
  </div>
 
 
-  <div id="divConsole" style="margin:4px; width:500px; height:500px; float:left;">
-     <canvas id="display"
-             width="500px"
-             height="500px"
-             tabindex="3">
-     </canvas>
+<!-- Three-column layout with Host Log/User Input | Canvas | System Displays -->
+<div style="display: flex; gap: 20px; width: 100%;">
+
+  <!-- Column 1: Host Log + User Program Input + Quantum -->
+  <div style="width: 500px; display: flex; flex-direction: column; height: 500px;">
+    
+    <!-- Host Log -->
+    <div id="divLog" style="margin-bottom: 15px; flex: 1; min-height: 0;">
+       <label>
+          Host Log
+          <br>
+          <textarea name="taHostLog"
+                    id="taHostLog"
+                    style="width: 100%; height: calc(100% - 20px); resize: none; box-sizing: border-box;"
+          ></textarea>
+       </label>
+    </div>
+
+    <!-- User Program Input -->
+    <div id="divUserProgramInput" style="margin-bottom: 15px; flex: 1; min-height: 0;">
+       <label>
+          User Program Input
+          <br>
+          <textarea name="taProgramInput"
+                    id="taProgramInput"
+                    style="width: 100%; height: calc(100% - 20px); resize: none; box-sizing: border-box;"
+          ></textarea>
+       </label>
+    </div>
+    
+    <!-- Quantum Display -->
+    <div id="quantumDisplayContainer" style="padding: 8px; background: #f5f5f5; border: 1px solid #ddd; text-align: center; flex-shrink: 0;">
+       <span id="quantumDisplay">Quantum is 6</span>
+    </div>
+
   </div>
 
-  <!-- System Displays moved under canvas -->
-  <div id="leftDisplays" style="clear:left; margin:4px; width:500px; float:left;">
+  <!-- Column 2: Canvas -->
+  <div style="width: 500px;">
+    <div id="divConsole" style="margin: 4px;">
+       <canvas id="display"
+               width="500px"
+               height="500px"
+               tabindex="3">
+       </canvas>
+    </div>
+  </div>
+
+  <!-- Column 3: Memory + CPU + Disk System + Process -->
+  <div style="width: 800px; display: flex; flex-direction: column;">
     
     <!-- Memory Display -->
-    <div class="memory-container" style="margin-bottom:10px;">
-      <table>
-       <caption id="tbl-caption">Memory</caption>
-        <thead>
-          <tr>
-            <th>Address</th>
-            <th>0</th><th>1</th><th>2</th><th>3</th>
-            <th>4</th><th>5</th><th>6</th><th>7</th>
-            <th>8</th><th>9</th><th>A</th><th>B</th>
-            <th>C</th><th>D</th><th>E</th><th>F</th>
-          </tr>
-        </thead>
-        <tbody id="memoryDisplayTbody">
-        </tbody>
-      </table>
+    <div style="margin-bottom: 10px; flex: 1;">
+      <div class="memory-container">
+        <table style="width: 100%;">
+         <caption id="tbl-caption">Memory</caption>
+          <thead>
+            <tr>
+              <th>Address</th>
+              <th>0</th><th>1</th><th>2</th><th>3</th>
+              <th>4</th><th>5</th><th>6</th><th>7</th>
+              <th>8</th><th>9</th><th>A</th><th>B</th>
+              <th>C</th><th>D</th><th>E</th><th>F</th>
+            </tr>
+          </thead>
+          <tbody id="memoryDisplayTbody">
+          </tbody>
+        </table>
+      </div>
     </div>
-  
+
     <!-- CPU Display -->
-    <div id="cpuDisplay" class="pcbCpuDisplay" style="margin-bottom:10px;">
-      <table>
-        <caption id="tbl-caption">CPU</caption>
-        <thead>
-          <tr>
-            <th scope="col">PC</th>
-            <th scope="col">IR</th>
-            <th scope="col">ACC</th>
-            <th scope="col">X</th>
-            <th scope="col">Y</th>
-            <th scope="col">Z</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td id="cpu-pc">0</td>
-            <td id="cpu-ir">0</td>
-            <td id="cpu-acc">0</td>
-            <td id="cpu-x">0</td>
-            <td id="cpu-y">0</td>
-            <td id="cpu-z">0</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  
-    <!-- PCB Display --> 
-    <div class="pcb-container" style="margin-bottom:10px;">
-      <table>
-        <caption id="tbl-caption">Process</caption>
-        <thead>
-          <tr>
-            <th scope="col">PID</th>
-            <th scope="col">PC</th>
-            <th scope="col">IR</th>
-            <th scope="col">ACC</th>
-            <th scope="col">X</th>
-            <th scope="col">Y</th>
-            <th scope="col">Z</th>
-            <th scope="col">Priority</th>
-            <th scope="col">State</th>
-            <th scope="col">Location</th>
-            <th scope="col">Base</th>
-            <th scope="col">Limit</th>
-            <th scope="col">Segment</th>
-          </tr>
-        </thead>
-        <tbody id="pcbDisplayBody">
-        </tbody>
-      </table>
+    <div style="margin-bottom: 10px;">
+      <div id="cpuDisplay" class="pcbCpuDisplay">
+        <table style="width: 100%;">
+          <caption id="tbl-caption">CPU</caption>
+          <thead>
+            <tr>
+              <th scope="col">PC</th>
+              <th scope="col">IR</th>
+              <th scope="col">ACC</th>
+              <th scope="col">X</th>
+              <th scope="col">Y</th>
+              <th scope="col">Z</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td id="cpu-pc">0</td>
+              <td id="cpu-ir">0</td>
+              <td id="cpu-acc">0</td>
+              <td id="cpu-x">0</td>
+              <td id="cpu-y">0</td>
+              <td id="cpu-z">0</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
 
     <!-- Disk System Display -->
-    <div class="pcb-container" style="margin-bottom:10px;">
-      <table>
-        <caption id="tbl-caption">Disk System</caption>
-        <thead>
-          <tr>
-            <th scope="col">TSB</th>
-            <th scope="col">Used</th>
-            <th scope="col">Next</th>
-            <th scope="col">Data</th>
-          </tr>
-        </thead>
-        <tbody id="diskDisplayBody">
-        </tbody>
-      </table>
+    <div style="margin-bottom: 10px; flex: 1;">
+      <div class="pcb-container">
+        <table style="width: 100%;">
+          <caption id="tbl-caption">Disk System</caption>
+          <thead>
+            <tr>
+              <th scope="col">Key</th>
+              <th scope="col">Has Data</th>
+              <th scope="col">Length</th>
+              <th scope="col">Value</th>
+            </tr>
+          </thead>
+          <tbody id="diskDisplayBody">
+          </tbody>
+        </table>
+      </div>
     </div>
+
+    <!-- Process Display -->
+    <div style="flex: 1;">
+      <div class="pcb-container">
+        <table style="width: 100%;">
+          <caption id="tbl-caption">Process</caption>
+          <thead>
+            <tr>
+              <th scope="col">PID</th>
+              <th scope="col">PC</th>
+              <th scope="col">IR</th>
+              <th scope="col">ACC</th>
+              <th scope="col">X</th>
+              <th scope="col">Y</th>
+              <th scope="col">Z</th>
+              <th scope="col">Priority</th>
+              <th scope="col">State</th>
+              <th scope="col">Location</th>
+              <th scope="col">Base</th>
+              <th scope="col">Limit</th>
+              <th scope="col">Segment</th>
+            </tr>
+          </thead>
+          <tbody id="pcbDisplayBody">
+          </tbody>
+        </table>
+      </div>
+    </div>
+
   </div>
 
-
-  <div id="divLog" style="margin-left:520px;">
-     <label>
-        Host Log
-        <br>
-        <textarea name="taHostLog"
-                  id  ="taHostLog"
-                  rows="15"
-                  cols="60"
-        ></textarea>
-     </label>
-  </div>
-
-
-  <div id="divUserProgramInput" style="margin-left:520px;">
-     <label>
-        User Program Input
-        <br>
-        <textarea name="taProgramInput"
-                  id  ="taProgramInput"
-                  rows="8"
-                  cols="60"
-        ></textarea>
-     </label>
-  </div>
-  
-  <div id="quantumDisplayContainer" style="margin-left:520px; margin-top:10px;">
-     <span id="quantumDisplay">Quantum is 6</span>
-  </div>
+</div>
 </div>
 
 <p class="footerText" style="clear:both;">

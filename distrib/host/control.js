@@ -221,33 +221,44 @@ var TSOS;
                 return;
             }
             let diskDisplayContent = "";
-            // Show some key disk blocks (directory entries and some data blocks)
-            const keySectors = [
-                { t: 0, s: 0, b: 0, label: "MBR" }, // Master Boot Record
-                { t: 0, s: 0, b: 1, label: "DIR" }, // First directory block
-                { t: 0, s: 0, b: 2, label: "DIR" }, // Second directory block
-                { t: 0, s: 1, b: 0, label: "DIR" }, // Third directory block
-                { t: 1, s: 0, b: 0, label: "DATA" }, // First data block
-                { t: 1, s: 0, b: 1, label: "DATA" }, // Second data block
-                { t: 1, s: 1, b: 0, label: "DATA" }, // Third data block
-            ];
-            for (const sector of keySectors) {
-                const tsb = `${sector.t}:${sector.s}:${sector.b}`;
-                const data = _Disk.readDisk([sector.t, sector.s, sector.b]);
+            // Get all disk blocks from session storage
+            const diskBlocks = [];
+            // Iterate through all session storage keys to find disk blocks
+            for (let i = 0; i < sessionStorage.length; i++) {
+                const key = sessionStorage.key(i);
+                if (key && key.match(/^\d:\d:\d$/)) { // TSB format: "t:s:b"
+                    const data = sessionStorage.getItem(key) || "";
+                    diskBlocks.push({ tsb: key, data: data });
+                }
+            }
+            // Sort by TSB for consistent display
+            diskBlocks.sort((a, b) => {
+                const [t1, s1, b1] = a.tsb.split(':').map(Number);
+                const [t2, s2, b2] = b.tsb.split(':').map(Number);
+                if (t1 !== t2)
+                    return t1 - t2;
+                if (s1 !== s2)
+                    return s1 - s2;
+                return b1 - b2;
+            });
+            // Display all found disk blocks
+            for (const block of diskBlocks) {
+                const data = block.data;
                 let used = "No";
                 let next = "---";
                 let displayData = "Empty";
                 if (data && data.length > 0 && data.charCodeAt(0) !== 0) {
                     used = "Yes";
-                    if (sector.t === 0 && sector.s === 0 && sector.b === 0) {
+                    const [t, s, b] = block.tsb.split(':').map(Number);
+                    if (t === 0 && s === 0 && b === 0) {
                         // MBR
                         displayData = data.substring(0, 20) + "...";
                     }
-                    else if (sector.t === 0) {
+                    else if (t === 0) {
                         // Directory entry
                         if (data.length >= 3) {
                             const nextTsb = `${data.charCodeAt(0)}:${data.charCodeAt(1)}:${data.charCodeAt(2)}`;
-                            next = nextTsb;
+                            next = nextTsb !== "0:0:0" ? nextTsb : "---";
                             const filename = data.substring(3).replace(/\0.*$/, ''); // Remove null chars
                             displayData = filename || "Empty";
                         }
@@ -257,14 +268,14 @@ var TSOS;
                         const flag = data.charCodeAt(0);
                         if (flag === 1) { // next flag
                             const nextTsb = `${data.charCodeAt(1)}:${data.charCodeAt(2)}:${data.charCodeAt(3)}`;
-                            next = nextTsb;
+                            next = nextTsb !== "0:0:0" ? nextTsb : "---";
                         }
                         const content = data.substring(4);
                         displayData = content.length > 20 ? content.substring(0, 20) + "..." : content;
                     }
                 }
                 diskDisplayContent += `<tr>
-                    <td>${tsb}</td>
+                    <td>${block.tsb}</td>
                     <td>${used}</td>
                     <td>${next}</td>
                     <td>${displayData}</td>

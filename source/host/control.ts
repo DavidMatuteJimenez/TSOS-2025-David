@@ -275,62 +275,57 @@ module TSOS {
         }
 
         public static updateDiskDisplay(): void {
-            if (!_Disk || !document.getElementById("diskDisplayBody")) {
+            if (!document.getElementById("diskDisplayBody")) {
                 return;
             }
 
             let diskDisplayContent = "";
             
-            // Show some key disk blocks (directory entries and some data blocks)
-            const keySectors = [
-                { t: 0, s: 0, b: 0, label: "MBR" },      // Master Boot Record
-                { t: 0, s: 0, b: 1, label: "DIR" },      // First directory block
-                { t: 0, s: 0, b: 2, label: "DIR" },      // Second directory block
-                { t: 0, s: 1, b: 0, label: "DIR" },      // Third directory block
-                { t: 1, s: 0, b: 0, label: "DATA" },     // First data block
-                { t: 1, s: 0, b: 1, label: "DATA" },     // Second data block
-                { t: 1, s: 1, b: 0, label: "DATA" },     // Third data block
-            ];
-
-            for (const sector of keySectors) {
-                const tsb = `${sector.t}:${sector.s}:${sector.b}`;
-                const data = _Disk.readDisk([sector.t, sector.s, sector.b]);
-                
-                let used = "No";
-                let next = "---";
-                let displayData = "Empty";
-
-                if (data && data.length > 0 && data.charCodeAt(0) !== 0) {
-                    used = "Yes";
-                    
-                    if (sector.t === 0 && sector.s === 0 && sector.b === 0) {
-                        // MBR
-                        displayData = data.substring(0, 20) + "...";
-                    } else if (sector.t === 0) {
-                        // Directory entry
-                        if (data.length >= 3) {
-                            const nextTsb = `${data.charCodeAt(0)}:${data.charCodeAt(1)}:${data.charCodeAt(2)}`;
-                            next = nextTsb;
-                            const filename = data.substring(3).replace(/\0.*$/, ''); // Remove null chars
-                            displayData = filename || "Empty";
-                        }
-                    } else {
-                        // Data block
-                        const flag = data.charCodeAt(0);
-                        if (flag === 1) { // next flag
-                            const nextTsb = `${data.charCodeAt(1)}:${data.charCodeAt(2)}:${data.charCodeAt(3)}`;
-                            next = nextTsb;
-                        }
-                        const content = data.substring(4);
-                        displayData = content.length > 20 ? content.substring(0, 20) + "..." : content;
-                    }
+            // Get all session storage entries that look like disk blocks
+            const diskEntries: Array<{key: string, value: string}> = [];
+            
+            // Iterate through all session storage
+            for (let i = 0; i < sessionStorage.length; i++) {
+                const key = sessionStorage.key(i);
+                if (key) {
+                    const value = sessionStorage.getItem(key) || "";
+                    diskEntries.push({key: key, value: value});
                 }
+            }
+            
+            // Sort by key for consistent display
+            diskEntries.sort((a, b) => {
+                // Try to sort TSB format keys numerically, others alphabetically
+                if (a.key.match(/^\d:\d:\d$/) && b.key.match(/^\d:\d:\d$/)) {
+                    const [t1, s1, b1] = a.key.split(':').map(Number);
+                    const [t2, s2, b2] = b.key.split(':').map(Number);
+                    
+                    if (t1 !== t2) return t1 - t2;
+                    if (s1 !== s2) return s1 - s2;
+                    return b1 - b2;
+                }
+                return a.key.localeCompare(b.key);
+            });
+
+            // Display all session storage entries
+            for (const entry of diskEntries) {
+                let displayKey = entry.key;
+                let displayValue = entry.value;
+                
+                // Truncate very long values but show more than before
+                if (displayValue.length > 50) {
+                    displayValue = displayValue.substring(0, 50) + "...";
+                }
+                
+                // Show special characters visually
+                displayValue = displayValue.replace(/\0/g, '\\0'); // Show null chars
+                displayValue = displayValue || "(empty)";
 
                 diskDisplayContent += `<tr>
-                    <td>${tsb}</td>
-                    <td>${used}</td>
-                    <td>${next}</td>
-                    <td>${displayData}</td>
+                    <td>${displayKey}</td>
+                    <td>${entry.value.length > 0 ? "Yes" : "No"}</td>
+                    <td>${entry.value.length}</td>
+                    <td style="font-family: monospace; font-size: 12px;">${displayValue}</td>
                 </tr>`;
             }
 
