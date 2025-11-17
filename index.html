@@ -12,27 +12,27 @@
     margin-left: 20px;
     max-width: 60%;
   }
-.pcbCpuDisplay table { 
+    .pcbCpuDisplay table { 
       width: 100%; 
       border-collapse: collapse; 
-      min-width: 520px;
+      min-width: 480px;
     }
     .pcbCpuDisplay thead th {
       text-align: left;
-      padding: 12px 16px;
+      padding: 8px 12px;
       background: #0f172a;
       color: #fff;
-      font-size: 0.95rem;
+      font-size: 0.9rem;
       letter-spacing: 0.02em;
     }
     .pcbCpuDisplay tbody td {
-      padding: 12px 16px;
+      padding: 8px 12px;
       border-top: 1px solid #e6eef6;
-      font-size: 0.95rem;
+      font-size: 0.9rem;
     }
     .pcbCpuDisplay tbody tr:nth-child(even) { background: #fbfdff; }
     .pcbCpuDisplay caption { 
-      padding: 12px 16px; 
+      padding: 8px 12px; 
       text-align: left; 
       font-weight: 600; 
       color:#0f172a; 
@@ -40,9 +40,9 @@
 
     /* === Memory Display Styles === */
     .memory-container {
-      width: 90%;
-      min-width: 520px;
-      height: 200px;
+      width: 100%;
+      min-width: 480px;
+      height: 150px;
       overflow-y: auto;
       overflow-x: auto;
     }
@@ -52,10 +52,10 @@
     }
     .memory-container thead th {
       text-align: center;
-      padding: 12px 16px;
+      padding: 8px 12px;
       background: #0f172a;
       color: #fff;
-      font-size: 0.95rem;
+      font-size: 0.9rem;
       letter-spacing: 0.02em;
       position: sticky;
       top: 0;
@@ -64,11 +64,11 @@
     .memory-container tbody td {
       border: 1px solid #ddd;
       text-align: center;
-      padding: 12px 16px;
-      font-size: 0.95rem;
+      padding: 8px 12px;
+      font-size: 0.9rem;
     }
     .memory-container caption { 
-      padding: 12px 16px; 
+      padding: 8px 12px; 
       text-align: left; 
       font-weight: 600; 
       color:#0f172a; 
@@ -81,9 +81,9 @@
 
     /* === PCB/Process Display Styles === */
     .pcb-container {
-      width: 90%;
-      min-width: 520px;
-      height: 200px;
+      width: 100%;
+      min-width: 480px;
+      height: 120px;
       overflow-y: auto;
       overflow-x: auto;
     }
@@ -93,10 +93,10 @@
     }
     .pcb-container thead th {
       text-align: center;
-      padding: 12px 16px;
+      padding: 8px 12px;
       background: #0f172a;
       color: #fff;
-      font-size: 0.95rem;
+      font-size: 0.9rem;
       letter-spacing: 0.02em;
       position: sticky;
       top: 0;
@@ -105,11 +105,11 @@
     .pcb-container tbody td {
       border: 1px solid #ddd;
       text-align: center;
-      padding: 12px 16px;
-      font-size: 0.95rem;
+      padding: 8px 12px;
+      font-size: 0.9rem;
     }
     .pcb-container caption { 
-      padding: 12px 16px; 
+      padding: 8px 12px; 
       text-align: left; 
       font-weight: 600; 
       color:#0f172a; 
@@ -226,7 +226,98 @@
              height="500px"
              tabindex="3">
      </canvas>
-     <span id="quantumDisplay">Quantum is 6</span>
+  </div>
+
+  <!-- System Displays moved under canvas -->
+  <div id="leftDisplays" style="clear:left; margin:4px; width:500px; float:left;">
+    
+    <!-- Memory Display -->
+    <div class="memory-container" style="margin-bottom:10px;">
+      <table>
+       <caption id="tbl-caption">Memory</caption>
+        <thead>
+          <tr>
+            <th>Address</th>
+            <th>0</th><th>1</th><th>2</th><th>3</th>
+            <th>4</th><th>5</th><th>6</th><th>7</th>
+            <th>8</th><th>9</th><th>A</th><th>B</th>
+            <th>C</th><th>D</th><th>E</th><th>F</th>
+          </tr>
+        </thead>
+        <tbody id="memoryDisplayTbody">
+        </tbody>
+      </table>
+    </div>
+  
+    <!-- CPU Display -->
+    <div id="cpuDisplay" class="pcbCpuDisplay" style="margin-bottom:10px;">
+      <table>
+        <caption id="tbl-caption">CPU</caption>
+        <thead>
+          <tr>
+            <th scope="col">PC</th>
+            <th scope="col">IR</th>
+            <th scope="col">ACC</th>
+            <th scope="col">X</th>
+            <th scope="col">Y</th>
+            <th scope="col">Z</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td id="cpu-pc">0</td>
+            <td id="cpu-ir">0</td>
+            <td id="cpu-acc">0</td>
+            <td id="cpu-x">0</td>
+            <td id="cpu-y">0</td>
+            <td id="cpu-z">0</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  
+    <!-- PCB Display --> 
+    <div class="pcb-container" style="margin-bottom:10px;">
+      <table>
+        <caption id="tbl-caption">Process</caption>
+        <thead>
+          <tr>
+            <th scope="col">PID</th>
+            <th scope="col">PC</th>
+            <th scope="col">IR</th>
+            <th scope="col">ACC</th>
+            <th scope="col">X</th>
+            <th scope="col">Y</th>
+            <th scope="col">Z</th>
+            <th scope="col">Priority</th>
+            <th scope="col">State</th>
+            <th scope="col">Location</th>
+            <th scope="col">Base</th>
+            <th scope="col">Limit</th>
+            <th scope="col">Segment</th>
+          </tr>
+        </thead>
+        <tbody id="pcbDisplayBody">
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Disk System Display -->
+    <div class="pcb-container" style="margin-bottom:10px;">
+      <table>
+        <caption id="tbl-caption">Disk System</caption>
+        <thead>
+          <tr>
+            <th scope="col">TSB</th>
+            <th scope="col">Used</th>
+            <th scope="col">Next</th>
+            <th scope="col">Data</th>
+          </tr>
+        </thead>
+        <tbody id="diskDisplayBody">
+        </tbody>
+      </table>
+    </div>
   </div>
 
 
@@ -254,100 +345,10 @@
         ></textarea>
      </label>
   </div>
-</div>
-
-
-<div id="cpuMemoryContainer">
   
-   <!-- Memory Display -->
-   <div class="memory-container">
-     <table>
-      <caption id="tbl-caption">Memory</caption>
-       <thead>
-         <tr>
-           <th>Address</th>
-           <th>0</th><th>1</th><th>2</th><th>3</th>
-           <th>4</th><th>5</th><th>6</th><th>7</th>
-           <th>8</th><th>9</th><th>A</th><th>B</th>
-           <th>C</th><th>D</th><th>E</th><th>F</th>
-         </tr>
-       </thead>
-       <tbody id = "memoryDisplayTbody">
-
-       </tbody>
-     </table>
-   </div>
- 
-   <!-- CPU Display -->
-   <div id="cpuDisplay" class = "pcbCpuDisplay">
-     <table>
-       <caption id="tbl-caption">CPU</caption>
-       <thead>
-         <tr>
-           <th scope="col">PC</th>
-           <th scope="col">IR</th>
-           <th scope="col">ACC</th>
-           <th scope="col">X</th>
-           <th scope="col">Y</th>
-           <th scope="col">Z</th>
-         </tr>
-       </thead>
-       <tbody>
-         <tr>
-           <td id="cpu-pc">0</td>
-           <td id="cpu-ir">0</td>
-           <td id="cpu-acc">0</td>
-           <td id="cpu-x">0</td>
-           <td id="cpu-y">0</td>
-           <td id="cpu-z">0</td>
-         </tr>
-       </tbody>
-     </table>
-   </div>
- 
- <!-- PCB Display --> 
- <div class="pcb-container">
-   <table>
-     <caption id="tbl-caption">Process</caption>
-     <thead>
-       <tr>
-         <th scope="col">PID</th>
-         <th scope="col">PC</th>
-         <th scope="col">IR</th>
-         <th scope="col">ACC</th>
-         <th scope="col">X</th>
-         <th scope="col">Y</th>
-         <th scope="col">Z</th>
-         <th scope="col">Priority</th>
-         <th scope="col">State</th>
-         <th scope="col">Location</th>
-         <th scope="col">Base</th>
-         <th scope="col">Limit</th>
-         <th scope="col">Segment</th>
-       </tr>
-     </thead>
-     <tbody id = "pcbDisplayBody">
-     </tbody>
-   </table>
- </div>
-
- <!-- Disk System Display -->
- <div class="pcb-container">
-   <table>
-     <caption id="tbl-caption">Disk System</caption>
-     <thead>
-       <tr>
-         <th scope="col">TSB</th>
-         <th scope="col">Used</th>
-         <th scope="col">Next</th>
-         <th scope="col">Data</th>
-       </tr>
-     </thead>
-     <tbody id="diskDisplayBody">
-     </tbody>
-   </table>
- </div>
-
+  <div id="quantumDisplayContainer" style="margin-left:520px; margin-top:10px;">
+     <span id="quantumDisplay">Quantum is 6</span>
+  </div>
 </div>
 
 <p class="footerText" style="clear:both;">
