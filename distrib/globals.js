@@ -55,6 +55,8 @@ var _Scheduler;
 var _Dispatcher;
 var _Disk;
 var _FileSystem;
+//call swapper
+var _Swapper;
 // At least this OS is not trying to kill you. (Yet.)
 var _SarcasticMode = false;
 // Global Device Driver Objects - page 12

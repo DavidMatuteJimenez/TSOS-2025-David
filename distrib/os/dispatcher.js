@@ -22,12 +22,25 @@ var TSOS;
                     _Scheduler.addToReadyQueue(_Kernel.runningPcb);
                 }
                 else {
+                    if (_Kernel.runningPcb.location === TSOS.pcbLocation.disk) {
+                        _Swapper.cleanupSwapFile(_Kernel.runningPcb.pid);
+                    }
                     _MemoryManager.deallocatePartition(_Kernel.runningPcb.segment);
                     _Kernel.krnTrace(`Dispatcher: Process ${_Kernel.runningPcb.pid} terminated and deallocated`);
                 }
             }
             const nextPcb = _Scheduler.removeNextProcess();
             if (nextPcb) {
+                // Ensure the next process is in memory
+                if (nextPcb.location === TSOS.pcbLocation.disk) {
+                    _Kernel.krnTrace(`Dispatcher: Process ${nextPcb.pid} is on disk, swapping in...`);
+                    if (!_Swapper.ensureInMemory(nextPcb)) {
+                        _Kernel.krnTrace(`Dispatcher: Failed to swap in Process ${nextPcb.pid}`);
+                        _Kernel.runningPcb = null;
+                        _CPU.isExecuting = false;
+                        return;
+                    }
+                }
                 _Kernel.runningPcb = nextPcb;
                 nextPcb.state = TSOS.pcbState.running;
                 nextPcb.modebit = 1;

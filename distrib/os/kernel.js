@@ -27,10 +27,14 @@ var TSOS;
             // Initialize standard input and output to the _Console.
             _StdIn = _Console;
             _StdOut = _Console;
-            //instance for memory manager. after this code got added the command prompts stopped showing up
+            //instance for memory manager
             _MemoryManager = new TSOS.MemoryManager();
             _Scheduler = new TSOS.Scheduler();
             _Dispatcher = new TSOS.Dispatcher();
+            // Initialize the Swapper
+            this.krnTrace("Initializing Swapper.");
+            _Swapper = new TSOS.Swapper();
+            this.krnTrace("Swapper initialized.");
             // Initialize Disk and FileSystem 
             this.krnTrace("Initializing Disk and FileSystem.");
             _Disk = new TSOS.Disk();
@@ -164,9 +168,13 @@ var TSOS;
                 this.runningPcb.xReg = _CPU.Xreg;
                 this.runningPcb.yReg = _CPU.Yreg;
                 this.runningPcb.zFlag = _CPU.Zflag;
-                // NEW: Calculate turnaround time and wait time
+                // Calculate turnaround time and wait time
                 this.runningPcb.turnaroundTime = _OSclock - this.runningPcb.creationTime;
                 this.runningPcb.waitTime = this.runningPcb.turnaroundTime - this.runningPcb.totalExecutionTime;
+                // Clean up swap file if process was on disk
+                if (this.runningPcb.location === TSOS.pcbLocation.disk) {
+                    _Swapper.cleanupSwapFile(this.runningPcb.pid);
+                }
                 _MemoryManager.deallocatePartition(this.runningPcb.segment);
                 _Scheduler.terminatedPcbs.push(this.runningPcb);
                 _Console.advanceLine();
