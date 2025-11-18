@@ -70,6 +70,9 @@ var _Dispatcher: TSOS.Dispatcher;
 var _Disk: TSOS.Disk;
 var _FileSystem: TSOS.FileSystem;
 
+//call swapper
+var _Swapper: TSOS.Swapper;
+
 // At least this OS is not trying to kill you. (Yet.)
 var _SarcasticMode: boolean = false;
 
