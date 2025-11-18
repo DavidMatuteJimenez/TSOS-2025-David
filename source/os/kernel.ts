@@ -33,10 +33,15 @@ module TSOS {
             _StdOut = _Console;
             
 
-            //instance for memory manager. after this code got added the command prompts stopped showing up
+            //instance for memory manager
             _MemoryManager = new MemoryManager();
             _Scheduler = new Scheduler();
             _Dispatcher = new Dispatcher();
+
+            // Initialize the Swapper
+            this.krnTrace("Initializing Swapper.");
+            _Swapper = new Swapper();
+            this.krnTrace("Swapper initialized.");  
 
             // Initialize Disk and FileSystem 
             this.krnTrace("Initializing Disk and FileSystem.");
@@ -187,19 +192,24 @@ module TSOS {
                 this.runningPcb.yReg = _CPU.Yreg;
                 this.runningPcb.zFlag = _CPU.Zflag;
 
-                 // NEW: Calculate turnaround time and wait time
+                 // Calculate turnaround time and wait time
                  this.runningPcb.turnaroundTime = _OSclock - this.runningPcb.creationTime;
                  this.runningPcb.waitTime = this.runningPcb.turnaroundTime - this.runningPcb.totalExecutionTime;
+
+                 // Clean up swap file if process was on disk
+                if (this.runningPcb.location === pcbLocation.disk) {
+                _Swapper.cleanupSwapFile(this.runningPcb.pid);
+                }
 
                 _MemoryManager.deallocatePartition(this.runningPcb.segment);
                 _Scheduler.terminatedPcbs.push(this.runningPcb)
 
                 _Console.advanceLine();
-        _StdOut.putText(`Process ${this.runningPcb.pid} finished.`);
-        _StdOut.advanceLine();
-        _StdOut.putText(`Turnaround Time: ${this.runningPcb.turnaroundTime} cycles`);
-        _StdOut.advanceLine();
-        _StdOut.putText(`Wait Time: ${this.runningPcb.waitTime} cycles`);
+                _StdOut.putText(`Process ${this.runningPcb.pid} finished.`);
+                _StdOut.advanceLine();
+                _StdOut.putText(`Turnaround Time: ${this.runningPcb.turnaroundTime} cycles`);
+                _StdOut.advanceLine();
+                _StdOut.putText(`Wait Time: ${this.runningPcb.waitTime} cycles`);
 
                 this.runningPcb = null;
                 _KernelInterruptQueue.enqueue(new Interrupt(CONTEXT_SWITCH, null));
