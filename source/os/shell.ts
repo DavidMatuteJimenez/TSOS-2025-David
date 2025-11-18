@@ -420,8 +420,9 @@ module TSOS {
       // Check if process is on disk and needs to be swapped in
       if (pcb.location === pcbLocation.disk) {
         const swapSuccess = _Scheduler.swapProcessToReady(pcb);
-        if (swapSuccess) {
-          _StdOut.putText(`Process ${pid} swapped in from disk and added to ready queue.`);
+        if (_Swapper.ensureInMemory(pcb)) {
+            _Scheduler.addToReadyQueue(pcb);
+            _StdOut.putText(`Process ${pid} swapped in from disk and added to ready queue.`);
         } else {
           _StdOut.putText(`Error: Could not swap in process ${pid} from disk.`);
           _Scheduler.residentList.push(pcb); // Put it back
@@ -452,23 +453,40 @@ module TSOS {
       _StdOut.putText("All memory segments cleared.");
     }
 
-    public shellRunAll(args: string[]) {
-      
-      if (_Scheduler.residentList.length === 0) {
+public shellRunAll(args: string[]) {
+    if (_Scheduler.residentList.length === 0) {
         _StdOut.putText("Error: No resident processes to execute.");
         return;
-      }
-
-      for (const pcb of _Scheduler.residentList) {
-        _Scheduler.addToReadyQueue(pcb);
-      }
-      const numProcesses = _Scheduler.residentList.length;
-      _Scheduler.residentList = [];
-
-      _Dispatcher.contextSwitch();
-      _CPU.isExecuting = true;
-      _StdOut.putText(`Executing ${ numProcesses} processes with Round Robin scheduling (Quantum: ${_Scheduler.quantum} cycles).`);
     }
+
+    const numProcesses = _Scheduler.residentList.length;
+    let swappedCount = 0;
+
+    // Add all processes to ready queue, swapping in if needed
+    while (_Scheduler.residentList.length > 0) {
+        const pcb = _Scheduler.residentList.shift();
+        
+        if (pcb.location === pcbLocation.disk) {
+            if (_Swapper.ensureInMemory(pcb)) {
+                _Scheduler.addToReadyQueue(pcb);
+                swappedCount++;
+            } else {
+                _StdOut.putText(`Warning: Could not load Process ${pcb.pid}.`);
+            }
+        } else {
+            _Scheduler.addToReadyQueue(pcb);
+        }
+    }
+
+    _Dispatcher.contextSwitch();
+    _CPU.isExecuting = true;
+    
+    let msg = `Executing ${numProcesses} processes with Round Robin scheduling (Quantum: ${_Scheduler.quantum} cycles).`;
+    if (swappedCount > 0) {
+        msg += ` ${swappedCount} process(es) swapped in from disk.`;
+    }
+    _StdOut.putText(msg);
+}
 
     public shellPS(args: string[]) {
       _StdOut.putText("PID  | State       | Location");
@@ -500,6 +518,9 @@ module TSOS {
       const pidToKill = parseInt(args[0]);
       
       if (_Kernel.runningPcb && _Kernel.runningPcb.pid === pidToKill) {
+         if (_Kernel.runningPcb.location === pcbLocation.disk) {
+            _Swapper.cleanupSwapFile(pidToKill);
+        }
         _Kernel.runningPcb.state = pcbState.terminated;
         _MemoryManager.deallocatePartition(_Kernel.runningPcb.segment);
         _Kernel.runningPcb = null;
@@ -512,6 +533,9 @@ module TSOS {
       for (let i = 0; i < _Scheduler.residentList.length; i++) {
         if (_Scheduler.residentList[i].pid === pidToKill) {
           const pcb = _Scheduler.residentList[i];
+          if (pcb.location === pcbLocation.disk) {
+                _Swapper.cleanupSwapFile(pidToKill);
+            }
           _MemoryManager.deallocatePartition(pcb.segment);
           _Scheduler.residentList.splice(i, 1);
           _StdOut.putText(`Process ${pidToKill} killed.`);
@@ -522,6 +546,9 @@ module TSOS {
       for (let i = 0; i < _Scheduler.readyQueue.length; i++) {
         if (_Scheduler.readyQueue[i].pid === pidToKill) {
           const pcb = _Scheduler.readyQueue[i];
+          if (pcb.location === pcbLocation.disk) {
+                _Swapper.cleanupSwapFile(pidToKill);
+            }
           _MemoryManager.deallocatePartition(pcb.segment);
           _Scheduler.readyQueue.splice(i, 1);
           _StdOut.putText(`Process ${pidToKill} killed.`);
@@ -534,14 +561,25 @@ module TSOS {
 
     public shellKillAll(args: string[]) {
       if (_Kernel.runningPcb) {
+         if (_Kernel.runningPcb.location === pcbLocation.disk) {
+            _Swapper.cleanupSwapFile(_Kernel.runningPcb.pid);
+        }
         _MemoryManager.deallocatePartition(_Kernel.runningPcb.segment);
         _Kernel.runningPcb = null;
         _CPU.isExecuting = false;
       }
-
       for (const pcb of _Scheduler.residentList) {
+        if (pcb.location === pcbLocation.disk) {
+            _Swapper.cleanupSwapFile(pcb.pid);
+        }
         _MemoryManager.deallocatePartition(pcb.segment);
-      }
+    }
+
+    for (const pcb of _Scheduler.readyQueue) {
+        if (pcb.location === pcbLocation.disk) {
+            _Swapper.cleanupSwapFile(pcb.pid);
+        }
+    }
       _Scheduler.residentList = [];
       _Scheduler.readyQueue = [];
       
