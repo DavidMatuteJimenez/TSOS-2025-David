@@ -98,7 +98,7 @@
                         break;
                     
                     case 0x00: // BRK - Break
-                        _Kernel.endProgram();
+                        _Kernel.endProgram(_Kernel.runningPcb.pid);
                         break;
     
                     case 0xEC: // CPX - Compare byte in memory to X register

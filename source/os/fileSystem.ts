@@ -1,7 +1,7 @@
 module TSOS {
     export class FileSystem {
         private disk: Disk;
-        private swapPrefix = "~";
+        private swapPrefix = "swap";
         private emptyFlag = String.fromCharCode(0);
         private nextFlag = String.fromCharCode(1);
         private finalFlag = String.fromCharCode(2);
@@ -323,10 +323,6 @@ module TSOS {
         //helper methods
         private validateFilename(filename: string): boolean {
             if (!filename || filename.length === 0 || filename.length > 28) {
-                return false;
-            }
-            // Don't allow swap file prefix
-            if (filename.startsWith(this.swapPrefix)) {
                 return false;
             }
             return true;

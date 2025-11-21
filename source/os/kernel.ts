@@ -154,8 +154,8 @@ module TSOS {
                     _Dispatcher.contextSwitch();               // Kernel built-in routine for timers (not the clock).
                     break;
                 case PSKILL:
-                    _StdOut.putText(params[0]+" PID: " + this.runningPcb.pid )
-                    this.endProgram();
+                    _StdOut.putText(params[0]+" PID: " + params[0]);
+                    this.endProgram(params[0]);
                     break;
                 default:
                     this.krnTrapError("Invalid Interrupt Request. irq=" + irq + " params=[" + params + "]");
@@ -182,41 +182,61 @@ module TSOS {
         // - ReadFile
         // - WriteFile
         // - CloseFile
-        public endProgram(): void {
-            if (this.runningPcb) {
-                this.runningPcb.state = pcbState.terminated;
+        public endProgram(pid: number): void {
+            let pcb;
+
+            for (let i = 0; i < _Scheduler.residentList.length; i++) {
+        if (_Scheduler.residentList[i].pid === pid) {
+            pcb = _Scheduler.residentList.splice(i, 1)[0];
+            break;
+        }
+      }
+
+      for (let i = 0; i < _Scheduler.readyQueue.length; i++) {
+        if (_Scheduler.readyQueue[i].pid === pid) {
+            pcb = _Scheduler.readyQueue.splice(i, 1)[0];
+            break;
+        }
+      }
+        if (!pcb && this.runningPcb && this.runningPcb.pid === pid) {
+            pcb = this.runningPcb;
+            this.runningPcb = null;
+        }
+        if (!pcb) {
+            _StdOut.putText(`Process with PID ${pid} not found.`);
+            return;
+        }
+                pcb.state = pcbState.terminated;
                 // Save final CPU state back to PCB
-                this.runningPcb.pc = _CPU.PC;
-                this.runningPcb.acc = _CPU.Acc;
-                this.runningPcb.xReg = _CPU.Xreg;
-                this.runningPcb.yReg = _CPU.Yreg;
-                this.runningPcb.zFlag = _CPU.Zflag;
+                pcb.pc = _CPU.PC;
+                pcb.acc = _CPU.Acc;
+                pcb.xReg = _CPU.Xreg;
+                pcb.yReg = _CPU.Yreg;
+                pcb.zFlag = _CPU.Zflag;
 
                  // Calculate turnaround time and wait time
-                 this.runningPcb.turnaroundTime = _OSclock - this.runningPcb.creationTime;
-                 this.runningPcb.waitTime = this.runningPcb.turnaroundTime - this.runningPcb.totalExecutionTime;
+                 pcb.turnaroundTime = _OSclock - pcb.creationTime;
+                 pcb.waitTime = pcb.turnaroundTime - pcb.totalExecutionTime; 
 
                  // Clean up swap file if process was on disk
-                if (this.runningPcb.location === pcbLocation.disk) {
-                _Swapper.cleanupSwapFile(this.runningPcb.pid);
+                if (pcb.location === pcbLocation.disk) {
+                _Swapper.cleanupSwapFile(pcb.pid);
                 }
 
-                _MemoryManager.deallocatePartition(this.runningPcb.segment);
-                _Scheduler.terminatedPcbs.push(this.runningPcb)
+                _MemoryManager.deallocatePartition(pcb.segment);
+                _Scheduler.terminatedPcbs.push(pcb)
 
                 _Console.advanceLine();
-                _StdOut.putText(`Process ${this.runningPcb.pid} finished.`);
+                _StdOut.putText(`Process ${pcb.pid} finished.`); 
                 _StdOut.advanceLine();
-                _StdOut.putText(`Turnaround Time: ${this.runningPcb.turnaroundTime} cycles`);
+                _StdOut.putText(`Turnaround Time: ${pcb.turnaroundTime} cycles`);
                 _StdOut.advanceLine();
-                _StdOut.putText(`Wait Time: ${this.runningPcb.waitTime} cycles`);
-
-                this.runningPcb = null;
+                _StdOut.putText(`Wait Time: ${pcb.waitTime} cycles`);
                 _KernelInterruptQueue.enqueue(new Interrupt(CONTEXT_SWITCH, null));
                
                 _Console.advanceLine();
                 _OsShell.putPrompt();
-            }
+            
         }
 
 

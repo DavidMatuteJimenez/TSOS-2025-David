@@ -1,7 +1,7 @@
 var TSOS;
 (function (TSOS) {
     class Swapper {
-        swapPrefix = "~";
+        swapPrefix = "swap"; // change this to global variable
         constructor() {
             if (_Kernel) {
                 _Kernel.krnTrace("Swapper initialized.");
@@ -25,7 +25,8 @@ var TSOS;
             }
             // Write to disk using the file system
             const rollOutResult = _FileSystem.rollOutProcess(pcb.pid, processData);
-            if (rollOutResult === 0) { // Success
+            if (rollOutResult === 0) {
+                // Success
                 // Deallocate memory partition
                 _MemoryManager.deallocatePartition(pcb.segment);
                 // Update PCB
@@ -62,7 +63,7 @@ var TSOS;
             // Convert process data to hex strings for memory allocation
             const hexData = [];
             for (let i = 0; i < processData.length; i++) {
-                hexData.push(processData[i].toString(16).padStart(2, '0').toUpperCase());
+                hexData.push(processData[i].toString(16).padStart(2, "0").toUpperCase());
             }
             // Try to allocate memory
             const allocation = _MemoryManager.allocatePartition(hexData);
@@ -76,8 +77,27 @@ var TSOS;
                 return true;
             }
             else {
-                _Kernel.krnTrace(`Swapper: Failed to allocate memory for Process ${pcb.pid}.`);
-                return false;
+                if (_Kernel.runningPcb) {
+                    this.rollOut(_Kernel.runningPcb);
+                }
+                else {
+                    for (let i = 0; i < _Scheduler.residentList.length; i++) {
+                        if (_Scheduler.residentList[i].location === TSOS.pcbLocation.memory) {
+                            this.rollOut(_Scheduler.residentList[i]);
+                            break;
+                        }
+                    }
+                }
+                const allocation = _MemoryManager.allocatePartition(hexData);
+                if (allocation.success) {
+                    // Update PCB
+                    pcb.base = allocation.base;
+                    pcb.limit = allocation.limit;
+                    pcb.segment = allocation.segment;
+                    pcb.location = TSOS.pcbLocation.memory;
+                    _Kernel.krnTrace(`Swapper: Process ${pcb.pid} rolled in successfully to segment ${pcb.segment}.`);
+                    return true;
+                }
             }
         }
         //Swap out a process to make room for another

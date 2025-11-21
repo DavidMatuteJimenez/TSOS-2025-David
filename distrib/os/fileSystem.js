@@ -2,7 +2,7 @@ var TSOS;
 (function (TSOS) {
     class FileSystem {
         disk;
-        swapPrefix = "~";
+        swapPrefix = "swap";
         emptyFlag = String.fromCharCode(0);
         nextFlag = String.fromCharCode(1);
         finalFlag = String.fromCharCode(2);
@@ -261,10 +261,6 @@ var TSOS;
         //helper methods
         validateFilename(filename) {
             if (!filename || filename.length === 0 || filename.length > 28) {
-                return false;
-            }
-            // Don't allow swap file prefix
-            if (filename.startsWith(this.swapPrefix)) {
                 return false;
             }
             return true;

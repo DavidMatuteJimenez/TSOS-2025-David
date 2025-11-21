@@ -324,9 +324,9 @@ var TSOS;
             }
             const opCodes = userInput.toUpperCase().split(/\s+/);
             const result = _MemoryManager.allocatePartition(opCodes);
+            const newPid = _Kernel.pidCounter++;
+            const newPcb = new TSOS.Pcb(newPid);
             if (result.success) {
-                const newPid = _Kernel.pidCounter++;
-                const newPcb = new TSOS.Pcb(newPid);
                 newPcb.base = result.base;
                 newPcb.limit = result.limit;
                 newPcb.segment = result.segment;
@@ -335,9 +335,6 @@ var TSOS;
                 _StdOut.putText(`Program loaded with PID ${newPid} in memory`);
             }
             else {
-                // Memory full - store process on disk
-                const newPid = _Kernel.pidCounter++;
-                const newPcb = new TSOS.Pcb(newPid);
                 // Convert opCodes to byte array for swapping
                 const processData = [];
                 for (let i = 0; i < opCodes.length; i++) {
@@ -368,24 +365,8 @@ var TSOS;
                 return;
             }
             const pcb = _Scheduler.residentList.splice(index, 1)[0];
-            // Check if process is on disk and needs to be swapped in
-            if (pcb.location === TSOS.pcbLocation.disk) {
-                const swapSuccess = _Scheduler.swapProcessToReady(pcb);
-                if (_Swapper.ensureInMemory(pcb)) {
-                    _Scheduler.addToReadyQueue(pcb);
-                    _StdOut.putText(`Process ${pid} swapped in from disk and added to ready queue.`);
-                }
-                else {
-                    _StdOut.putText(`Error: Could not swap in process ${pid} from disk.`);
-                    _Scheduler.residentList.push(pcb); // Put it back
-                    return;
-                }
-            }
-            else {
-                // Process already in memory
-                _Scheduler.addToReadyQueue(pcb);
-                _StdOut.putText(`Process ${pid} added to ready queue.`);
-            }
+            _Scheduler.addToReadyQueue(pcb);
+            _StdOut.putText(`Process ${pid} added to ready queue.`);
             _KernelInterruptQueue.enqueue(new TSOS.Interrupt(CONTEXT_SWITCH, null));
             _CPU.isExecuting = true;
         }
@@ -412,21 +393,9 @@ var TSOS;
             // Add all processes to ready queue, swapping in if needed
             while (_Scheduler.residentList.length > 0) {
                 const pcb = _Scheduler.residentList.shift();
-                if (pcb.location === TSOS.pcbLocation.disk) {
-                    if (_Swapper.ensureInMemory(pcb)) {
-                        _Scheduler.addToReadyQueue(pcb);
-                        swappedCount++;
-                    }
-                    else {
-                        _StdOut.putText(`Warning: Could not load Process ${pcb.pid}.`);
-                    }
-                }
-                else {
-                    _Scheduler.addToReadyQueue(pcb);
-                }
+                _Scheduler.addToReadyQueue(pcb);
             }
-            _Dispatcher.contextSwitch();
-            _CPU.isExecuting = true;
+            _KernelInterruptQueue.enqueue(new TSOS.Interrupt(CONTEXT_SWITCH, null));
             let msg = `Executing ${numProcesses} processes with Round Robin scheduling (Quantum: ${_Scheduler.quantum} cycles).`;
             if (swappedCount > 0) {
                 msg += ` ${swappedCount} process(es) swapped in from disk.`;
@@ -456,66 +425,19 @@ var TSOS;
                 return;
             }
             const pidToKill = parseInt(args[0]);
-            if (_Kernel.runningPcb && _Kernel.runningPcb.pid === pidToKill) {
-                if (_Kernel.runningPcb.location === TSOS.pcbLocation.disk) {
-                    _Swapper.cleanupSwapFile(pidToKill);
-                }
-                _Kernel.runningPcb.state = TSOS.pcbState.terminated;
-                _MemoryManager.deallocatePartition(_Kernel.runningPcb.segment);
-                _Kernel.runningPcb = null;
-                _CPU.isExecuting = false;
-                _KernelInterruptQueue.enqueue(new TSOS.Interrupt(CONTEXT_SWITCH, null));
-                _StdOut.putText(`Process ${pidToKill} killed.`);
-                return;
-            }
-            for (let i = 0; i < _Scheduler.residentList.length; i++) {
-                if (_Scheduler.residentList[i].pid === pidToKill) {
-                    const pcb = _Scheduler.residentList[i];
-                    if (pcb.location === TSOS.pcbLocation.disk) {
-                        _Swapper.cleanupSwapFile(pidToKill);
-                    }
-                    _MemoryManager.deallocatePartition(pcb.segment);
-                    _Scheduler.residentList.splice(i, 1);
-                    _StdOut.putText(`Process ${pidToKill} killed.`);
-                    return;
-                }
-            }
-            for (let i = 0; i < _Scheduler.readyQueue.length; i++) {
-                if (_Scheduler.readyQueue[i].pid === pidToKill) {
-                    const pcb = _Scheduler.readyQueue[i];
-                    if (pcb.location === TSOS.pcbLocation.disk) {
-                        _Swapper.cleanupSwapFile(pidToKill);
-                    }
-                    _MemoryManager.deallocatePartition(pcb.segment);
-                    _Scheduler.readyQueue.splice(i, 1);
-                    _StdOut.putText(`Process ${pidToKill} killed.`);
-                    return;
-                }
-            }
+            _KernelInterruptQueue.enqueue(new TSOS.Interrupt(PSKILL, [pidToKill]));
             _StdOut.putText(`Error: Process ${pidToKill} not found.`);
         }
         shellKillAll(args) {
             if (_Kernel.runningPcb) {
-                if (_Kernel.runningPcb.location === TSOS.pcbLocation.disk) {
-                    _Swapper.cleanupSwapFile(_Kernel.runningPcb.pid);
-                }
-                _MemoryManager.deallocatePartition(_Kernel.runningPcb.segment);
-                _Kernel.runningPcb = null;
-                _CPU.isExecuting = false;
+                _KernelInterruptQueue.enqueue(new TSOS.Interrupt(PSKILL, [_Kernel.runningPcb.pid]));
             }
             for (const pcb of _Scheduler.residentList) {
-                if (pcb.location === TSOS.pcbLocation.disk) {
-                    _Swapper.cleanupSwapFile(pcb.pid);
-                }
-                _MemoryManager.deallocatePartition(pcb.segment);
+                _KernelInterruptQueue.enqueue(new TSOS.Interrupt(PSKILL, [pcb.pid]));
             }
             for (const pcb of _Scheduler.readyQueue) {
-                if (pcb.location === TSOS.pcbLocation.disk) {
-                    _Swapper.cleanupSwapFile(pcb.pid);
-                }
+                _KernelInterruptQueue.enqueue(new TSOS.Interrupt(PSKILL, [pcb.pid]));
             }
-            _Scheduler.residentList = [];
-            _Scheduler.readyQueue = [];
             _StdOut.putText("All processes killed.");
         }
         shellQ(args) {
