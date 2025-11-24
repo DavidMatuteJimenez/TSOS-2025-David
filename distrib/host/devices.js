@@ -28,11 +28,13 @@ var TSOS;
             _OSclock++;
             // Call the kernel clock pulse event handler.
             _Kernel.krnOnCPUClockPulse();
-            // Update GUI displays.s
-            TSOS.Control.updateCpuDisplay();
-            TSOS.Control.updateMemoryDisplay();
-            TSOS.Control.updatePcbDisplay();
-            TSOS.Control.setDateAndTime();
+            if (_OSclock % 10 === 0) {
+                // Update GUI displays.s
+                TSOS.Control.updateCpuDisplay();
+                TSOS.Control.updateMemoryDisplay();
+                TSOS.Control.updatePcbDisplay();
+                TSOS.Control.setDateAndTime();
+            }
         }
         //
         // Keyboard Interrupt, a HARDWARE Interrupt Request. (See pages 560-561 in our text book.)

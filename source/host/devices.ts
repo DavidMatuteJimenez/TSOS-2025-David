@@ -32,12 +32,13 @@ module TSOS {
             // Call the kernel clock pulse event handler.
             _Kernel.krnOnCPUClockPulse();
 
+            if (_OSclock % 10 === 0) {
             // Update GUI displays.s
             Control.updateCpuDisplay();
             Control.updateMemoryDisplay();
             Control.updatePcbDisplay();
-
             Control.setDateAndTime();
+            }
         }
 
 
