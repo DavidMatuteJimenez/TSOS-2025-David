@@ -19,7 +19,7 @@ var TSOS;
         waitTime;
         creationTime;
         totalExecutionTime;
-        constructor(pid, state = pcbState.resident, pc = 0, ir = 0, acc = 0, xReg = 0, yReg = 0, zFlag = 0, priority = 0, location = pcbLocation.memory, base = 0, limit = 0, segment = -1, modebit = 0, turnaroundTime = 0, waitTime = 0, creationTime = _OSclock, totalExecutionTime = 0 // added this 
+        constructor(pid, state = pcbState.resident, pc = 0, ir = 0, acc = 0, xReg = 0, yReg = 0, zFlag = 0, priority = 0, location = pcbLocation.memory, base = 0, limit = 0, segment = -1, modebit = 0, turnaroundTime = 0, waitTime = 0, creationTime = 0, totalExecutionTime = 0 // added this 
         ) {
             this.pid = pid;
             this.state = state;
@@ -39,6 +39,7 @@ var TSOS;
             this.waitTime = waitTime;
             this.creationTime = creationTime;
             this.totalExecutionTime = totalExecutionTime;
+            this.creationTime = _OSclock; //added
         }
         toString() {
             return `PID: ${this.pid} | State: ${this.state} | PC: 0x${this.pc.toString(16).toUpperCase().padStart(2, '0')} | Base: ${this.base} | Limit: ${this.limit} | Segment: ${this.segment}`;

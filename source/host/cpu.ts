@@ -36,7 +36,7 @@
             }
     
             public cycle(): void {
-                _Kernel.krnTrace('CPU cycle');
+                // _Kernel.krnTrace('CPU cycle'); // Commented out - causes performance issues with multiple processes
     
                 // 1. FETCH
                 this.IR = _MemoryAccessor.read(this.PC);

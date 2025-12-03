@@ -192,37 +192,24 @@ module TSOS {
         }
 
         public static updateMemoryDisplay(): void {
-            /*const memoryTableBody = <HTMLTableSectionElement>document.getElementById('memory-table-body');
-            memoryTableBody.innerHTML = '';
-            if (_MemoryAccessor) {
-                for (let i = 0; i < 256; i += 8) {
-                    const row = memoryTableBody.insertRow();
-                    const rowHeader = `0x${i.toString(16).toUpperCase().padStart(3, '0')}`;
-                    row.insertCell(0).innerText = rowHeader;
-                    for (let j = 0; j < 8; j++) {
-                        const address = i + j;
-                        const value = _MemoryAccessor.read(address);
-                        row.insertCell(j + 1).innerText = value.toString(16).toUpperCase().padStart(2, '0');
-                    }
-                }
-            }*/
-                let tBody = document.getElementById("memoryDisplayTbody")
-                let maxAddress = Math.floor((_Memory.memory.length - 1) / 0x10);
-                let content = "";
-                
-                for (let a = 0; a <= maxAddress; a++){
-                    let address = a * 0x10;
-                    let rowAddress = address.toString(16).toUpperCase().padStart(4, '0');
-                    content += `<tr><td class="address">${rowAddress}</td>`
+            let tBody = document.getElementById("memoryDisplayTbody")
+            
+            let maxAddress = Math.floor((_Memory.memory.length - 1) / 0x10);
+            let content = "";
+            
+            for (let a = 0; a <= maxAddress; a++){
+                let address = a * 0x10;
+                let rowAddress = address.toString(16).toUpperCase().padStart(4, '0');
+                content += `<tr><td class="address">${rowAddress}</td>`
 
-                    for (let i = 0; i<= 0xF; i++){
-                        let memValue = _Memory.memory[address + i].toString(16).toUpperCase().padStart(2, '0');
-                        content+= `<td>${memValue}</td>`
+                for (let i = 0; i<= 0xF; i++){
+                    let memValue = _Memory.memory[address + i].toString(16).toUpperCase().padStart(2, '0');
+                    content+= `<td>${memValue}</td>`
 
-                    } 
-                    content += `</tr>`
-                }
-                tBody.innerHTML = content;
+                } 
+                content += `</tr>`
+            }
+            tBody.innerHTML = content;
     
         }
 
