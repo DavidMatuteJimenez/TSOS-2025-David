@@ -15,9 +15,9 @@ module TSOS {
             _Kernel.krnTrace(`Scheduler: Process ${pcb.pid} moved to Ready queue. Queue size: ${this.readyQueue.length}`);
             
             // Update disk display when processes are swapped
-            if (typeof (window as any).TSOS !== 'undefined' && (window as any).TSOS.Control) {
+            /*if (typeof (window as any).TSOS !== 'undefined' && (window as any).TSOS.Control) {
                 (window as any).TSOS.Control.updateDiskDisplay();
-            }
+            }*/
         }
 
         public getNextProcess(): Pcb {

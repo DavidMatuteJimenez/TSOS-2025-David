@@ -34,6 +34,7 @@ var TSOS;
                 TSOS.Control.updateMemoryDisplay();
                 TSOS.Control.updatePcbDisplay();
                 TSOS.Control.setDateAndTime();
+                TSOS.Control.updateDiskDisplay();
             }
         }
         //

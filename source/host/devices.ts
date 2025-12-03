@@ -38,6 +38,7 @@ module TSOS {
                 Control.updateMemoryDisplay();
                 Control.updatePcbDisplay();
                 Control.setDateAndTime();
+                Control.updateDiskDisplay();
             }
         }
 

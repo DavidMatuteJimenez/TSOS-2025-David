@@ -13,9 +13,9 @@ var TSOS;
             this.readyQueue.push(pcb);
             _Kernel.krnTrace(`Scheduler: Process ${pcb.pid} moved to Ready queue. Queue size: ${this.readyQueue.length}`);
             // Update disk display when processes are swapped
-            if (typeof window.TSOS !== 'undefined' && window.TSOS.Control) {
-                window.TSOS.Control.updateDiskDisplay();
-            }
+            /*if (typeof (window as any).TSOS !== 'undefined' && (window as any).TSOS.Control) {
+                (window as any).TSOS.Control.updateDiskDisplay();
+            }*/
         }
         getNextProcess() {
             if (this.readyQueue.length > 0) {

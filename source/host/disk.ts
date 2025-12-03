@@ -8,6 +8,10 @@ module TSOS {
         public static readonly sectorSize = Disk.blockCount * Disk.blockSize;
         public static readonly nullChar = String.fromCharCode(0);
 
+        
+        public static displayDirty: boolean = false; // For debugging purposes
+        public static lastDisplayUpdate: number = 0;
+
         constructor() {
             // Disk is ready but not automatically formatted
             // User must run 'format' command to initialize
@@ -33,6 +37,8 @@ module TSOS {
                         }
                     }
                 }
+                Disk.displayDirty = true;
+
                 // Log completion
                 if (_Kernel) {
                     _Kernel.krnTrace("Disk formatting completed - " + 
@@ -59,6 +65,8 @@ module TSOS {
                 
                 const str = tsb[0] + ':' + tsb[1] + ':' + tsb[2];
                 sessionStorage.setItem(str, data);
+
+                Disk.displayDirty = true;
                 
                 return 0;
             }

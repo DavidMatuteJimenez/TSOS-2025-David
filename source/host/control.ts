@@ -18,306 +18,333 @@
     Operating System Concepts 8th edition by Silberschatz, Galvin, and Gagne.  ISBN 978-0-470-12872-5
     ------------ */
 
-
 //
 // Control Services
 //
 module TSOS {
+  export class Control {
+    public static paused: boolean = false;
 
+    // sets task bar
+    public static setTaskbarMessage(message: string) {
+      document.getElementById("taskbarStatus").innerHTML = message;
+    }
+    public static setDateAndTime() {
+      document.getElementById("dateAndTime").innerHTML =
+        new Date().toLocaleString();
+    }
 
-    export class Control {
-        public static paused: boolean = false
- 
-        // sets task bar 
-        public static setTaskbarMessage(message: string) {
-            document.getElementById("taskbarStatus").innerHTML = message
+    public static hostInit(): void {
+      // This is called from index.html's onLoad event via the onDocumentLoad function pointer.
+
+      // Get a global reference to the canvas.  TODO: Should we move this stuff into a Display Device Driver?
+      _Canvas = <HTMLCanvasElement>document.getElementById("display");
+
+      // Get a global reference to the drawing context.
+      _DrawingContext = _Canvas.getContext("2d");
+
+      // Enable the added-in canvas text functions (see canvastext.ts for provenance and details).
+      CanvasTextFunctions.enable(_DrawingContext); // Text functionality is now built in to the HTML5 canvas. But this is old-school, and fun, so we'll keep it.
+
+      // Clear the log text box.
+      // Use the TypeScript cast to HTMLInputElement
+      (<HTMLInputElement>document.getElementById("taHostLog")).value = "";
+
+      // Set focus on the start button.
+      // Use the TypeScript cast to HTMLInputElement
+      (<HTMLInputElement>document.getElementById("btnStartOS")).focus();
+
+      // In Control.ts, inside the Control class
+
+      //this.updateCpuDisplay();
+      //this.updateMemoryDisplay();
+      //this.updatePcbDisplay();
+
+      // Check for our testing and enrichment core, which
+      // may be referenced here (from index.html) as function Glados().
+      if (typeof Glados === "function") {
+        // function Glados() is here, so instantiate Her into
+        // the global (and properly capitalized) _GLaDOS variable.
+        _GLaDOS = new Glados();
+        _GLaDOS.init();
+      }
+    }
+
+    public static hostLog(msg: string, source: string = "?"): void {
+      // Note the OS CLOCK.
+      var clock: number = _OSclock;
+
+      // Note the REAL clock in milliseconds since January 1, 1970.
+      var now: number = new Date().getTime();
+
+      // Build the log string.
+      var str: string =
+        "({ clock:" +
+        clock +
+        ", source:" +
+        source +
+        ", msg:" +
+        msg +
+        ", now:" +
+        now +
+        " })" +
+        "\n";
+
+      // Update the log console.
+      var taLog = <HTMLInputElement>document.getElementById("taHostLog");
+      //taLog.value = str + taLog.value;
+
+      if (clock % 1000 === 0) {
+        taLog.value = str; // Reset with just this entry
+      } else {
+        taLog.value = str + taLog.value;
+
+        // Still limit to prevent growth between clears
+        const lines = taLog.value.split("\n");
+        if (lines.length > 200) {
+          taLog.value = lines.slice(0, 200).join("\n");
         }
-        public static setDateAndTime() {
-            document.getElementById("dateAndTime").innerHTML = new Date().toLocaleString();
+      }
+      // TODO in the future: Optionally update a log database or some streaming service.
+    }
+
+    //
+    // Host Events
+    //
+    public static hostBtnStartOS_click(btn): void {
+      // Disable the (passed-in) start button...
+      btn.disabled = true;
+
+      // .. enable the Halt and Reset buttons ...
+      (<HTMLButtonElement>document.getElementById("btnHaltOS")).disabled =
+        false;
+      (<HTMLButtonElement>document.getElementById("btnReset")).disabled = false;
+
+      // .. set focus on the OS console display ...
+      document.getElementById("display").focus();
+
+      // ... Create and initialize the CPU (because it's part of the hardware)  ...
+      _CPU = new Cpu(); // Note: We could simulate multi-core systems by instantiating more than one instance of the CPU here.
+      _CPU.init(); //       There's more to do, like dealing with scheduling and such, but this would be a start. Pretty cool.
+
+      // ... Create and initialize Memory and its Accessor ...
+      _Memory = new Memory();
+      _Memory.init();
+      _MemoryAccessor = new MemoryAccessor();
+
+      // ... then set the host clock pulse ...
+      _hardwareClockID = setInterval(
+        Devices.hostClockPulse,
+        CPU_CLOCK_INTERVAL
+      );
+      // .. and call the OS Kernel Bootstrap routine.
+      _Kernel = new Kernel();
+      _Kernel.krnBootstrap(); // _GLaDOS.afterStartup() will get called in there, if configured.
+      // Initialize the displays.
+      Control.createMemoryDisplay();
+      Control.updateDiskDisplay();
+
+      Control.setDateAndTime();
+      //Control.setTaskbarMessage("System Running");
+    }
+
+    public static hostBtnHaltOS_click(btn): void {
+      Control.hostLog("Emergency halt", "host");
+      Control.hostLog("Attempting Kernel shutdown.", "host");
+      // Call the OS shutdown routine.
+      _Kernel.krnShutdown();
+      // Stop the interval that's simulating our clock pulse.
+      clearInterval(_hardwareClockID);
+      // TODO: Is there anything else we need to do here?
+    }
+
+    public static hostBtnReset_click(btn): void {
+      // The easiest and most thorough way to do this is to reload (not refresh) the document.
+      location.reload();
+    }
+
+    public static onPauseClick(btn): void {
+      Control.paused = !Control.paused;
+      let button = document.getElementById("btnStepOS") as HTMLInputElement;
+      btn.value = Control.paused ? "continue" : "pause";
+      button.disabled = !Control.paused;
+    }
+
+    public static onStepClick(btn): void {
+      _CPU.cycle();
+    }
+
+    // GUI Display Update Routines
+    //
+    public static updateCpuDisplay(): void {
+      if (_CPU) {
+        document.getElementById("cpu-pc").innerText = _CPU.PC.toString(16)
+          .toUpperCase()
+          .padStart(4, "0");
+        document.getElementById("cpu-ir").innerText = _CPU.IR.toString(16)
+          .toUpperCase()
+          .padStart(2, "0");
+        document.getElementById("cpu-acc").innerText = _CPU.Acc.toString(16)
+          .toUpperCase()
+          .padStart(2, "0");
+        document.getElementById("cpu-x").innerText = _CPU.Xreg.toString(16)
+          .toUpperCase()
+          .padStart(2, "0");
+        document.getElementById("cpu-y").innerText = _CPU.Yreg.toString(16)
+          .toUpperCase()
+          .padStart(2, "0");
+        document.getElementById("cpu-z").innerText = _CPU.Zflag.toString();
+      } else {
+        // clear if no CPU
+        document.getElementById("cpu-pc").innerText = "0000";
+        document.getElementById("cpu-ir").innerText = "00";
+        document.getElementById("cpu-acc").innerText = "00";
+        document.getElementById("cpu-x").innerText = "00";
+        document.getElementById("cpu-y").innerText = "00";
+        document.getElementById("cpu-z").innerText = "0";
+      }
+    }
+
+    public static updateMemoryDisplay(): void {
+      let tBody = document.getElementById("memoryDisplayTbody");
+
+      let maxAddress = Math.floor((_Memory.memory.length - 1) / 0x10);
+      let content = "";
+
+      for (let a = 0; a <= maxAddress; a++) {
+        let address = a * 0x10;
+        let rowAddress = address.toString(16).toUpperCase().padStart(4, "0");
+        content += `<tr><td class="address">${rowAddress}</td>`;
+
+        for (let i = 0; i <= 0xf; i++) {
+          let memValue = _Memory.memory[address + i]
+            .toString(16)
+            .toUpperCase()
+            .padStart(2, "0");
+          content += `<td>${memValue}</td>`;
         }
+        content += `</tr>`;
+      }
+      tBody.innerHTML = content;
+    }
 
-        public static hostInit(): void {
-            // This is called from index.html's onLoad event via the onDocumentLoad function pointer.
- 
- 
-            // Get a global reference to the canvas.  TODO: Should we move this stuff into a Display Device Driver?
-            _Canvas = <HTMLCanvasElement>document.getElementById('display');
- 
- 
-            // Get a global reference to the drawing context.
-            _DrawingContext = _Canvas.getContext("2d");
- 
- 
-            // Enable the added-in canvas text functions (see canvastext.ts for provenance and details).
-            CanvasTextFunctions.enable(_DrawingContext);   // Text functionality is now built in to the HTML5 canvas. But this is old-school, and fun, so we'll keep it.
- 
- 
-            // Clear the log text box.
-            // Use the TypeScript cast to HTMLInputElement
-            (<HTMLInputElement> document.getElementById("taHostLog")).value="";
- 
- 
-            // Set focus on the start button.
-            // Use the TypeScript cast to HTMLInputElement
-            (<HTMLInputElement> document.getElementById("btnStartOS")).focus();
- 
-            // In Control.ts, inside the Control class
-
-            //this.updateCpuDisplay();
-            //this.updateMemoryDisplay();
-            //this.updatePcbDisplay();
-
-            // Check for our testing and enrichment core, which
-            // may be referenced here (from index.html) as function Glados().
-            if (typeof Glados === "function") {
-                // function Glados() is here, so instantiate Her into
-                // the global (and properly capitalized) _GLaDOS variable.
-                _GLaDOS = new Glados();
-                _GLaDOS.init();
-            }
-        }
- 
- 
-        public static hostLog(msg: string, source: string = "?"): void {
-            // Note the OS CLOCK.
-            var clock: number = _OSclock;
- 
- 
-            // Note the REAL clock in milliseconds since January 1, 1970.
-            var now: number = new Date().getTime();
- 
- 
-            // Build the log string.
-            var str: string = "({ clock:" + clock + ", source:" + source + ", msg:" + msg + ", now:" + now  + " })"  + "\n";
- 
- 
-            // Update the log console.
-            var taLog = <HTMLInputElement> document.getElementById("taHostLog");
-            taLog.value = str + taLog.value;
- 
- 
-            // TODO in the future: Optionally update a log database or some streaming service.
-        }
- 
- 
- 
- 
-        //
-        // Host Events
-        //
-        public static hostBtnStartOS_click(btn): void {
-            // Disable the (passed-in) start button...
-            btn.disabled = true;
- 
- 
-            // .. enable the Halt and Reset buttons ...
-            (<HTMLButtonElement>document.getElementById("btnHaltOS")).disabled = false;
-            (<HTMLButtonElement>document.getElementById("btnReset")).disabled = false;
- 
- 
-            // .. set focus on the OS console display ...
-            document.getElementById("display").focus();
- 
- 
-            // ... Create and initialize the CPU (because it's part of the hardware)  ...
-            _CPU = new Cpu();  // Note: We could simulate multi-core systems by instantiating more than one instance of the CPU here.
-            _CPU.init();       //       There's more to do, like dealing with scheduling and such, but this would be a start. Pretty cool.
-
-             // ... Create and initialize Memory and its Accessor ...
-            _Memory = new Memory();
-            _Memory.init();
-            _MemoryAccessor = new MemoryAccessor();
- 
- 
-            // ... then set the host clock pulse ...
-            _hardwareClockID = setInterval(Devices.hostClockPulse, CPU_CLOCK_INTERVAL);
-            // .. and call the OS Kernel Bootstrap routine.
-            _Kernel = new Kernel();
-            _Kernel.krnBootstrap();  // _GLaDOS.afterStartup() will get called in there, if configured.
-            // Initialize the displays.
-            Control.createMemoryDisplay()
-            Control.updateDiskDisplay()
-
-            Control.setDateAndTime();
-            //Control.setTaskbarMessage("System Running");
-        }
- 
- 
-        public static hostBtnHaltOS_click(btn): void {
-            Control.hostLog("Emergency halt", "host");
-            Control.hostLog("Attempting Kernel shutdown.", "host");
-            // Call the OS shutdown routine.
-            _Kernel.krnShutdown();
-            // Stop the interval that's simulating our clock pulse.
-            clearInterval(_hardwareClockID);
-            // TODO: Is there anything else we need to do here?
-        }
- 
- 
-        public static hostBtnReset_click(btn): void {
-            // The easiest and most thorough way to do this is to reload (not refresh) the document.
-            location.reload();
-        }
-
-        public static onPauseClick (btn): void {
-            Control.paused = !Control.paused;
-            let button =(document.getElementById("btnStepOS")as HTMLInputElement);
-            btn.value = Control.paused? "continue": "pause"
-            button.disabled = !Control.paused
-        }
-
-        public static onStepClick (btn): void {
-            _CPU.cycle()
-        }
-
-        // GUI Display Update Routines
-        //
-        public static updateCpuDisplay(): void {
-            if (_CPU) {
-                document.getElementById('cpu-pc').innerText = _CPU.PC.toString(16).toUpperCase().padStart(4, '0');
-                document.getElementById('cpu-ir').innerText = _CPU.IR.toString(16).toUpperCase().padStart(2, '0');
-                document.getElementById('cpu-acc').innerText = _CPU.Acc.toString(16).toUpperCase().padStart(2, '0');
-                document.getElementById('cpu-x').innerText = _CPU.Xreg.toString(16).toUpperCase().padStart(2, '0');
-                document.getElementById('cpu-y').innerText = _CPU.Yreg.toString(16).toUpperCase().padStart(2, '0');
-                document.getElementById('cpu-z').innerText = _CPU.Zflag.toString();
-            } else {
-                 // clear if no CPU
-                document.getElementById('cpu-pc').innerText = "0000";
-                document.getElementById('cpu-ir').innerText = "00";
-                document.getElementById('cpu-acc').innerText = "00";
-                document.getElementById('cpu-x').innerText = "00";
-                document.getElementById('cpu-y').innerText = "00";
-                document.getElementById('cpu-z').innerText = "0";
-            }
-        }
-
-        public static updateMemoryDisplay(): void {
-            let tBody = document.getElementById("memoryDisplayTbody")
-            
-            let maxAddress = Math.floor((_Memory.memory.length - 1) / 0x10);
-            let content = "";
-            
-            for (let a = 0; a <= maxAddress; a++){
-                let address = a * 0x10;
-                let rowAddress = address.toString(16).toUpperCase().padStart(4, '0');
-                content += `<tr><td class="address">${rowAddress}</td>`
-
-                for (let i = 0; i<= 0xF; i++){
-                    let memValue = _Memory.memory[address + i].toString(16).toUpperCase().padStart(2, '0');
-                    content+= `<td>${memValue}</td>`
-
-                } 
-                content += `</tr>`
-            }
-            tBody.innerHTML = content;
-    
-        }
-
-        public static updatePcbDisplay(): void {
-            let pcbs = [];
-            if (_Kernel.runningPcb != null) {
-                pcbs.push(_Kernel.runningPcb)
-            }
-            pcbs.push(..._Scheduler.readyQueue)
-            pcbs.push(..._Scheduler.residentList)
-            pcbs.push(..._Scheduler.terminatedPcbs)
-            let pcbDisplayContent = ""
-            for (const pcb of pcbs) {
-                pcbDisplayContent += 
-                 `<tr>
+    public static updatePcbDisplay(): void {
+      let pcbs = [];
+      if (_Kernel.runningPcb != null) {
+        pcbs.push(_Kernel.runningPcb);
+      }
+      pcbs.push(..._Scheduler.readyQueue);
+      pcbs.push(..._Scheduler.residentList);
+      pcbs.push(..._Scheduler.terminatedPcbs);
+      let pcbDisplayContent = "";
+      for (const pcb of pcbs) {
+        pcbDisplayContent += `<tr>
          <td >${pcb.pid.toString()}</td>
-         <td >${pcb.pc.toString(16).toUpperCase().padStart(4, '0')}</td>
-         <td >${pcb.ir.toString(16).toUpperCase().padStart(2, '0')}</td>
-         <td >${pcb.acc.toString(16).toUpperCase().padStart(2, '0')}</td>
-         <td >${pcb.xReg.toString(16).toUpperCase().padStart(2, '0')}</td>
-         <td >${pcb.yReg.toString(16).toUpperCase().padStart(2, '0')}</td>
+         <td >${pcb.pc.toString(16).toUpperCase().padStart(4, "0")}</td>
+         <td >${pcb.ir.toString(16).toUpperCase().padStart(2, "0")}</td>
+         <td >${pcb.acc.toString(16).toUpperCase().padStart(2, "0")}</td>
+         <td >${pcb.xReg.toString(16).toUpperCase().padStart(2, "0")}</td>
+         <td >${pcb.yReg.toString(16).toUpperCase().padStart(2, "0")}</td>
          <td >${pcb.zFlag.toString()}</td>
          <td >${pcb.priority.toString()}</td>
          <td >${pcb.state.toString()}</td>
          <td >${pcb.location.toString()}</td>
          <td >${pcb.base.toString()}</td>
          <td >${pcb.limit.toString()}</td>
-         <td >${pcb.segment.toString()}</td></tr>`
-            }
+         <td >${pcb.segment.toString()}</td></tr>`;
+      }
 
-            document.getElementById("pcbDisplayBody").innerHTML = pcbDisplayContent;
-        }
+      document.getElementById("pcbDisplayBody").innerHTML = pcbDisplayContent;
+    }
 
-        public static createMemoryDisplay() {
-            let tBody = document.getElementById("memoryDisplayTbody")
-            let maxAddress = 0xF;
-            let content = "";
-            for (let a = 0; a <= maxAddress; a++){
-                let rowAddress = (a * 0x10).toString(16).toUpperCase().padStart(4, '0');
-                content += `<tr>
+    public static createMemoryDisplay() {
+      let tBody = document.getElementById("memoryDisplayTbody");
+      let maxAddress = 0xf;
+      let content = "";
+      for (let a = 0; a <= maxAddress; a++) {
+        let rowAddress = (a * 0x10).toString(16).toUpperCase().padStart(4, "0");
+        content += `<tr>
            <td class="address">${rowAddress}</td>
            <td>00</td><td>00</td><td>00</td><td>00</td>
            <td>00</td><td>00</td><td>00</td><td>00</td>
            <td>00</td><td>00</td><td>00</td><td>00</td>
            <td>00</td><td>00</td><td>00</td><td>00</td>
-         </tr>`
-            }
-            tBody.innerHTML = content;
+         </tr>`;
+      }
+      tBody.innerHTML = content;
+    }
 
+    public static updateDiskDisplay(): void {
+      if (!document.getElementById("diskDisplayBody")) {
+        return;
+      }
+
+      // ADDED: Only update if display is dirty
+      if (!Disk.displayDirty) {
+        return;
+      }
+
+      // ADDED: Throttle updates to once per second maximum
+      const now = Date.now();
+      if (now - Disk.lastDisplayUpdate < 1000) {
+        return;
+      }
+
+      // Mark as updated
+      Disk.displayDirty = false;
+      Disk.lastDisplayUpdate = now;
+
+      let diskDisplayContent = "";
+
+      // Get all session storage entries that look like disk blocks
+      const diskEntries: Array<{ key: string; value: string }> = [];
+
+      // Iterate through all session storage
+      for (let i = 0; i < sessionStorage.length; i++) {
+        const key = sessionStorage.key(i);
+        if (key) {
+          const value = sessionStorage.getItem(key) || "";
+          diskEntries.push({ key: key, value: value });
+        }
+      }
+
+      // Sort by key for consistent display
+      diskEntries.sort((a, b) => {
+        // Try to sort TSB format keys numerically, others alphabetically
+        if (a.key.match(/^\d:\d:\d$/) && b.key.match(/^\d:\d:\d$/)) {
+          const [t1, s1, b1] = a.key.split(":").map(Number);
+          const [t2, s2, b2] = b.key.split(":").map(Number);
+
+          if (t1 !== t2) return t1 - t2;
+          if (s1 !== s2) return s1 - s2;
+          return b1 - b2;
+        }
+        return a.key.localeCompare(b.key);
+      });
+
+      // Display all session storage entries
+      for (const entry of diskEntries) {
+        let displayKey = entry.key;
+        let displayValue = entry.value;
+
+        // Truncate very long values but show more than before
+        if (displayValue.length > 50) {
+          displayValue = displayValue.substring(0, 50) + "...";
         }
 
-        public static updateDiskDisplay(): void {
-            if (!document.getElementById("diskDisplayBody")) {
-                return;
-            }
+        // Show special characters visually
+        displayValue = displayValue.replace(/\0/g, "\\0"); // Show null chars
+        displayValue = displayValue || "(empty)";
 
-            let diskDisplayContent = "";
-            
-            // Get all session storage entries that look like disk blocks
-            const diskEntries: Array<{key: string, value: string}> = [];
-            
-            // Iterate through all session storage
-            for (let i = 0; i < sessionStorage.length; i++) {
-                const key = sessionStorage.key(i);
-                if (key) {
-                    const value = sessionStorage.getItem(key) || "";
-                    diskEntries.push({key: key, value: value});
-                }
-            }
-            
-            // Sort by key for consistent display
-            diskEntries.sort((a, b) => {
-                // Try to sort TSB format keys numerically, others alphabetically
-                if (a.key.match(/^\d:\d:\d$/) && b.key.match(/^\d:\d:\d$/)) {
-                    const [t1, s1, b1] = a.key.split(':').map(Number);
-                    const [t2, s2, b2] = b.key.split(':').map(Number);
-                    
-                    if (t1 !== t2) return t1 - t2;
-                    if (s1 !== s2) return s1 - s2;
-                    return b1 - b2;
-                }
-                return a.key.localeCompare(b.key);
-            });
-
-            // Display all session storage entries
-            for (const entry of diskEntries) {
-                let displayKey = entry.key;
-                let displayValue = entry.value;
-                
-                // Truncate very long values but show more than before
-                if (displayValue.length > 50) {
-                    displayValue = displayValue.substring(0, 50) + "...";
-                }
-                
-                // Show special characters visually
-                displayValue = displayValue.replace(/\0/g, '\\0'); // Show null chars
-                displayValue = displayValue || "(empty)";
-
-                diskDisplayContent += `<tr>
+        diskDisplayContent += `<tr>
                     <td>${displayKey}</td>
                     <td>${entry.value.length > 0 ? "Yes" : "No"}</td>
                     <td>${entry.value.length}</td>
                     <td style="font-family: monospace; font-size: 12px;">${displayValue}</td>
                 </tr>`;
-            }
+      }
 
-            document.getElementById("diskDisplayBody").innerHTML = diskDisplayContent;
-        }
+      document.getElementById("diskDisplayBody").innerHTML = diskDisplayContent;
     }
- }
- 
+  }
+}

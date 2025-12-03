@@ -8,6 +8,8 @@ var TSOS;
         static trackSize = Disk.sectorCount * Disk.blockCount * Disk.blockSize;
         static sectorSize = Disk.blockCount * Disk.blockSize;
         static nullChar = String.fromCharCode(0);
+        static displayDirty = false; // For debugging purposes
+        static lastDisplayUpdate = 0;
         constructor() {
             // Disk is ready but not automatically formatted
             // User must run 'format' command to initialize
@@ -30,6 +32,7 @@ var TSOS;
                         }
                     }
                 }
+                Disk.displayDirty = true;
                 // Log completion
                 if (_Kernel) {
                     _Kernel.krnTrace("Disk formatting completed - " +
@@ -54,6 +57,7 @@ var TSOS;
                 }
                 const str = tsb[0] + ':' + tsb[1] + ':' + tsb[2];
                 sessionStorage.setItem(str, data);
+                Disk.displayDirty = true;
                 return 0;
             }
             return 1; // Error

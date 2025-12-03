@@ -24,17 +24,18 @@ var TSOS;
 (function (TSOS) {
     class Control {
         static paused = false;
-        // sets task bar 
+        // sets task bar
         static setTaskbarMessage(message) {
             document.getElementById("taskbarStatus").innerHTML = message;
         }
         static setDateAndTime() {
-            document.getElementById("dateAndTime").innerHTML = new Date().toLocaleString();
+            document.getElementById("dateAndTime").innerHTML =
+                new Date().toLocaleString();
         }
         static hostInit() {
             // This is called from index.html's onLoad event via the onDocumentLoad function pointer.
             // Get a global reference to the canvas.  TODO: Should we move this stuff into a Display Device Driver?
-            _Canvas = document.getElementById('display');
+            _Canvas = document.getElementById("display");
             // Get a global reference to the drawing context.
             _DrawingContext = _Canvas.getContext("2d");
             // Enable the added-in canvas text functions (see canvastext.ts for provenance and details).
@@ -64,10 +65,30 @@ var TSOS;
             // Note the REAL clock in milliseconds since January 1, 1970.
             var now = new Date().getTime();
             // Build the log string.
-            var str = "({ clock:" + clock + ", source:" + source + ", msg:" + msg + ", now:" + now + " })" + "\n";
+            var str = "({ clock:" +
+                clock +
+                ", source:" +
+                source +
+                ", msg:" +
+                msg +
+                ", now:" +
+                now +
+                " })" +
+                "\n";
             // Update the log console.
             var taLog = document.getElementById("taHostLog");
-            taLog.value = str + taLog.value;
+            //taLog.value = str + taLog.value;
+            if (clock % 1000 === 0) {
+                taLog.value = str; // Reset with just this entry
+            }
+            else {
+                taLog.value = str + taLog.value;
+                // Still limit to prevent growth between clears
+                const lines = taLog.value.split("\n");
+                if (lines.length > 200) {
+                    taLog.value = lines.slice(0, 200).join("\n");
+                }
+            }
             // TODO in the future: Optionally update a log database or some streaming service.
         }
         //
@@ -77,7 +98,8 @@ var TSOS;
             // Disable the (passed-in) start button...
             btn.disabled = true;
             // .. enable the Halt and Reset buttons ...
-            document.getElementById("btnHaltOS").disabled = false;
+            document.getElementById("btnHaltOS").disabled =
+                false;
             document.getElementById("btnReset").disabled = false;
             // .. set focus on the OS console display ...
             document.getElementById("display").focus();
@@ -125,21 +147,31 @@ var TSOS;
         //
         static updateCpuDisplay() {
             if (_CPU) {
-                document.getElementById('cpu-pc').innerText = _CPU.PC.toString(16).toUpperCase().padStart(4, '0');
-                document.getElementById('cpu-ir').innerText = _CPU.IR.toString(16).toUpperCase().padStart(2, '0');
-                document.getElementById('cpu-acc').innerText = _CPU.Acc.toString(16).toUpperCase().padStart(2, '0');
-                document.getElementById('cpu-x').innerText = _CPU.Xreg.toString(16).toUpperCase().padStart(2, '0');
-                document.getElementById('cpu-y').innerText = _CPU.Yreg.toString(16).toUpperCase().padStart(2, '0');
-                document.getElementById('cpu-z').innerText = _CPU.Zflag.toString();
+                document.getElementById("cpu-pc").innerText = _CPU.PC.toString(16)
+                    .toUpperCase()
+                    .padStart(4, "0");
+                document.getElementById("cpu-ir").innerText = _CPU.IR.toString(16)
+                    .toUpperCase()
+                    .padStart(2, "0");
+                document.getElementById("cpu-acc").innerText = _CPU.Acc.toString(16)
+                    .toUpperCase()
+                    .padStart(2, "0");
+                document.getElementById("cpu-x").innerText = _CPU.Xreg.toString(16)
+                    .toUpperCase()
+                    .padStart(2, "0");
+                document.getElementById("cpu-y").innerText = _CPU.Yreg.toString(16)
+                    .toUpperCase()
+                    .padStart(2, "0");
+                document.getElementById("cpu-z").innerText = _CPU.Zflag.toString();
             }
             else {
                 // clear if no CPU
-                document.getElementById('cpu-pc').innerText = "0000";
-                document.getElementById('cpu-ir').innerText = "00";
-                document.getElementById('cpu-acc').innerText = "00";
-                document.getElementById('cpu-x').innerText = "00";
-                document.getElementById('cpu-y').innerText = "00";
-                document.getElementById('cpu-z').innerText = "0";
+                document.getElementById("cpu-pc").innerText = "0000";
+                document.getElementById("cpu-ir").innerText = "00";
+                document.getElementById("cpu-acc").innerText = "00";
+                document.getElementById("cpu-x").innerText = "00";
+                document.getElementById("cpu-y").innerText = "00";
+                document.getElementById("cpu-z").innerText = "0";
             }
         }
         static updateMemoryDisplay() {
@@ -148,10 +180,13 @@ var TSOS;
             let content = "";
             for (let a = 0; a <= maxAddress; a++) {
                 let address = a * 0x10;
-                let rowAddress = address.toString(16).toUpperCase().padStart(4, '0');
+                let rowAddress = address.toString(16).toUpperCase().padStart(4, "0");
                 content += `<tr><td class="address">${rowAddress}</td>`;
-                for (let i = 0; i <= 0xF; i++) {
-                    let memValue = _Memory.memory[address + i].toString(16).toUpperCase().padStart(2, '0');
+                for (let i = 0; i <= 0xf; i++) {
+                    let memValue = _Memory.memory[address + i]
+                        .toString(16)
+                        .toUpperCase()
+                        .padStart(2, "0");
                     content += `<td>${memValue}</td>`;
                 }
                 content += `</tr>`;
@@ -168,14 +203,13 @@ var TSOS;
             pcbs.push(..._Scheduler.terminatedPcbs);
             let pcbDisplayContent = "";
             for (const pcb of pcbs) {
-                pcbDisplayContent +=
-                    `<tr>
+                pcbDisplayContent += `<tr>
          <td >${pcb.pid.toString()}</td>
-         <td >${pcb.pc.toString(16).toUpperCase().padStart(4, '0')}</td>
-         <td >${pcb.ir.toString(16).toUpperCase().padStart(2, '0')}</td>
-         <td >${pcb.acc.toString(16).toUpperCase().padStart(2, '0')}</td>
-         <td >${pcb.xReg.toString(16).toUpperCase().padStart(2, '0')}</td>
-         <td >${pcb.yReg.toString(16).toUpperCase().padStart(2, '0')}</td>
+         <td >${pcb.pc.toString(16).toUpperCase().padStart(4, "0")}</td>
+         <td >${pcb.ir.toString(16).toUpperCase().padStart(2, "0")}</td>
+         <td >${pcb.acc.toString(16).toUpperCase().padStart(2, "0")}</td>
+         <td >${pcb.xReg.toString(16).toUpperCase().padStart(2, "0")}</td>
+         <td >${pcb.yReg.toString(16).toUpperCase().padStart(2, "0")}</td>
          <td >${pcb.zFlag.toString()}</td>
          <td >${pcb.priority.toString()}</td>
          <td >${pcb.state.toString()}</td>
@@ -188,10 +222,10 @@ var TSOS;
         }
         static createMemoryDisplay() {
             let tBody = document.getElementById("memoryDisplayTbody");
-            let maxAddress = 0xF;
+            let maxAddress = 0xf;
             let content = "";
             for (let a = 0; a <= maxAddress; a++) {
-                let rowAddress = (a * 0x10).toString(16).toUpperCase().padStart(4, '0');
+                let rowAddress = (a * 0x10).toString(16).toUpperCase().padStart(4, "0");
                 content += `<tr>
            <td class="address">${rowAddress}</td>
            <td>00</td><td>00</td><td>00</td><td>00</td>
@@ -206,6 +240,18 @@ var TSOS;
             if (!document.getElementById("diskDisplayBody")) {
                 return;
             }
+            // ADDED: Only update if display is dirty
+            if (!TSOS.Disk.displayDirty) {
+                return;
+            }
+            // ADDED: Throttle updates to once per second maximum
+            const now = Date.now();
+            if (now - TSOS.Disk.lastDisplayUpdate < 1000) {
+                return;
+            }
+            // Mark as updated
+            TSOS.Disk.displayDirty = false;
+            TSOS.Disk.lastDisplayUpdate = now;
             let diskDisplayContent = "";
             // Get all session storage entries that look like disk blocks
             const diskEntries = [];
@@ -221,8 +267,8 @@ var TSOS;
             diskEntries.sort((a, b) => {
                 // Try to sort TSB format keys numerically, others alphabetically
                 if (a.key.match(/^\d:\d:\d$/) && b.key.match(/^\d:\d:\d$/)) {
-                    const [t1, s1, b1] = a.key.split(':').map(Number);
-                    const [t2, s2, b2] = b.key.split(':').map(Number);
+                    const [t1, s1, b1] = a.key.split(":").map(Number);
+                    const [t2, s2, b2] = b.key.split(":").map(Number);
                     if (t1 !== t2)
                         return t1 - t2;
                     if (s1 !== s2)
@@ -240,7 +286,7 @@ var TSOS;
                     displayValue = displayValue.substring(0, 50) + "...";
                 }
                 // Show special characters visually
-                displayValue = displayValue.replace(/\0/g, '\\0'); // Show null chars
+                displayValue = displayValue.replace(/\0/g, "\\0"); // Show null chars
                 displayValue = displayValue || "(empty)";
                 diskDisplayContent += `<tr>
                     <td>${displayKey}</td>
