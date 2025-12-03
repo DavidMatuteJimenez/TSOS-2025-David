@@ -33,13 +33,13 @@ module TSOS {
             _Kernel.krnOnCPUClockPulse();
 
             // Update GUI displays every 10 clock pulses
-            if (_OSclock % 10 === 0) {
+            
                 Control.updateCpuDisplay();
                 Control.updateMemoryDisplay();
                 Control.updatePcbDisplay();
                 Control.setDateAndTime();
                 Control.updateDiskDisplay();
-            }
+
         }
 
 
