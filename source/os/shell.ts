@@ -411,7 +411,7 @@ module TSOS {
       }
 
       const pcb = _Scheduler.residentList.splice(index, 1)[0];
-      
+      pcb.creationTime = _OSclock;
       _Scheduler.addToReadyQueue(pcb);
       _StdOut.putText(`Process ${pid} added to ready queue.`);
       
@@ -446,6 +446,7 @@ public shellRunAll(args: string[]) {
     // Add all processes to ready queue, swapping in if needed
     while (_Scheduler.residentList.length > 0) {
         const pcb = _Scheduler.residentList.shift();
+        pcb.creationTime = _OSclock;
             _Scheduler.addToReadyQueue(pcb);
     }
 _KernelInterruptQueue.enqueue(new Interrupt(CONTEXT_SWITCH, null));

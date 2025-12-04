@@ -365,6 +365,7 @@ var TSOS;
                 return;
             }
             const pcb = _Scheduler.residentList.splice(index, 1)[0];
+            pcb.creationTime = _OSclock;
             _Scheduler.addToReadyQueue(pcb);
             _StdOut.putText(`Process ${pid} added to ready queue.`);
             _KernelInterruptQueue.enqueue(new TSOS.Interrupt(CONTEXT_SWITCH, null));
@@ -393,6 +394,7 @@ var TSOS;
             // Add all processes to ready queue, swapping in if needed
             while (_Scheduler.residentList.length > 0) {
                 const pcb = _Scheduler.residentList.shift();
+                pcb.creationTime = _OSclock;
                 _Scheduler.addToReadyQueue(pcb);
             }
             _KernelInterruptQueue.enqueue(new TSOS.Interrupt(CONTEXT_SWITCH, null));

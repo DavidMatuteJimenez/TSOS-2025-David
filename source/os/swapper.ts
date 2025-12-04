@@ -111,10 +111,20 @@ module TSOS {
         if (_Kernel.runningPcb) {
           this.rollOut(_Kernel.runningPcb);
         } else {
+          let memoryFreed = false;
           for (let i = 0; i < _Scheduler.residentList.length; i++) {
             if (_Scheduler.residentList[i].location === pcbLocation.memory) {
               this.rollOut(_Scheduler.residentList[i]);
+              memoryFreed = true;
               break;
+            }
+          }
+          if (!memoryFreed) {
+            for (let i = 0; i < _Scheduler.readyQueue.length; i++) {
+              if (_Scheduler.readyQueue[i].location === pcbLocation.memory) {
+                this.rollOut(_Scheduler.readyQueue[i]);
+                break;
+              }
             }
           }
         }

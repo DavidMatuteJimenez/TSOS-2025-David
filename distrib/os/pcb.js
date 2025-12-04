@@ -39,7 +39,6 @@ var TSOS;
             this.waitTime = waitTime;
             this.creationTime = creationTime;
             this.totalExecutionTime = totalExecutionTime;
-            this.creationTime = _OSclock; //added
         }
         toString() {
             return `PID: ${this.pid} | State: ${this.state} | PC: 0x${this.pc.toString(16).toUpperCase().padStart(2, '0')} | Base: ${this.base} | Limit: ${this.limit} | Segment: ${this.segment}`;

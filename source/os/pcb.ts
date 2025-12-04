@@ -20,7 +20,6 @@ module TSOS {
             public creationTime: number = 0,
             public totalExecutionTime: number = 0// added this 
         ) {
-            this.creationTime = _OSclock; //added
         }
         public toString(): string { // added
             return `PID: ${this.pid} | State: ${this.state} | PC: 0x${this.pc.toString(16).toUpperCase().padStart(2, '0')} | Base: ${this.base} | Limit: ${this.limit} | Segment: ${this.segment}`;
