@@ -1,11 +1,28 @@
 module TSOS {
+    export enum SchedulingAlgorithm {
+        RR,
+        FCFS,
+        PRIORITY
+    }
     export class Scheduler {
         public residentList: Pcb[] = [];
         public readyQueue: Pcb[] = [];
         public quantum: number = 6;
         public cyclesSinceLastSwitch: number = 0;
+        public schedulingAlgorithm: SchedulingAlgorithm = SchedulingAlgorithm.RR;
 
        public terminatedPcbs = [];
+
+       public scheduleAlgDisplay(): string {
+            switch (this.schedulingAlgorithm) {
+                case SchedulingAlgorithm.RR:
+                    return "Round Robin";
+                case SchedulingAlgorithm.FCFS:
+                    return "First-Come, First-Served";
+                case SchedulingAlgorithm.PRIORITY:
+                    return "Nonpremptive Priority Scheduling";
+            }
+        }
 
         public addToReadyQueue(pcb: Pcb): void {
             if (pcb.state !== pcbState.ready) {

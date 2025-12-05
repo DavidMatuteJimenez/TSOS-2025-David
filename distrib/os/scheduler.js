@@ -1,11 +1,28 @@
 var TSOS;
 (function (TSOS) {
+    let SchedulingAlgorithm;
+    (function (SchedulingAlgorithm) {
+        SchedulingAlgorithm[SchedulingAlgorithm["RR"] = 0] = "RR";
+        SchedulingAlgorithm[SchedulingAlgorithm["FCFS"] = 1] = "FCFS";
+        SchedulingAlgorithm[SchedulingAlgorithm["PRIORITY"] = 2] = "PRIORITY";
+    })(SchedulingAlgorithm = TSOS.SchedulingAlgorithm || (TSOS.SchedulingAlgorithm = {}));
     class Scheduler {
         residentList = [];
         readyQueue = [];
         quantum = 6;
         cyclesSinceLastSwitch = 0;
+        schedulingAlgorithm = SchedulingAlgorithm.RR;
         terminatedPcbs = [];
+        scheduleAlgDisplay() {
+            switch (this.schedulingAlgorithm) {
+                case SchedulingAlgorithm.RR:
+                    return "Round Robin";
+                case SchedulingAlgorithm.FCFS:
+                    return "First-Come, First-Served";
+                case SchedulingAlgorithm.PRIORITY:
+                    return "Nonpremptive Priority Scheduling";
+            }
+        }
         addToReadyQueue(pcb) {
             if (pcb.state !== TSOS.pcbState.ready) {
                 pcb.state = TSOS.pcbState.ready;

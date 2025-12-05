@@ -2,7 +2,8 @@ module TSOS {
   export class Shell {
     public promptStr = ">";
     public commandList = [];
-    public curses = "[fuvg],[cvff],[shpx],[phag],[pbpxfhpxre],[zbgureshpxre],[gvgf]";
+    public curses =
+      "[fuvg],[cvff],[shpx],[phag],[pbpxfhpxre],[zbgureshpxre],[gvgf]";
     public apologies = "[sorry]";
 
     constructor() {}
@@ -10,91 +11,207 @@ module TSOS {
     public init() {
       var sc: ShellCommand;
 
-      sc = new ShellCommand(this.shellVer, "ver", "- Displays the current version data.");
+      sc = new ShellCommand(
+        this.shellVer,
+        "ver",
+        "- Displays the current version data."
+      );
       this.commandList[this.commandList.length] = sc;
 
-      sc = new ShellCommand(this.shellHelp, "help", "- This is the help command. Seek help.");
+      sc = new ShellCommand(
+        this.shellHelp,
+        "help",
+        "- This is the help command. Seek help."
+      );
       this.commandList[this.commandList.length] = sc;
 
-      sc = new ShellCommand(this.shellShutdown, "shutdown", "- Shuts down the virtual OS.");
+      sc = new ShellCommand(
+        this.shellShutdown,
+        "shutdown",
+        "- Shuts down the virtual OS."
+      );
       this.commandList[this.commandList.length] = sc;
 
-      sc = new ShellCommand(this.shellCls, "cls", "- Clears the screen and resets the cursor position.");
+      sc = new ShellCommand(
+        this.shellCls,
+        "cls",
+        "- Clears the screen and resets the cursor position."
+      );
       this.commandList[this.commandList.length] = sc;
 
-      sc = new ShellCommand(this.shellMan, "man", "<topic> - Displays the MANual page for <topic>.");
+      sc = new ShellCommand(
+        this.shellMan,
+        "man",
+        "<topic> - Displays the MANual page for <topic>."
+      );
       this.commandList[this.commandList.length] = sc;
 
-      sc = new ShellCommand(this.shellTrace, "trace", "<on | off> - Turns the OS trace on or off.");
+      sc = new ShellCommand(
+        this.shellTrace,
+        "trace",
+        "<on | off> - Turns the OS trace on or off."
+      );
       this.commandList[this.commandList.length] = sc;
 
-      sc = new ShellCommand(this.shellRot13, "rot13", "<string> - Does rot13 obfuscation on <string>.");
+      sc = new ShellCommand(
+        this.shellRot13,
+        "rot13",
+        "<string> - Does rot13 obfuscation on <string>."
+      );
       this.commandList[this.commandList.length] = sc;
 
-      sc = new ShellCommand(this.shellPrompt, "prompt", "<string> - Sets the prompt.");
+      sc = new ShellCommand(
+        this.shellPrompt,
+        "prompt",
+        "<string> - Sets the prompt."
+      );
       this.commandList[this.commandList.length] = sc;
 
-      sc = new ShellCommand(this.shellDate, "date", "- Displays the current date and time.");
+      sc = new ShellCommand(
+        this.shellDate,
+        "date",
+        "- Displays the current date and time."
+      );
       this.commandList[this.commandList.length] = sc;
 
-      sc = new ShellCommand(this.shellWhereAmI, "whereami", "- Displays users current location");
+      sc = new ShellCommand(
+        this.shellWhereAmI,
+        "whereami",
+        "- Displays users current location"
+      );
       this.commandList[this.commandList.length] = sc;
 
-      sc = new ShellCommand(this.shellStatus, "status", "- Displays status message");
+      sc = new ShellCommand(
+        this.shellStatus,
+        "status",
+        "- Displays status message"
+      );
       this.commandList[this.commandList.length] = sc;
 
-      sc = new ShellCommand(this.shellLoad, "load", "- Validates user program input from HTML textarea (hex digits and spaces only)");
+      sc = new ShellCommand(
+        this.shellLoad,
+        "load",
+        "- Validates user program input from HTML textarea (hex digits and spaces only)"
+      );
       this.commandList[this.commandList.length] = sc;
 
-      sc = new ShellCommand(this.shellRun, "run", "<pid> - Runs a loaded program.");
+      sc = new ShellCommand(
+        this.shellRun,
+        "run",
+        "<pid> - Runs a loaded program."
+      );
       this.commandList[this.commandList.length] = sc;
 
-      sc = new ShellCommand(this.shellBsod, "bsod", "- Triggers a kernel trap error for testing BSOD.");
+      sc = new ShellCommand(
+        this.shellBsod,
+        "bsod",
+        "- Triggers a kernel trap error for testing BSOD."
+      );
       this.commandList[this.commandList.length] = sc;
 
-      sc = new ShellCommand(this.shellClearMem, "clearmem", "- clear all memory segments.");
+      sc = new ShellCommand(
+        this.shellClearMem,
+        "clearmem",
+        "- clear all memory segments."
+      );
       this.commandList[this.commandList.length] = sc;
 
-      sc = new ShellCommand(this.shellRunAll, "runall", "- execute all programs at once.");
+      sc = new ShellCommand(
+        this.shellRunAll,
+        "runall",
+        "- execute all programs at once."
+      );
       this.commandList[this.commandList.length] = sc;
 
-      sc = new ShellCommand(this.shellPS, "ps", "- display the PID and state of all processes.");
+      sc = new ShellCommand(
+        this.shellPS,
+        "ps",
+        "- display the PID and state of all processes."
+      );
       this.commandList[this.commandList.length] = sc;
 
-      sc = new ShellCommand(this.shellKill, "kill", "<pid> - kill one process.");
+      sc = new ShellCommand(
+        this.shellKill,
+        "kill",
+        "<pid> - kill one process."
+      );
       this.commandList[this.commandList.length] = sc;
 
-      sc = new ShellCommand(this.shellKillAll, "killall", "- kill all processes.");
+      sc = new ShellCommand(
+        this.shellKillAll,
+        "killall",
+        "- kill all processes."
+      );
       this.commandList[this.commandList.length] = sc;
 
-      sc = new ShellCommand(this.shellQ, "q", "<int> - set the Round Robin quantum (measured in CPU cycles).");
+      sc = new ShellCommand(
+        this.shellQ,
+        "q",
+        "<int> - set the Round Robin quantum (measured in CPU cycles)."
+      );
       this.commandList[this.commandList.length] = sc;
 
-      sc = new ShellCommand(this.shellSetSchedule, "setschedule", "<algorithm> - Sets CPU scheduling algorithm (rr or fcfs).");
+      sc = new ShellCommand(
+        this.shellSetSchedule,
+        "setschedule",
+        "<algorithm> - Sets CPU scheduling algorithm (rr, fcfs, np)."
+      );
       this.commandList[this.commandList.length] = sc;
 
-      sc = new ShellCommand(this.shellGetSchedule, "getschedule", "- Displays current CPU scheduling algorithm.");
+      sc = new ShellCommand(
+        this.shellGetSchedule,
+        "getschedule",
+        "- Displays current CPU scheduling algorithm."
+      );
       this.commandList[this.commandList.length] = sc;
 
-      sc = new ShellCommand(this.shellFormat, "format", "- Initialize the disk.");
+      sc = new ShellCommand(
+        this.shellFormat,
+        "format",
+        "- Initialize the disk."
+      );
       this.commandList[this.commandList.length] = sc;
 
-      sc = new ShellCommand(this.shellCreate, "create", "<filename> - Create a file.");
+      sc = new ShellCommand(
+        this.shellCreate,
+        "create",
+        "<filename> - Create a file."
+      );
       this.commandList[this.commandList.length] = sc;
 
-      sc = new ShellCommand(this.shellWrite, "write", "<filename> \"data\" - Write data to a file.");
+      sc = new ShellCommand(
+        this.shellWrite,
+        "write",
+        '<filename> "data" - Write data to a file.'
+      );
       this.commandList[this.commandList.length] = sc;
 
-      sc = new ShellCommand(this.shellRead, "read", "<filename> - Read and display file contents.");
+      sc = new ShellCommand(
+        this.shellRead,
+        "read",
+        "<filename> - Read and display file contents."
+      );
       this.commandList[this.commandList.length] = sc;
 
-      sc = new ShellCommand(this.shellDelete, "delete", "<filename> - Delete a file.");
+      sc = new ShellCommand(
+        this.shellDelete,
+        "delete",
+        "<filename> - Delete a file."
+      );
       this.commandList[this.commandList.length] = sc;
 
-      sc = new ShellCommand(this.shellCopy, "copy", "<source> <dest> - Copy a file.");
+      sc = new ShellCommand(
+        this.shellCopy,
+        "copy",
+        "<source> <dest> - Copy a file."
+      );
       this.commandList[this.commandList.length] = sc;
 
-      sc = new ShellCommand(this.shellRename, "rename", "<oldname> <newname> - Rename a file.");
+      sc = new ShellCommand(
+        this.shellRename,
+        "rename",
+        "<oldname> <newname> - Rename a file."
+      );
       this.commandList[this.commandList.length] = sc;
 
       sc = new ShellCommand(this.shellLs, "ls", "- List all files on disk.");
@@ -103,7 +220,12 @@ module TSOS {
       _StdOut.putText("Commands:");
       for (var i in this.commandList) {
         _StdOut.advanceLine();
-        _StdOut.putText("  " + this.commandList[i].command + " " + this.commandList[i].description);
+        _StdOut.putText(
+          "  " +
+            this.commandList[i].command +
+            " " +
+            this.commandList[i].description
+        );
       }
       _StdOut.advanceLine();
       _StdOut.advanceLine();
@@ -122,7 +244,7 @@ module TSOS {
       var index: number = 0;
       var found: boolean = false;
       var fn = undefined;
-      
+
       while (!found && index < this.commandList.length) {
         if (this.commandList[index].command === cmd) {
           found = true;
@@ -131,7 +253,7 @@ module TSOS {
           ++index;
         }
       }
-      
+
       if (found) {
         this.execute(fn, args);
       } else {
@@ -207,7 +329,12 @@ module TSOS {
       _StdOut.putText("Commands:");
       for (var i in _OsShell.commandList) {
         _StdOut.advanceLine();
-        _StdOut.putText("  " + _OsShell.commandList[i].command + " " + _OsShell.commandList[i].description);
+        _StdOut.putText(
+          "  " +
+            _OsShell.commandList[i].command +
+            " " +
+            _OsShell.commandList[i].description
+        );
       }
     }
 
@@ -226,7 +353,9 @@ module TSOS {
         var topic = args[0];
         switch (topic) {
           case "help":
-            _StdOut.putText("Help displays a list of (hopefully) valid commands.");
+            _StdOut.putText(
+              "Help displays a list of (hopefully) valid commands."
+            );
             break;
           case "ver":
             _StdOut.putText("ver - Shows the current version of the OS.");
@@ -247,13 +376,19 @@ module TSOS {
             _StdOut.putText("prompt - sets the prompt.");
             break;
           case "run":
-            _StdOut.putText("run <pid> - Executes a program that has been loaded into memory.");
+            _StdOut.putText(
+              "run <pid> - Executes a program that has been loaded into memory."
+            );
             break;
           case "load":
-            _StdOut.putText("load - Loads a program from the textarea into memory and assigns a PID.");
+            _StdOut.putText(
+              "load - Loads a program from the textarea into memory and assigns a PID."
+            );
             break;
           case "runall":
-            _StdOut.putText("runall - Runs all loaded programs with Round Robin scheduling.");
+            _StdOut.putText(
+              "runall - Runs all loaded programs with Round Robin scheduling."
+            );
             break;
           case "ps":
             _StdOut.putText("ps - Displays all processes and their states.");
@@ -265,35 +400,41 @@ module TSOS {
             _StdOut.putText("killall - Terminates all processes.");
             break;
           case "q":
-            _StdOut.putText("q <int> - Sets the Round Robin quantum in CPU cycles.");
+            _StdOut.putText(
+              "q <int> - Sets the Round Robin quantum in CPU cycles."
+            );
             break;
           case "clearmem":
-            _StdOut.putText("clearmem - Clears all memory and resets all partitions.");
+            _StdOut.putText(
+              "clearmem - Clears all memory and resets all partitions."
+            );
             break;
-            case "format":
-              _StdOut.putText("format - Initializes all disk blocks.");
-              break;
-            case "create":
-              _StdOut.putText("create <filename> - Creates a new file on disk.");
-              break;
-            case "write":
-              _StdOut.putText("write <filename> \"data\" - Writes data to a file.");
-              break;
-            case "read":
-              _StdOut.putText("read <filename> - Reads and displays file contents.");
-              break;
-            case "delete":
-              _StdOut.putText("delete <filename> - Deletes a file from disk.");
-              break;
-            case "copy":
-              _StdOut.putText("copy <source> <dest> - Copies a file.");
-              break;
-            case "rename":
-              _StdOut.putText("rename <oldname> <newname> - Renames a file.");
-              break;
-            case "ls":
-              _StdOut.putText("ls - Lists all files currently on disk.");
-              break;
+          case "format":
+            _StdOut.putText("format - Initializes all disk blocks.");
+            break;
+          case "create":
+            _StdOut.putText("create <filename> - Creates a new file on disk.");
+            break;
+          case "write":
+            _StdOut.putText('write <filename> "data" - Writes data to a file.');
+            break;
+          case "read":
+            _StdOut.putText(
+              "read <filename> - Reads and displays file contents."
+            );
+            break;
+          case "delete":
+            _StdOut.putText("delete <filename> - Deletes a file from disk.");
+            break;
+          case "copy":
+            _StdOut.putText("copy <source> <dest> - Copies a file.");
+            break;
+          case "rename":
+            _StdOut.putText("rename <oldname> <newname> - Renames a file.");
+            break;
+          case "ls":
+            _StdOut.putText("ls - Lists all files currently on disk.");
+            break;
           default:
             _StdOut.putText("No manual entry for " + args[0] + ".");
         }
@@ -328,7 +469,9 @@ module TSOS {
 
     public shellRot13(args: string[]) {
       if (args.length > 0) {
-        _StdOut.putText(args.join(" ") + " = '" + Utils.rot13(args.join(" ")) + "'");
+        _StdOut.putText(
+          args.join(" ") + " = '" + Utils.rot13(args.join(" ")) + "'"
+        );
       } else {
         _StdOut.putText("Usage: rot13 <string>  Please supply a string.");
       }
@@ -357,7 +500,9 @@ module TSOS {
     }
 
     public shellLoad(args: string[]) {
-      const inputElement = <HTMLTextAreaElement>(document.getElementById("taProgramInput"));
+      const inputElement = <HTMLTextAreaElement>(
+        document.getElementById("taProgramInput")
+      );
       const userInput = inputElement.value.trim();
 
       if (userInput.length === 0) {
@@ -367,13 +512,15 @@ module TSOS {
 
       const hexRegex = /^[0-9A-Fa-f\s]+$/i;
       if (!hexRegex.test(userInput)) {
-        _StdOut.putText("Error: Invalid input. Only hex digits (0-9, A-F) and spaces allowed.");
+        _StdOut.putText(
+          "Error: Invalid input. Only hex digits (0-9, A-F) and spaces allowed."
+        );
         return;
       }
 
       const opCodes = userInput.toUpperCase().split(/\s+/);
       const result = _MemoryManager.allocatePartition(opCodes);
-      
+
       if (result.success) {
         const newPid = _Kernel.pidCounter++;
         const newPcb = new TSOS.Pcb(newPid);
@@ -383,26 +530,30 @@ module TSOS {
         newPcb.location = pcbLocation.memory;
         _Scheduler.residentList.push(newPcb);
         _StdOut.putText(`Program loaded with PID ${newPid} in memory`);
-        
       } else {
         // Convert opCodes to byte array for swapping
         const processData: number[] = [];
         for (let i = 0; i < opCodes.length; i++) {
           processData.push(parseInt(opCodes[i], 16));
         }
-        
+
         // Try to save to disk as swap file - use temporary PID for attempt
         const tempPid = _Kernel.pidCounter;
         const swapResult = _FileSystem.rollOutProcess(tempPid, processData);
-        if (swapResult === 0) { // Success - now officially assign PID
+        if (swapResult === 0) {
+          // Success - now officially assign PID
           const newPid = _Kernel.pidCounter++;
           const newPcb = new TSOS.Pcb(newPid);
           newPcb.location = pcbLocation.disk;
           newPcb.segment = -1; // No memory segment
           _Scheduler.residentList.push(newPcb);
-          _StdOut.putText(`Program loaded with PID ${newPid} on disk (will swap in when needed)`);
+          _StdOut.putText(
+            `Program loaded with PID ${newPid} on disk (will swap in when needed)`
+          );
         } else {
-          _StdOut.putText("Error: Could not store program - disk may be full or not formatted.");
+          _StdOut.putText(
+            "Error: Could not store program - disk may be full or not formatted."
+          );
         }
       }
     }
@@ -413,18 +564,26 @@ module TSOS {
         return;
       }
       const pid = parseInt(args[0]);
-      const index = _Scheduler.residentList.findIndex(p => p.pid === pid && p.state === pcbState.resident);
+      const index = _Scheduler.residentList.findIndex(
+        (p) => p.pid === pid && p.state === pcbState.resident
+      );
 
       if (index < 0) {
-        _StdOut.putText(`Error: Process ${pid} not found or not in Resident state.`);
+        _StdOut.putText(
+          `Error: Process ${pid} not found or not in Resident state.`
+        );
         return;
       }
 
       const pcb = _Scheduler.residentList.splice(index, 1)[0];
       pcb.creationTime = _OSclock;
       _Scheduler.addToReadyQueue(pcb);
+      if (_Scheduler.schedulingAlgorithm === TSOS.SchedulingAlgorithm.PRIORITY) {
+        // Sort ready queue by priority (lower number = higher priority)
+        _Scheduler.readyQueue.sort((a, b) => a.priority - b.priority);
+      }
       _StdOut.putText(`Process ${pid} added to ready queue.`);
-      
+
       _KernelInterruptQueue.enqueue(new Interrupt(CONTEXT_SWITCH, null));
       _CPU.isExecuting = true;
     }
@@ -435,7 +594,9 @@ module TSOS {
 
     public shellClearMem(args: string[]) {
       if (_Kernel.runningPcb) {
-        _StdOut.putText("Error: Cannot clear memory while processes are running.");
+        _StdOut.putText(
+          "Error: Cannot clear memory while processes are running."
+        );
         return;
       }
       _MemoryManager.clearMemory();
@@ -444,48 +605,67 @@ module TSOS {
       _StdOut.putText("All memory segments cleared.");
     }
 
-public shellRunAll(args: string[]) {
-    if (_Scheduler.residentList.length === 0) {
+    public shellRunAll(args: string[]) {
+      if (_Scheduler.residentList.length === 0) {
         _StdOut.putText("Error: No resident processes to execute.");
         return;
-    }
+      }
 
-    const numProcesses = _Scheduler.residentList.length;
-    let swappedCount = 0;
+      const numProcesses = _Scheduler.residentList.length;
+      let swappedCount = 0;
 
-    // Add all processes to ready queue, swapping in if needed
-    while (_Scheduler.residentList.length > 0) {
+      // Add all processes to ready queue, swapping in if needed
+      while (_Scheduler.residentList.length > 0) {
         const pcb = _Scheduler.residentList.shift();
         pcb.creationTime = _OSclock;
-            _Scheduler.addToReadyQueue(pcb);
-    }
-_KernelInterruptQueue.enqueue(new Interrupt(CONTEXT_SWITCH, null));
-    
-    let msg = `Executing ${numProcesses} processes with Round Robin scheduling (Quantum: ${_Scheduler.quantum} cycles).`;
-    if (swappedCount > 0) {
+        _Scheduler.addToReadyQueue(pcb);
+      } if (_Scheduler.schedulingAlgorithm === TSOS.SchedulingAlgorithm.PRIORITY) {
+        // Sort ready queue by priority (lower number = higher priority)
+        _Scheduler.readyQueue.sort((a, b) => a.priority - b.priority);
+      }
+      _KernelInterruptQueue.enqueue(new Interrupt(CONTEXT_SWITCH, null));
+      let msg = `Executing ${numProcesses} processes with ${_Scheduler.scheduleAlgDisplay()} scheduling `;
+      if (_Scheduler.schedulingAlgorithm === TSOS.SchedulingAlgorithm.RR) {
+        msg += `and quantum ${_Scheduler.quantum}.`;
+      }
+      if (swappedCount > 0) {
         msg += ` ${swappedCount} process(es) swapped in from disk.`;
+      }
+      _StdOut.putText(msg);
     }
-    _StdOut.putText(msg);
-}
 
     public shellPS(args: string[]) {
       _StdOut.putText("PID  | State       | Location");
       _StdOut.advanceLine();
       _StdOut.putText("-----|-----------|-----------");
-      
+
       for (const pcb of _Scheduler.residentList) {
         _StdOut.advanceLine();
-        _StdOut.putText(`${pcb.pid.toString().padEnd(4)} | ${pcb.state.toString()} | ${pcb.location}`);
+        _StdOut.putText(
+          `${pcb.pid.toString().padEnd(4)} | ${pcb.state.toString()} | ${
+            pcb.location
+          }`
+        );
       }
 
       if (_Kernel.runningPcb) {
         _StdOut.advanceLine();
-        _StdOut.putText(`${_Kernel.runningPcb.pid.toString().padEnd(4)} | ${_Kernel.runningPcb.state.toString()} | ${_Kernel.runningPcb.location}`);
+        _StdOut.putText(
+          `${_Kernel.runningPcb.pid
+            .toString()
+            .padEnd(4)} | ${_Kernel.runningPcb.state.toString()} | ${
+            _Kernel.runningPcb.location
+          }`
+        );
       }
 
       for (const pcb of _Scheduler.readyQueue) {
         _StdOut.advanceLine();
-        _StdOut.putText(`${pcb.pid.toString().padEnd(4)} | ${pcb.state.toString()} | ${pcb.location}`);
+        _StdOut.putText(
+          `${pcb.pid.toString().padEnd(4)} | ${pcb.state.toString()} | ${
+            pcb.location
+          }`
+        );
       }
     }
 
@@ -501,15 +681,17 @@ _KernelInterruptQueue.enqueue(new Interrupt(CONTEXT_SWITCH, null));
 
     public shellKillAll(args: string[]) {
       if (_Kernel.runningPcb) {
-         _KernelInterruptQueue.enqueue(new Interrupt(PSKILL, [_Kernel.runningPcb.pid]));
+        _KernelInterruptQueue.enqueue(
+          new Interrupt(PSKILL, [_Kernel.runningPcb.pid])
+        );
       }
       for (const pcb of _Scheduler.residentList) {
         _KernelInterruptQueue.enqueue(new Interrupt(PSKILL, [pcb.pid]));
-    }
+      }
 
-    for (const pcb of _Scheduler.readyQueue) {
+      for (const pcb of _Scheduler.readyQueue) {
         _KernelInterruptQueue.enqueue(new Interrupt(PSKILL, [pcb.pid]));
-    }
+      }
       _StdOut.putText("All processes killed.");
     }
 
@@ -524,44 +706,65 @@ _KernelInterruptQueue.enqueue(new Interrupt(CONTEXT_SWITCH, null));
         _StdOut.putText("Error: Quantum must be a positive integer.");
         return;
       }
-      document.getElementById('quantumDisplay').innerHTML = "Quantum is: " + newQuantum;
+      document.getElementById("quantumDisplay").innerHTML =
+        "Quantum is: " + newQuantum;
       _Scheduler.setQuantum(newQuantum);
       _StdOut.putText(`Quantum set to ${newQuantum} cycles.`);
     }
 
     public shellSetSchedule(args: string[]) {
       if (args.length === 0) {
-        _StdOut.putText("Usage: setschedule <rr|fcfs>");
+        _StdOut.putText("Usage: setschedule <rr|fcfs|np>");
         return;
       }
 
       const algorithm = args[0].toLowerCase();
+
       if (algorithm === "rr") {
+        _Scheduler.schedulingAlgorithm = TSOS.SchedulingAlgorithm.RR;
         _Scheduler.setQuantum(6); // Default RR quantum
-        document.getElementById('quantumDisplay').innerHTML = "Quantum is: 6";
-        _StdOut.putText("Scheduling algorithm set to Round Robin (RR) with quantum 6.");
+        document.getElementById("quantumDisplay").innerHTML = "Quantum is: 6";
+        _StdOut.putText(
+          "Scheduling algorithm set to Round Robin (RR) with quantum 6."
+        );
       } else if (algorithm === "fcfs") {
+        _Scheduler.schedulingAlgorithm = TSOS.SchedulingAlgorithm.FCFS;
         _Scheduler.setQuantum(Number.MAX_SAFE_INTEGER); // Infinity = FCFS
-        document.getElementById('quantumDisplay').innerHTML = "Quantum is: ∞ (FCFS)";
-        _StdOut.putText("Scheduling algorithm set to First-Come First-Served (FCFS).");
+        document.getElementById("quantumDisplay").innerHTML =
+          "Quantum is: ∞ (FCFS)";
+        _StdOut.putText(
+          "Scheduling algorithm set to First-Come First-Served (FCFS)."
+        );
+      } else if (algorithm === "np") {
+         _Scheduler.schedulingAlgorithm = TSOS.SchedulingAlgorithm.PRIORITY;
+        _Scheduler.setQuantum(Number.MAX_SAFE_INTEGER); // Infinity = FCFS
+        document.getElementById("quantumDisplay").innerHTML =
+          "Quantum is: ∞ (np)";
+        _StdOut.putText(
+          "Scheduling algorithm set to Nonpreemptive Priority Scheduling (NP)."
+        );
       } else {
-        _StdOut.putText("Error: Invalid algorithm. Use 'rr' or 'fcfs'.");
+        _StdOut.putText("Error: Invalid algorithm. Use 'rr', 'fcfs', or 'np'.");
       }
     }
 
     public shellGetSchedule(args: string[]) {
-      if (_Scheduler.quantum === Number.MAX_SAFE_INTEGER) {
-        _StdOut.putText("Current scheduling algorithm: FCFS (First-Come First-Served)");
-      } else {
-        _StdOut.putText(`Current scheduling algorithm: RR (Round Robin) with quantum ${_Scheduler.quantum}`);
+      let message = `Current scheduling algorithm: ${_Scheduler.scheduleAlgDisplay()}`;
+      if (_Scheduler.schedulingAlgorithm === TSOS.SchedulingAlgorithm.RR) {
+        message += ` with quantum ${_Scheduler.quantum}`;
       }
+      _StdOut.putText(message);
     }
     public shellFormat(args: string[]) {
       // Use direct FileSystem call for now to diagnose issue
       const result = _FileSystem.format();
       _StdOut.putText(result);
       // Update disk display if available
-      if (typeof TSOS !== 'undefined' && TSOS.Control && TSOS.Control.updateDiskDisplay) {
+      if (
+        typeof TSOS !== "undefined" &&
+        TSOS.Control &&
+        TSOS.Control.updateDiskDisplay
+      ) {
         TSOS.Control.updateDiskDisplay();
       }
     }
@@ -575,31 +778,41 @@ _KernelInterruptQueue.enqueue(new Interrupt(CONTEXT_SWITCH, null));
       const result = _krnDiskDriver.createFile(filename);
       _StdOut.putText(result);
       // Update disk display if available
-      if (typeof TSOS !== 'undefined' && TSOS.Control && TSOS.Control.updateDiskDisplay) {
+      if (
+        typeof TSOS !== "undefined" &&
+        TSOS.Control &&
+        TSOS.Control.updateDiskDisplay
+      ) {
         TSOS.Control.updateDiskDisplay();
       }
     }
 
     public shellWrite(args: string[]) {
       if (args.length < 2) {
-        _StdOut.putText("Usage: write <filename> \"data\"");
+        _StdOut.putText('Usage: write <filename> "data"');
         return;
       }
-      
+
       const filename = args[0];
       // Join remaining args and remove quotes if present
       let data = args.slice(1).join(" ");
-      
+
       // Remove surrounding quotes if present
-      if ((data.startsWith('"') && data.endsWith('"')) ||
-          (data.startsWith("'") && data.endsWith("'"))) {
+      if (
+        (data.startsWith('"') && data.endsWith('"')) ||
+        (data.startsWith("'") && data.endsWith("'"))
+      ) {
         data = data.slice(1, -1);
       }
-      
+
       const result = _krnDiskDriver.writeFile(filename, data);
       _StdOut.putText(result);
       // Update disk display if available
-      if (typeof TSOS !== 'undefined' && TSOS.Control && TSOS.Control.updateDiskDisplay) {
+      if (
+        typeof TSOS !== "undefined" &&
+        TSOS.Control &&
+        TSOS.Control.updateDiskDisplay
+      ) {
         TSOS.Control.updateDiskDisplay();
       }
     }
@@ -609,10 +822,10 @@ _KernelInterruptQueue.enqueue(new Interrupt(CONTEXT_SWITCH, null));
         _StdOut.putText("Usage: read <filename>");
         return;
       }
-      
+
       const filename = args[0];
       const result = _krnDiskDriver.readFile(filename);
-      
+
       if (result.success) {
         _StdOut.putText(`Contents of "${filename}":`);
         _StdOut.advanceLine();
@@ -627,12 +840,16 @@ _KernelInterruptQueue.enqueue(new Interrupt(CONTEXT_SWITCH, null));
         _StdOut.putText("Usage: delete <filename>");
         return;
       }
-      
+
       const filename = args[0];
       const result = _krnDiskDriver.deleteFile(filename);
       _StdOut.putText(result);
       // Update disk display if available
-      if (typeof TSOS !== 'undefined' && TSOS.Control && TSOS.Control.updateDiskDisplay) {
+      if (
+        typeof TSOS !== "undefined" &&
+        TSOS.Control &&
+        TSOS.Control.updateDiskDisplay
+      ) {
         TSOS.Control.updateDiskDisplay();
       }
     }
@@ -642,13 +859,17 @@ _KernelInterruptQueue.enqueue(new Interrupt(CONTEXT_SWITCH, null));
         _StdOut.putText("Usage: copy <source> <dest>");
         return;
       }
-      
+
       const source = args[0];
       const dest = args[1];
       const result = _krnDiskDriver.copyFile(source, dest);
       _StdOut.putText(result);
       // Update disk display if available
-      if (typeof TSOS !== 'undefined' && TSOS.Control && TSOS.Control.updateDiskDisplay) {
+      if (
+        typeof TSOS !== "undefined" &&
+        TSOS.Control &&
+        TSOS.Control.updateDiskDisplay
+      ) {
         TSOS.Control.updateDiskDisplay();
       }
     }
@@ -658,13 +879,17 @@ _KernelInterruptQueue.enqueue(new Interrupt(CONTEXT_SWITCH, null));
         _StdOut.putText("Usage: rename <oldname> <newname>");
         return;
       }
-      
+
       const oldname = args[0];
       const newname = args[1];
       const result = _krnDiskDriver.renameFile(oldname, newname);
       _StdOut.putText(result);
       // Update disk display if available
-      if (typeof TSOS !== 'undefined' && TSOS.Control && TSOS.Control.updateDiskDisplay) {
+      if (
+        typeof TSOS !== "undefined" &&
+        TSOS.Control &&
+        TSOS.Control.updateDiskDisplay
+      ) {
         TSOS.Control.updateDiskDisplay();
       }
     }
