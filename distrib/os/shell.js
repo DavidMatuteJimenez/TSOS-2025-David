@@ -48,6 +48,10 @@ var TSOS;
             this.commandList[this.commandList.length] = sc;
             sc = new TSOS.ShellCommand(this.shellQ, "q", "<int> - set the Round Robin quantum (measured in CPU cycles).");
             this.commandList[this.commandList.length] = sc;
+            sc = new TSOS.ShellCommand(this.shellSetSchedule, "setschedule", "<algorithm> - Sets CPU scheduling algorithm (rr or fcfs).");
+            this.commandList[this.commandList.length] = sc;
+            sc = new TSOS.ShellCommand(this.shellGetSchedule, "getschedule", "- Displays current CPU scheduling algorithm.");
+            this.commandList[this.commandList.length] = sc;
             sc = new TSOS.ShellCommand(this.shellFormat, "format", "- Initialize the disk.");
             this.commandList[this.commandList.length] = sc;
             sc = new TSOS.ShellCommand(this.shellCreate, "create", "<filename> - Create a file.");
@@ -324,9 +328,9 @@ var TSOS;
             }
             const opCodes = userInput.toUpperCase().split(/\s+/);
             const result = _MemoryManager.allocatePartition(opCodes);
-            const newPid = _Kernel.pidCounter++;
-            const newPcb = new TSOS.Pcb(newPid);
             if (result.success) {
+                const newPid = _Kernel.pidCounter++;
+                const newPcb = new TSOS.Pcb(newPid);
                 newPcb.base = result.base;
                 newPcb.limit = result.limit;
                 newPcb.segment = result.segment;
@@ -340,16 +344,19 @@ var TSOS;
                 for (let i = 0; i < opCodes.length; i++) {
                     processData.push(parseInt(opCodes[i], 16));
                 }
-                // Save to disk as swap file
-                const swapResult = _FileSystem.rollOutProcess(newPid, processData);
-                if (swapResult === 0) { // Success
+                // Try to save to disk as swap file - use temporary PID for attempt
+                const tempPid = _Kernel.pidCounter;
+                const swapResult = _FileSystem.rollOutProcess(tempPid, processData);
+                if (swapResult === 0) { // Success - now officially assign PID
+                    const newPid = _Kernel.pidCounter++;
+                    const newPcb = new TSOS.Pcb(newPid);
                     newPcb.location = TSOS.pcbLocation.disk;
                     newPcb.segment = -1; // No memory segment
                     _Scheduler.residentList.push(newPcb);
                     _StdOut.putText(`Program loaded with PID ${newPid} on disk (will swap in when needed)`);
                 }
                 else {
-                    _StdOut.putText("Error: Could not store program - disk may be full.");
+                    _StdOut.putText("Error: Could not store program - disk may be full or not formatted.");
                 }
             }
         }
@@ -455,6 +462,34 @@ var TSOS;
             document.getElementById('quantumDisplay').innerHTML = "Quantum is: " + newQuantum;
             _Scheduler.setQuantum(newQuantum);
             _StdOut.putText(`Quantum set to ${newQuantum} cycles.`);
+        }
+        shellSetSchedule(args) {
+            if (args.length === 0) {
+                _StdOut.putText("Usage: setschedule <rr|fcfs>");
+                return;
+            }
+            const algorithm = args[0].toLowerCase();
+            if (algorithm === "rr") {
+                _Scheduler.setQuantum(6); // Default RR quantum
+                document.getElementById('quantumDisplay').innerHTML = "Quantum is: 6";
+                _StdOut.putText("Scheduling algorithm set to Round Robin (RR) with quantum 6.");
+            }
+            else if (algorithm === "fcfs") {
+                _Scheduler.setQuantum(Number.MAX_SAFE_INTEGER); // Infinity = FCFS
+                document.getElementById('quantumDisplay').innerHTML = "Quantum is: ∞ (FCFS)";
+                _StdOut.putText("Scheduling algorithm set to First-Come First-Served (FCFS).");
+            }
+            else {
+                _StdOut.putText("Error: Invalid algorithm. Use 'rr' or 'fcfs'.");
+            }
+        }
+        shellGetSchedule(args) {
+            if (_Scheduler.quantum === Number.MAX_SAFE_INTEGER) {
+                _StdOut.putText("Current scheduling algorithm: FCFS (First-Come First-Served)");
+            }
+            else {
+                _StdOut.putText(`Current scheduling algorithm: RR (Round Robin) with quantum ${_Scheduler.quantum}`);
+            }
         }
         shellFormat(args) {
             // Use direct FileSystem call for now to diagnose issue
