@@ -15,7 +15,8 @@ var TSOS;
             // User must run 'format' command to initialize
         }
         getDiskSize() {
-            return Disk.trackCount * Disk.sectorCount * Disk.blockCount * Disk.blockSize;
+            return;
+            Disk.trackCount * Disk.sectorCount * Disk.blockCount * Disk.blockSize;
         }
         //Check if disk has been formatted
         isFormatted() {
@@ -23,12 +24,20 @@ var TSOS;
             return mbr !== null && mbr !== undefined;
         }
         // Format the disk - write 0's to all blocks
-        formatDisk(update = true) {
+        // quickFormat: if true, only initialize first 4 bytes (metadata)
+        formatDisk(quickFormat = false, update = true) {
             try {
                 for (let t = 0; t < Disk.trackCount; ++t) {
                     for (let s = 0; s < Disk.sectorCount; ++s) {
                         for (let b = 0; b < Disk.blockCount; ++b) {
-                            this.writeDisk([t, s, b], "", false); // Always use update=false for formatting to avoid display issues
+                            if (quickFormat) {
+                                // Quick format: only write first 4 bytes (metadata area)
+                                const quickData = String.fromCharCode(0, 0, 0, 0);
+                                this.writeDiskQuick([t, s, b], quickData, false);
+                            }
+                            else {
+                                this.writeDisk([t, s, b], "", false); // Always use update=false for formatting to avoid display issues
+                            }
                         }
                     }
                 }
@@ -36,7 +45,8 @@ var TSOS;
                 // Log completion
                 if (_Kernel) {
                     _Kernel.krnTrace("Disk formatting completed - " +
-                        (Disk.trackCount * Disk.sectorCount * Disk.blockCount) + " blocks initialized");
+                        Disk.trackCount * Disk.sectorCount * Disk.blockCount +
+                        " blocks initialized");
                 }
             }
             catch (error) {
@@ -55,7 +65,18 @@ var TSOS;
                 if (data.length < Disk.blockSize) {
                     data += Array(Disk.blockSize - data.length + 1).join(Disk.nullChar);
                 }
-                const str = tsb[0] + ':' + tsb[1] + ':' + tsb[2];
+                const str = tsb[0] + ":" + tsb[1] + ":" + tsb[2];
+                sessionStorage.setItem(str, data);
+                Disk.displayDirty = true;
+                return 0;
+            }
+            return 1; // Error
+        }
+        writeDiskQuick(tsb, data, update = true) {
+            if (tsb[0] < Disk.trackCount &&
+                tsb[1] < Disk.sectorCount &&
+                tsb[2] < Disk.blockCount) {
+                const str = tsb[0] + ":" + tsb[1] + ":" + tsb[2];
                 sessionStorage.setItem(str, data);
                 Disk.displayDirty = true;
                 return 0;
@@ -67,18 +88,18 @@ var TSOS;
             if (tsb[0] < Disk.trackCount &&
                 tsb[1] < Disk.sectorCount &&
                 tsb[2] < Disk.blockCount) {
-                const str = sessionStorage.getItem(tsb[0] + ':' + tsb[1] + ':' + tsb[2]);
+                const str = sessionStorage.getItem(tsb[0] + ":" + tsb[1] + ":" + tsb[2]);
                 return str;
             }
             return undefined;
         }
         //Read disk using string address format "t:s:b"
         stringReadDisk(str) {
-            const arr = str.split(':');
+            const arr = str.split(":");
             return this.readDisk([
                 parseInt(arr[0]),
                 parseInt(arr[1]),
-                parseInt(arr[2])
+                parseInt(arr[2]),
             ]);
         }
     }

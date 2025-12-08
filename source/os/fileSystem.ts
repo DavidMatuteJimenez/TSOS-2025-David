@@ -11,11 +11,11 @@ module TSOS {
         }
 
         //Format the file system
-        public format(): string {
-            this.disk.formatDisk(true);
+        public format(quickFormat: boolean = false): string {
+            this.disk.formatDisk(quickFormat, true);
             // Write MBR to mark disk as formatted
             this.disk.writeDisk([0, 0, 0], "MBR_FORMATTED", false);
-            return "Disk formatted.";
+            return quickFormat ? "Disk quick formatted." : "Disk formatted.";
         }
 
         //Create a new file with timestamp

@@ -168,7 +168,7 @@ module TSOS {
       sc = new ShellCommand(
         this.shellFormat,
         "format",
-        "- Initialize the disk."
+        "- Initialize the disk. Use -quick for a quick format."
       );
       this.commandList[this.commandList.length] = sc;
 
@@ -414,7 +414,15 @@ module TSOS {
             );
             break;
           case "format":
-            _StdOut.putText("format - Initializes all disk blocks.");
+            _StdOut.putText(
+              "format - Initializes all disk blocks. Use -quick for a quick format."
+            );
+            _StdOut.advanceLine();
+            _StdOut.putText(
+              "Use -quick flag to only initialize the first 4 bytes "
+            );
+            _StdOut.advanceLine();
+            _StdOut.putText("of each block for faster formatting.");
             break;
           case "create":
             _StdOut.putText("create <filename> - Creates a new file on disk.");
@@ -766,7 +774,8 @@ module TSOS {
     }
 
     public shellFormat(args: string[]) {
-      const result = _FileSystem.format();
+      const quickFormat = args.length > 0 && args[0] === "-quick";
+      const result = _FileSystem.format(quickFormat);
       _StdOut.putText(result);
       if (
         typeof TSOS !== "undefined" &&

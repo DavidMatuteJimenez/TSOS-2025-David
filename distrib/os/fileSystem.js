@@ -10,11 +10,11 @@ var TSOS;
             this.disk = disk;
         }
         //Format the file system
-        format() {
-            this.disk.formatDisk(true);
+        format(quickFormat = false) {
+            this.disk.formatDisk(quickFormat, true);
             // Write MBR to mark disk as formatted
             this.disk.writeDisk([0, 0, 0], "MBR_FORMATTED", false);
-            return "Disk formatted.";
+            return quickFormat ? "Disk quick formatted." : "Disk formatted.";
         }
         //Create a new file with timestamp
         create(filename) {
