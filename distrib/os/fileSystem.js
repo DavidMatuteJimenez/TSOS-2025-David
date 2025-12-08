@@ -16,7 +16,7 @@ var TSOS;
             this.disk.writeDisk([0, 0, 0], "MBR_FORMATTED", false);
             return "Disk formatted.";
         }
-        //Create a new file
+        //Create a new file with timestamp
         create(filename) {
             if (!this.disk.isFormatted()) {
                 return "Error: Disk not formatted. Please run 'format' first.";
@@ -38,10 +38,23 @@ var TSOS;
             if (!blockTsb) {
                 return "Error: Disk is full.";
             }
-            // Create directory entry: [T][S][B][filename...]
+            // Get current timestamp (in seconds since epoch, stored as 4 bytes)
+            const timestamp = Math.floor(Date.now() / 1000);
+            const timestampBytes = [
+                (timestamp >> 24) & 0xFF,
+                (timestamp >> 16) & 0xFF,
+                (timestamp >> 8) & 0xFF,
+                timestamp & 0xFF
+            ];
+            // Directory entry format: [T][S][B][timestamp(4 bytes)][filename...]
+            // This gives us 64 - 3 - 4 = 57 bytes for filename
             const data = String.fromCharCode(blockTsb[0]) +
                 String.fromCharCode(blockTsb[1]) +
                 String.fromCharCode(blockTsb[2]) +
+                String.fromCharCode(timestampBytes[0]) +
+                String.fromCharCode(timestampBytes[1]) +
+                String.fromCharCode(timestampBytes[2]) +
+                String.fromCharCode(timestampBytes[3]) +
                 filename;
             this.disk.writeDisk(dirTsb, data);
             // Initialize the data block with finalFlag (empty file, no more blocks)
@@ -183,13 +196,14 @@ var TSOS;
             this.disk.writeDisk(dirTsb, "");
             return `File "${filename}" deleted successfully.`;
         }
-        //List all files
-        ls() {
+        //List all files with optional detailed view
+        ls(showAll = false) {
             if (!this.disk.isFormatted()) {
                 return "Error: Disk not formatted. Please run 'format' first.";
             }
             let output = "";
             let fileCount = 0;
+            const fileList = [];
             // Search directory blocks (0:0:1 to 0:7:7)
             for (let s = 0; s < TSOS.Disk.sectorCount; ++s) {
                 for (let b = 0; b < TSOS.Disk.blockCount; ++b) {
@@ -198,10 +212,20 @@ var TSOS;
                         continue;
                     const dirData = this.disk.readDisk([0, s, b]);
                     if (dirData && dirData.charCodeAt(0) !== 0) {
-                        // Extract filename (skip first 3 bytes which are TSB)
-                        const filename = this.trimFilename(dirData.substring(3));
+                        // Extract filename (skip first 7 bytes: 3 for TSB, 4 for timestamp)
+                        const filename = this.trimFilename(dirData.substring(7));
                         if (filename.length > 0) {
-                            output += filename + "\n";
+                            // Skip swap files unless showAll is true
+                            if (!showAll && filename.startsWith(this.swapPrefix)) {
+                                continue;
+                            }
+                            // Skip hidden files unless showAll is true
+                            if (!showAll && this.isHiddenFile(filename)) {
+                                continue;
+                            }
+                            const size = this.getFileSize([0, s, b]);
+                            const date = this.getFileTimestamp(dirData);
+                            fileList.push({ name: filename, size: size, date: date });
                             fileCount++;
                         }
                     }
@@ -210,7 +234,24 @@ var TSOS;
             if (fileCount === 0) {
                 return "Disk is empty.";
             }
-            return output;
+            // Format output based on showAll flag
+            if (showAll) {
+                output = "Filename                     Size (bytes)  Created\n";
+                output += "-----------------------------------------------------------\n";
+                for (const file of fileList) {
+                    const name = file.name.padEnd(28);
+                    const size = file.size.toString().padStart(12);
+                    const dateStr = file.date.toLocaleString();
+                    output += `${name} ${size}  ${dateStr}\n`;
+                }
+            }
+            else {
+                // Simple listing (backward compatible)
+                for (const file of fileList) {
+                    output += file.name + "\n";
+                }
+            }
+            return output.trim();
         }
         //Copy a file
         copy(sourceFilename, destFilename) {
@@ -234,7 +275,7 @@ var TSOS;
             }
             return `File "${sourceFilename}" copied to "${destFilename}" successfully.`;
         }
-        //Rename a file
+        //Rename a file (preserves timestamp)
         rename(oldFilename, newFilename) {
             if (!this.disk.isFormatted()) {
                 return "Error: Disk not formatted. Please run 'format' first.";
@@ -250,17 +291,19 @@ var TSOS;
             if (!dirTsb) {
                 return `Error: File "${oldFilename}" does not exist.`;
             }
-            // Read the directory entry to get the data block TSB
+            // Read the directory entry to get the data block TSB and timestamp
             const dirData = this.disk.readDisk(dirTsb);
             const blockTsb = dirData.substring(0, 3);
-            // Write new directory entry with new name
-            const newDirData = blockTsb + newFilename;
+            const timestamp = dirData.substring(3, 7);
+            // Write new directory entry with preserved timestamp and new name
+            const newDirData = blockTsb + timestamp + newFilename;
             this.disk.writeDisk(dirTsb, newDirData);
             return `File "${oldFilename}" renamed to "${newFilename}" successfully.`;
         }
-        //helper methods
+        // ===== HELPER METHODS =====
         validateFilename(filename) {
-            if (!filename || filename.length === 0 || filename.length > 28) {
+            // Max filename length is now 57 bytes (64 - 3 TSB - 4 timestamp)
+            if (!filename || filename.length === 0 || filename.length > 57) {
                 return false;
             }
             return true;
@@ -275,6 +318,9 @@ var TSOS;
             }
             return str.slice(0, lastIndex);
         }
+        isHiddenFile(filename) {
+            return filename.startsWith('.');
+        }
         fileExists(filename) {
             return this.findDirectoryEntry(filename) !== null;
         }
@@ -286,7 +332,8 @@ var TSOS;
                     if (s === 0 && b === 0)
                         continue;
                     const dirData = this.disk.readDisk([0, s, b]);
-                    if (dirData && this.trimFilename(dirData.substring(3)) === filename) {
+                    // Updated to skip 7 bytes (3 for TSB, 4 for timestamp)
+                    if (dirData && this.trimFilename(dirData.substring(7)) === filename) {
                         return [0, s, b];
                     }
                 }
@@ -325,6 +372,45 @@ var TSOS;
             }
             return null;
         }
+        getFileSize(dirTsb) {
+            const dirData = this.disk.readDisk(dirTsb);
+            let blockTsb = [
+                dirData.charCodeAt(0),
+                dirData.charCodeAt(1),
+                dirData.charCodeAt(2)
+            ];
+            let totalSize = 0;
+            let blockStatus = 0;
+            do {
+                const blockData = this.disk.readDisk(blockTsb);
+                blockStatus = blockData.charCodeAt(0);
+                // Count actual data (skip first 4 bytes of metadata)
+                const dataInBlock = blockData.substring(4);
+                // Count non-null characters
+                for (let i = 0; i < dataInBlock.length; i++) {
+                    if (dataInBlock.charCodeAt(i) !== 0) {
+                        totalSize++;
+                    }
+                }
+                if (blockStatus === this.nextFlag.charCodeAt(0)) {
+                    blockTsb = [
+                        blockData.charCodeAt(1),
+                        blockData.charCodeAt(2),
+                        blockData.charCodeAt(3)
+                    ];
+                }
+            } while (blockStatus === this.nextFlag.charCodeAt(0));
+            return totalSize;
+        }
+        getFileTimestamp(dirData) {
+            const byte0 = dirData.charCodeAt(3);
+            const byte1 = dirData.charCodeAt(4);
+            const byte2 = dirData.charCodeAt(5);
+            const byte3 = dirData.charCodeAt(6);
+            const timestamp = (byte0 << 24) | (byte1 << 16) | (byte2 << 8) | byte3;
+            return new Date(timestamp * 1000);
+        }
+        // ===== SWAPPING METHODS =====
         //For swapping: save process to disk
         rollOutProcess(pid, bytes) {
             const filename = this.swapPrefix + pid;

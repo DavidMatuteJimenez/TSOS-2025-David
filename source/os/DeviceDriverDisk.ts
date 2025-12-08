@@ -61,12 +61,21 @@ module TSOS {
             return _FileSystem.read(filename);
         }
 
-        public getFilenames(): string[] {
-            const lsOutput = _FileSystem.ls();
-            if (lsOutput === "Disk is empty.") {
+        // UPDATED: Added showAll parameter
+        public getFilenames(showAll: boolean = false): string[] {
+            const lsOutput = _FileSystem.ls(showAll);
+            if (lsOutput === "Disk is empty." || lsOutput.startsWith("Error:")) {
                 return [];
             }
-            return lsOutput.trim().split("\n");
+            
+            // If detailed output (showAll = true), skip the header lines
+            const lines = lsOutput.trim().split("\n");
+            if (showAll && lines.length > 2) {
+                // Skip first 2 lines (header and separator)
+                return lines.slice(2).map(line => line.split(/\s+/)[0]);
+            }
+            
+            return lines;
         }
 
         public copyFile(source: string, dest: string): string {
@@ -77,8 +86,9 @@ module TSOS {
             return _FileSystem.rename(oldName, newName);
         }
 
-        public listFiles(): string {
-            return _FileSystem.ls();
+        // UPDATED: Added showAll parameter
+        public listFiles(showAll: boolean = false): string {
+            return _FileSystem.ls(showAll);
         }
 
         public rollOutProcess(pid: number, bytes: number[]): number {

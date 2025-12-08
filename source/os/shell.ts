@@ -214,7 +214,11 @@ module TSOS {
       );
       this.commandList[this.commandList.length] = sc;
 
-      sc = new ShellCommand(this.shellLs, "ls", "- List all files on disk.");
+      sc = new ShellCommand(
+        this.shellLs,
+        "ls",
+        "[-a] - List files on disk. Use -a to show hidden files with details."
+      );
       this.commandList[this.commandList.length] = sc;
 
       _StdOut.putText("Commands:");
@@ -433,7 +437,13 @@ module TSOS {
             _StdOut.putText("rename <oldname> <newname> - Renames a file.");
             break;
           case "ls":
-            _StdOut.putText("ls - Lists all files currently on disk.");
+            _StdOut.putText("ls [-a] - Lists all files currently on disk.");
+            _StdOut.advanceLine();
+            _StdOut.putText(
+              "Use -a flag to show all files including hidden files (starting with .)"
+            );
+            _StdOut.advanceLine();
+            _StdOut.putText("and display file size and creation date.");
             break;
           default:
             _StdOut.putText("No manual entry for " + args[0] + ".");
@@ -531,21 +541,18 @@ module TSOS {
         _Scheduler.residentList.push(newPcb);
         _StdOut.putText(`Program loaded with PID ${newPid} in memory`);
       } else {
-        // Convert opCodes to byte array for swapping
         const processData: number[] = [];
         for (let i = 0; i < opCodes.length; i++) {
           processData.push(parseInt(opCodes[i], 16));
         }
 
-        // Try to save to disk as swap file - use temporary PID for attempt
         const tempPid = _Kernel.pidCounter;
         const swapResult = _FileSystem.rollOutProcess(tempPid, processData);
         if (swapResult === 0) {
-          // Success - now officially assign PID
           const newPid = _Kernel.pidCounter++;
           const newPcb = new TSOS.Pcb(newPid);
           newPcb.location = pcbLocation.disk;
-          newPcb.segment = -1; // No memory segment
+          newPcb.segment = -1;
           _Scheduler.residentList.push(newPcb);
           _StdOut.putText(
             `Program loaded with PID ${newPid} on disk (will swap in when needed)`
@@ -578,8 +585,9 @@ module TSOS {
       const pcb = _Scheduler.residentList.splice(index, 1)[0];
       pcb.creationTime = _OSclock;
       _Scheduler.addToReadyQueue(pcb);
-      if (_Scheduler.schedulingAlgorithm === TSOS.SchedulingAlgorithm.PRIORITY) {
-        // Sort ready queue by priority (lower number = higher priority)
+      if (
+        _Scheduler.schedulingAlgorithm === TSOS.SchedulingAlgorithm.PRIORITY
+      ) {
         _Scheduler.readyQueue.sort((a, b) => a.priority - b.priority);
       }
       _StdOut.putText(`Process ${pid} added to ready queue.`);
@@ -614,17 +622,18 @@ module TSOS {
       const numProcesses = _Scheduler.residentList.length;
       let swappedCount = 0;
 
-      // Add all processes to ready queue, swapping in if needed
       while (_Scheduler.residentList.length > 0) {
         const pcb = _Scheduler.residentList.shift();
         pcb.creationTime = _OSclock;
         _Scheduler.addToReadyQueue(pcb);
-      } if (_Scheduler.schedulingAlgorithm === TSOS.SchedulingAlgorithm.PRIORITY) {
-        // Sort ready queue by priority (lower number = higher priority)
+      }
+      if (
+        _Scheduler.schedulingAlgorithm === TSOS.SchedulingAlgorithm.PRIORITY
+      ) {
         _Scheduler.readyQueue.sort((a, b) => a.priority - b.priority);
       }
       _KernelInterruptQueue.enqueue(new Interrupt(CONTEXT_SWITCH, null));
-      let msg = `Executing ${numProcesses} processes with ${_Scheduler.scheduleAlgDisplay()} scheduling `;
+      let msg = `Executing ${numProcesses} processes with ${_Scheduler.scheduleAlgDisplay()} `;
       if (_Scheduler.schedulingAlgorithm === TSOS.SchedulingAlgorithm.RR) {
         msg += `and quantum ${_Scheduler.quantum}.`;
       }
@@ -722,22 +731,22 @@ module TSOS {
 
       if (algorithm === "rr") {
         _Scheduler.schedulingAlgorithm = TSOS.SchedulingAlgorithm.RR;
-        _Scheduler.setQuantum(6); // Default RR quantum
+        _Scheduler.setQuantum(6);
         document.getElementById("quantumDisplay").innerHTML = "Quantum is: 6";
         _StdOut.putText(
           "Scheduling algorithm set to Round Robin (RR) with quantum 6."
         );
       } else if (algorithm === "fcfs") {
         _Scheduler.schedulingAlgorithm = TSOS.SchedulingAlgorithm.FCFS;
-        _Scheduler.setQuantum(Number.MAX_SAFE_INTEGER); // Infinity = FCFS
+        _Scheduler.setQuantum(Number.MAX_SAFE_INTEGER);
         document.getElementById("quantumDisplay").innerHTML =
           "Quantum is: ∞ (FCFS)";
         _StdOut.putText(
           "Scheduling algorithm set to First-Come First-Served (FCFS)."
         );
       } else if (algorithm === "np") {
-         _Scheduler.schedulingAlgorithm = TSOS.SchedulingAlgorithm.PRIORITY;
-        _Scheduler.setQuantum(Number.MAX_SAFE_INTEGER); // Infinity = FCFS
+        _Scheduler.schedulingAlgorithm = TSOS.SchedulingAlgorithm.PRIORITY;
+        _Scheduler.setQuantum(Number.MAX_SAFE_INTEGER);
         document.getElementById("quantumDisplay").innerHTML =
           "Quantum is: ∞ (np)";
         _StdOut.putText(
@@ -755,11 +764,10 @@ module TSOS {
       }
       _StdOut.putText(message);
     }
+
     public shellFormat(args: string[]) {
-      // Use direct FileSystem call for now to diagnose issue
       const result = _FileSystem.format();
       _StdOut.putText(result);
-      // Update disk display if available
       if (
         typeof TSOS !== "undefined" &&
         TSOS.Control &&
@@ -777,7 +785,6 @@ module TSOS {
       const filename = args[0];
       const result = _krnDiskDriver.createFile(filename);
       _StdOut.putText(result);
-      // Update disk display if available
       if (
         typeof TSOS !== "undefined" &&
         TSOS.Control &&
@@ -794,10 +801,8 @@ module TSOS {
       }
 
       const filename = args[0];
-      // Join remaining args and remove quotes if present
       let data = args.slice(1).join(" ");
 
-      // Remove surrounding quotes if present
       if (
         (data.startsWith('"') && data.endsWith('"')) ||
         (data.startsWith("'") && data.endsWith("'"))
@@ -807,7 +812,6 @@ module TSOS {
 
       const result = _krnDiskDriver.writeFile(filename, data);
       _StdOut.putText(result);
-      // Update disk display if available
       if (
         typeof TSOS !== "undefined" &&
         TSOS.Control &&
@@ -844,7 +848,6 @@ module TSOS {
       const filename = args[0];
       const result = _krnDiskDriver.deleteFile(filename);
       _StdOut.putText(result);
-      // Update disk display if available
       if (
         typeof TSOS !== "undefined" &&
         TSOS.Control &&
@@ -864,7 +867,6 @@ module TSOS {
       const dest = args[1];
       const result = _krnDiskDriver.copyFile(source, dest);
       _StdOut.putText(result);
-      // Update disk display if available
       if (
         typeof TSOS !== "undefined" &&
         TSOS.Control &&
@@ -879,12 +881,10 @@ module TSOS {
         _StdOut.putText("Usage: rename <oldname> <newname>");
         return;
       }
-
       const oldname = args[0];
       const newname = args[1];
       const result = _krnDiskDriver.renameFile(oldname, newname);
       _StdOut.putText(result);
-      // Update disk display if available
       if (
         typeof TSOS !== "undefined" &&
         TSOS.Control &&
@@ -895,8 +895,18 @@ module TSOS {
     }
 
     public shellLs(args: string[]) {
-      const result = _krnDiskDriver.listFiles();
-      _StdOut.putText(result);
+      const showAll = args.length > 0 && args[0] === "-a";
+
+      const result = _krnDiskDriver.listFiles(showAll);
+
+      // Split by newlines and advance line for each entry
+      const lines = result.split("\n");
+      for (let i = 0; i < lines.length; i++) {
+        _StdOut.putText(lines[i]);
+        if (i < lines.length - 1) {
+          _StdOut.advanceLine();
+        }
+      }
     }
   }
 }
