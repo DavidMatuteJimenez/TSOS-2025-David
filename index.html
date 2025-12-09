@@ -1,161 +1,172 @@
 <!DOCTYPE HTML>
 <html lang="en">
 <head>
-  <style>
+ <style>
 /* === CPU Display Styles === */
 /* Layout fix */
 #cpuMemoryContainer {
-    display: flex;
-    flex-direction: column; /* stack vertically */
-    gap: 20px; /* space between CPU and Memory */
-    margin: 20px 0;
-    margin-left: 20px;
-    max-width: 60%;
-  }
-    .pcbCpuDisplay table { 
-      width: 100%; 
-      border-collapse: collapse; 
-      min-width: 480px;
-    }
-    .pcbCpuDisplay thead th {
-      text-align: left;
-      padding: 8px 12px;
-      background: #0f172a;
-      color: #fff;
-      font-size: 0.9rem;
-      letter-spacing: 0.02em;
-    }
-    .pcbCpuDisplay tbody td {
-      padding: 8px 12px;
-      border-top: 1px solid #e6eef6;
-      font-size: 0.9rem;
-    }
-    .pcbCpuDisplay tbody tr:nth-child(even) { background: #fbfdff; }
-    .pcbCpuDisplay caption { 
-      padding: 8px 12px; 
-      text-align: left; 
-      font-weight: 600; 
-      color:#0f172a; 
-    }
+   display: flex;
+   flex-direction: column; /* stack vertically */
+   gap: 20px; /* space between CPU and Memory */
+   margin: 20px 0;
+   margin-left: 20px;
+   max-width: 60%;
+ }
+   .pcbCpuDisplay table {
+     width: 100%;
+     border-collapse: collapse;
+     min-width: 480px;
+   }
+   .pcbCpuDisplay thead th {
+     text-align: left;
+     padding: 8px 12px;
+     background: #0f172a;
+     color: #fff;
+     font-size: 0.9rem;
+     letter-spacing: 0.02em;
+   }
+   .pcbCpuDisplay tbody td {
+     padding: 8px 12px;
+     border-top: 1px solid #e6eef6;
+     font-size: 0.9rem;
+   }
+   .pcbCpuDisplay tbody tr:nth-child(even) { background: #fbfdff; }
+   .pcbCpuDisplay caption {
+     padding: 8px 12px;
+     text-align: left;
+     font-weight: 600;
+     color:#0f172a;
+   }
 
-    /* === Memory Display Styles === */
-    .memory-container {
-      width: 100%;
-      min-width: 480px;
-      height: 250px;
-      overflow-y: auto;
-      overflow-x: auto;
-    }
-    .memory-container table {
-      border-collapse: collapse;
-      width: 100%;
-    }
-    .memory-container thead th {
-      text-align: center;
-      padding: 8px 12px;
-      background: #0f172a;
-      color: #fff;
-      font-size: 0.9rem;
-      letter-spacing: 0.02em;
-      position: sticky;
-      top: 0;
-      z-index: 2;
-    }
-    .memory-container tbody td {
-      border: 1px solid #ddd;
-      text-align: center;
-      padding: 8px 12px;
-      font-size: 0.9rem;
-    }
-    .memory-container caption { 
-      padding: 8px 12px; 
-      text-align: left; 
-      font-weight: 600; 
-      color:#0f172a; 
-    }
-    .memory-container .address {
-      background: #f9f9f9;
-      font-weight: bold;
-      text-align: left;
-    }
-
-    /* === PCB/Process Display Styles === */
-    .pcb-container {
-      width: 100%;
-      min-width: 480px;
-      height: 200px;
-      overflow-y: auto;
-      overflow-x: auto;
-    }
-    .pcb-container table {
-      border-collapse: collapse;
-      width: 100%;
-    }
-    .pcb-container thead th {
-      text-align: center;
-      padding: 8px 12px;
-      background: #0f172a;
-      color: #fff;
-      font-size: 0.9rem;
-      letter-spacing: 0.02em;
-      position: sticky;
-      top: 0;
-      z-index: 2;
-    }
-    .pcb-container tbody td {
-      border: 1px solid #ddd;
-      text-align: center;
-      padding: 8px 12px;
-      font-size: 0.9rem;
-    }
-    .pcb-container caption { 
-      padding: 8px 12px; 
-      text-align: left; 
-      font-weight: 600; 
-      color:#0f172a; 
-    }
-  </style>
-  <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
-  <meta name="author"             content="Alan G. Labouseur" />
-  <link rel="stylesheet" href="tsos.css" type="text/css" media="screen" />
-  <title>
-     TSOS - a browser-based virtual Operating System in TypeScript
-  </title>
+   /* === Memory Display Styles === */
+   .memory-container {
+     width: 100%;
+     min-width: 480px;
+     height: 250px;
+     overflow-y: auto;
+     overflow-x: auto;
+   }
+   .memory-container table {
+     border-collapse: collapse;
+     width: 100%;
+   }
+   .memory-container thead th {
+     text-align: center;
+     padding: 8px 12px;
+     background: #0f172a;
+     color: #fff;
+     font-size: 0.9rem;
+     letter-spacing: 0.02em;
+     position: sticky;
+     top: 0;
+     z-index: 2;
+   }
+   .memory-container tbody td {
+     border: 1px solid #ddd;
+     text-align: center;
+     padding: 8px 12px;
+     font-size: 0.9rem;
+   }
+   .memory-container caption {
+     padding: 8px 12px;
+     text-align: left;
+     font-weight: 600;
+     color:#0f172a;
+   }
+   .memory-container .address {
+     background: #f9f9f9;
+     font-weight: bold;
+     text-align: left;
+   }
 
 
-  <script type="text/javascript" src="distrib/globals.js"></script>
-  <script type="text/javascript"src="distrib/host/memory.js"></script>
-  <script type="text/javascript"src="distrib/host/memoryAccessor.js"></script>
-  <script type="text/javascript" src="distrib/host/control.js"></script>
-  <script type="text/javascript" src="distrib/host/devices.js"></script>
-  <script type="text/javascript" src="distrib/host/cpu.js"></script>
-  <script type="text/javascript" src="distrib/host/disk.js"></script>
+   /* === PCB/Process Display Styles === */
+   .pcb-container {
+     width: 100%;
+     min-width: 480px;
+     height: 200px;
+     overflow-y: auto;
+     overflow-x: auto;
+   }
+   .pcb-container table {
+     border-collapse: collapse;
+     width: 100%;
+   }
+   .pcb-container thead th {
+     text-align: center;
+     padding: 8px 12px;
+     background: #0f172a;
+     color: #fff;
+     font-size: 0.9rem;
+     letter-spacing: 0.02em;
+     position: sticky;
+     top: 0;
+     z-index: 2;
+   }
+   .pcb-container tbody td {
+     border: 1px solid #ddd;
+     text-align: center;
+     padding: 8px 12px;
+     font-size: 0.9rem;
+   }
+   .pcb-container caption {
+     padding: 8px 12px;
+     text-align: left;
+     font-weight: 600;
+     color:#0f172a;
+   }
+ </style>
+ <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+ <meta name="author"             content="Alan G. Labouseur" />
+ <link rel="stylesheet" href="tsos.css" type="text/css" media="screen" />
+ <title>
+    TSOS - a browser-based virtual Operating System in TypeScript
+ </title>
 
 
-  <script type="text/javascript" src="distrib/os/interrupt.js"></script>
-  <script type="text/javascript" src="distrib/os/canvastext.js"></script>
-  <script type="text/javascript" src="distrib/os/console.js"></script>
-  <script type="text/javascript" src="distrib/os/deviceDriver.js"></script>
-  <script type="text/javascript" src="distrib/os/deviceDriverKeyboard.js"></script>
-  <script type="text/javascript" src="distrib/os/DeviceDriverDisk.js"></script>
-  <script type="text/javascript" src="distrib/os/queue.js"></script>
-  <script type="text/javascript" src="distrib/os/shell.js"></script>
-  <script type="text/javascript" src="distrib/os/shellCommand.js"></script>
-  <script type="text/javascript" src="distrib/os/userCommand.js"></script>
-  <script type="text/javascript" src="distrib/os/kernel.js"></script>
-  <script type="text/javascript"src="distrib/os/pcb.js"></script>
-  <script type="text/javascript"src="distrib/os/memoryManagers.js"></script>
-  <script type="text/javascript" src="distrib/os/scheduler.js"></script>
-  <script type="text/javascript" src="distrib/os/dispatcher.js"></script>
-  <script type="text/javascript" src="distrib/os/fileSystem.js"></script>
-  <script type="text/javascript" src="distrib/os/swapper.js"></script>
 
 
-  <script type="text/javascript" src="distrib/utils.js"></script>
-  <script type="text/javascript" src="http://alanclasses.github.io/TSOS/test/glados-ip0.js"></script>
+ <script type="text/javascript" src="distrib/globals.js"></script>
+ <script type="text/javascript"src="distrib/host/memory.js"></script>
+ <script type="text/javascript"src="distrib/host/memoryAccessor.js"></script>
+ <script type="text/javascript" src="distrib/host/control.js"></script>
+ <script type="text/javascript" src="distrib/host/devices.js"></script>
+ <script type="text/javascript" src="distrib/host/cpu.js"></script>
+ <script type="text/javascript" src="distrib/host/disk.js"></script>
+
+
+
+
+ <script type="text/javascript" src="distrib/os/interrupt.js"></script>
+ <script type="text/javascript" src="distrib/os/canvastext.js"></script>
+ <script type="text/javascript" src="distrib/os/console.js"></script>
+ <script type="text/javascript" src="distrib/os/deviceDriver.js"></script>
+ <script type="text/javascript" src="distrib/os/deviceDriverKeyboard.js"></script>
+ <script type="text/javascript" src="distrib/os/DeviceDriverDisk.js"></script>
+ <script type="text/javascript" src="distrib/os/queue.js"></script>
+ <script type="text/javascript" src="distrib/os/shell.js"></script>
+ <script type="text/javascript" src="distrib/os/shellCommand.js"></script>
+ <script type="text/javascript" src="distrib/os/userCommand.js"></script>
+ <script type="text/javascript" src="distrib/os/kernel.js"></script>
+ <script type="text/javascript"src="distrib/os/pcb.js"></script>
+ <script type="text/javascript"src="distrib/os/memoryManagers.js"></script>
+ <script type="text/javascript" src="distrib/os/scheduler.js"></script>
+ <script type="text/javascript" src="distrib/os/dispatcher.js"></script>
+ <script type="text/javascript" src="distrib/os/fileSystem.js"></script>
+ <script type="text/javascript" src="distrib/os/swapper.js"></script>
+
+
+
+
+ <script type="text/javascript" src="distrib/utils.js"></script>
+ <script type="text/javascript" src="http://alanclasses.github.io/TSOS/test/glados-ip0.js"></script>
+
+
 
 
 </head>
+
+
 
 
 <body onload="onDocumentLoad()">
@@ -163,223 +174,247 @@
 
 
 
+
+
+
+
 <div id="divMain" style="width:100%;">
 
 
-  <div id="divButtonBar" style="margin:4px;">
-     <input type="button"
-            id = "btnStartOS"
-            name="brnStartOS"
-            class="normal_button"
-            value="Start"
-            tabindex="0"
-            onclick="TSOS.Control.hostBtnStartOS_click(this);">
 
 
-     <input type="button"
-            id = "btnHaltOS"
-            name="brnHaltOS"
-            class="normal_button"
-            disabled="disabled"
-            value="Halt"
-            tabindex="1"
-            onclick="TSOS.Control.hostBtnHaltOS_click(this);">
+ <div id="divButtonBar" style="margin:4px;">
+    <input type="button"
+           id = "btnStartOS"
+           name="brnStartOS"
+           class="normal_button"
+           value="Start"
+           tabindex="0"
+           onclick="TSOS.Control.hostBtnStartOS_click(this);">
 
 
-     <input type="button"
-            id = "btnReset"
-            name="brnReset"
-            class="normal_button"
-            disabled="disabled"
-            value="Reset"
-            tabindex="2"
-            onclick="TSOS.Control.hostBtnReset_click(this);">
-      
-            <input type="button"
-            id = "btnPauseOS"
-            name="pauseBtnOS"
-            class="normal_button"
-            value="pause"
-            tabindex="1"
-            onclick="TSOS.Control.onPauseClick(this);">
+
+
+    <input type="button"
+           id = "btnHaltOS"
+           name="brnHaltOS"
+           class="normal_button"
+           disabled="disabled"
+           value="Halt"
+           tabindex="1"
+           onclick="TSOS.Control.hostBtnHaltOS_click(this);">
+
+
+
+
+    <input type="button"
+           id = "btnReset"
+           name="brnReset"
+           class="normal_button"
+           disabled="disabled"
+           value="Reset"
+           tabindex="2"
+           onclick="TSOS.Control.hostBtnReset_click(this);">
     
-            <input type="button"
-            id = "btnStepOS"
-            name="stepBtnOS"
-            class="normal_button"
-            disabled="disabled"
-            value="step"
-            tabindex="1"
-            onclick="TSOS.Control.onStepClick(this);">
-  </div>
- 
-  <div id="Date and Time" style="background-color: #333; color: white; padding: 5px; font-family: monospace; display: flex; justify-content: space-between;">
-       <span id="dateAndTime"></span>
-   </div>
-   <div id="taskbar" style="background-color: #333; color: white; padding: 5px; font-family: monospace; display: flex; justify-content: space-between;">
-     <span id="taskbarStatus"></span>
+           <input type="button"
+           id = "btnPauseOS"
+           name="pauseBtnOS"
+           class="normal_button"
+           value="pause"
+           tabindex="1"
+           onclick="TSOS.Control.onPauseClick(this);">
+  
+           <input type="button"
+           id = "btnStepOS"
+           name="stepBtnOS"
+           class="normal_button"
+           disabled="disabled"
+           value="step"
+           tabindex="1"
+           onclick="TSOS.Control.onStepClick(this);">
  </div>
+ <div id="Date and Time" style="background-color: #333; color: white; padding: 5px; font-family: monospace; display: flex; justify-content: space-between;">
+      <span id="dateAndTime"></span>
+  </div>
+  <div id="taskbar" style="background-color: #333; color: white; padding: 5px; font-family: monospace; display: flex; justify-content: space-between;">
+    <span id="taskbarStatus"></span>
+</div>
+
+
 
 
 <!-- Three-column layout with Host Log/User Input | Canvas | System Displays -->
 <div style="display: flex; gap: 20px; width: 100%;">
 
-  <!-- Column 1: Host Log + User Program Input + Quantum -->
-  <div style="width: 500px; display: flex; flex-direction: column; height: 500px;">
-    
-    <!-- Host Log -->
-    <div id="divLog" style="margin-bottom: 15px; flex: 1; min-height: 0;">
-       <label>
-          Host Log
-          <br>
-          <textarea name="taHostLog"
-                    id="taHostLog"
-                    style="width: 100%; height: calc(100% - 20px); resize: none; box-sizing: border-box;"
-          ></textarea>
-       </label>
-    </div>
 
-    <!-- User Program Input -->
-    <div id="divUserProgramInput" style="margin-bottom: 15px; flex: 1; min-height: 0;">
-       <label>
-          User Program Input
-          <br>
-          <textarea name="taProgramInput"
-                    id="taProgramInput"
-                    style="width: 100%; height: calc(100% - 20px); resize: none; box-sizing: border-box;"
-          ></textarea>
-       </label>
-    </div>
-    
-    <!-- Quantum Display -->
-    <div id="quantumDisplayContainer" style="padding: 8px; background: #f5f5f5; border: 1px solid #ddd; text-align: center; flex-shrink: 0;">
-       <span id="quantumDisplay">Quantum is 6</span>
-    </div>
+ <!-- Column 1: Host Log + User Program Input + Quantum -->
+ <div style="width: 500px; display: flex; flex-direction: column; height: 500px;">
+  
+   <!-- Host Log -->
+   <div id="divLog" style="margin-bottom: 15px; flex: 1; min-height: 0;">
+      <label>
+         Host Log
+         <br>
+         <textarea name="taHostLog"
+                   id="taHostLog"
+                   style="width: 100%; height: calc(100% - 20px); resize: none; box-sizing: border-box;"
+         ></textarea>
+      </label>
+   </div>
 
-  </div>
 
-  <!-- Column 2: Canvas -->
-  <div style="width: 750px;">
-    <div id="divConsole" style="margin: 4px;">
-       <canvas id="display"
-               width="750px"
-               height="1000px"
-               tabindex="3">
-       </canvas>
-    </div>
-  </div>
+   <!-- User Program Input -->
+   <div id="divUserProgramInput" style="margin-bottom: 15px; flex: 1; min-height: 0;">
+      <label>
+         User Program Input
+         <br>
+         <textarea name="taProgramInput"
+                   id="taProgramInput"
+                   style="width: 100%; height: calc(100% - 20px); resize: none; box-sizing: border-box;"
+         ></textarea>
+      </label>
+   </div>
+  
+   <!-- Quantum Display -->
+   <div id="quantumDisplayContainer" style="padding: 8px; background: #f5f5f5; border: 1px solid #ddd; text-align: center; flex-shrink: 0;">
+      <span id="quantumDisplay">Quantum is 6</span>
+   </div>
 
-  <!-- Column 3: Memory + CPU + Disk System + Process -->
-  <div style="width: 800px; display: flex; flex-direction: column;">
-    
-    <!-- Memory Display -->
-    <div style="margin-bottom: 10px; flex: 1;">
-      <div class="memory-container">
-        <table style="width: 100%;">
-         <caption id="tbl-caption">Memory</caption>
-          <thead>
-            <tr>
-              <th>Address</th>
-              <th>0</th><th>1</th><th>2</th><th>3</th>
-              <th>4</th><th>5</th><th>6</th><th>7</th>
-              <th>8</th><th>9</th><th>A</th><th>B</th>
-              <th>C</th><th>D</th><th>E</th><th>F</th>
-            </tr>
-          </thead>
-          <tbody id="memoryDisplayTbody">
-          </tbody>
-        </table>
-      </div>
-    </div>
 
-    <!-- CPU Display -->
-    <div style="margin-bottom: 10px;">
-      <div id="cpuDisplay" class="pcbCpuDisplay">
-        <table style="width: 100%;">
-          <caption id="tbl-caption">CPU</caption>
-          <thead>
-            <tr>
-              <th scope="col">PC</th>
-              <th scope="col">IR</th>
-              <th scope="col">ACC</th>
-              <th scope="col">X</th>
-              <th scope="col">Y</th>
-              <th scope="col">Z</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td id="cpu-pc">0</td>
-              <td id="cpu-ir">0</td>
-              <td id="cpu-acc">0</td>
-              <td id="cpu-x">0</td>
-              <td id="cpu-y">0</td>
-              <td id="cpu-z">0</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
+ </div>
 
-    <!-- Disk System Display -->
-    <div style="margin-bottom: 10px; flex: 1;">
-      <div class="pcb-container">
-        <table style="width: 100%;">
-          <caption id="tbl-caption">Disk System</caption>
-          <thead>
-            <tr>
-              <th scope="col">Key</th>
-              <th scope="col">Has Data</th>
-              <th scope="col">Length</th>
-              <th scope="col">Value</th>
-            </tr>
-          </thead>
-          <tbody id="diskDisplayBody">
-          </tbody>
-        </table>
-      </div>
-    </div>
 
-    <!-- Process Display -->
-    <div style="flex: 1;">
-      <div class="pcb-container">
-        <table style="width: 100%;">
-          <caption id="tbl-caption">Process</caption>
-          <thead>
-            <tr>
-              <th scope="col">PID</th>
-              <th scope="col">PC</th>
-              <th scope="col">IR</th>
-              <th scope="col">ACC</th>
-              <th scope="col">X</th>
-              <th scope="col">Y</th>
-              <th scope="col">Z</th>
-              <th scope="col">Priority</th>
-              <th scope="col">State</th>
-              <th scope="col">Location</th>
-              <th scope="col">Base</th>
-              <th scope="col">Limit</th>
-              <th scope="col">Segment</th>
-            </tr>
-          </thead>
-          <tbody id="pcbDisplayBody">
-          </tbody>
-        </table>
-      </div>
-    </div>
+ <!-- Column 2: Canvas -->
+ <div style="width: 750px;">
+   <div id="divConsole" style="margin: 4px;">
+      <canvas id="display"
+              width="750px"
+              height="1000px"
+              tabindex="3">
+      </canvas>
+   </div>
+ </div>
 
-  </div>
+
+ <!-- Column 3: Memory + CPU + Disk System + Process -->
+ <div style="width: 800px; display: flex; flex-direction: column;">
+  
+   <!-- Memory Display -->
+   <div style="margin-bottom: 10px; flex: 1;">
+     <div class="memory-container">
+       <table style="width: 100%;">
+        <caption id="tbl-caption">Memory</caption>
+         <thead>
+           <tr>
+             <th>Address</th>
+             <th>0</th><th>1</th><th>2</th><th>3</th>
+             <th>4</th><th>5</th><th>6</th><th>7</th>
+             <th>8</th><th>9</th><th>A</th><th>B</th>
+             <th>C</th><th>D</th><th>E</th><th>F</th>
+           </tr>
+         </thead>
+         <tbody id="memoryDisplayTbody">
+         </tbody>
+       </table>
+     </div>
+   </div>
+
+
+   <!-- CPU Display -->
+   <div style="margin-bottom: 10px;">
+     <div id="cpuDisplay" class="pcbCpuDisplay">
+       <table style="width: 100%;">
+         <caption id="tbl-caption">CPU</caption>
+         <thead>
+           <tr>
+             <th scope="col">PC</th>
+             <th scope="col">IR</th>
+             <th scope="col">ACC</th>
+             <th scope="col">X</th>
+             <th scope="col">Y</th>
+             <th scope="col">Z</th>
+           </tr>
+         </thead>
+         <tbody>
+           <tr>
+             <td id="cpu-pc">0</td>
+             <td id="cpu-ir">0</td>
+             <td id="cpu-acc">0</td>
+             <td id="cpu-x">0</td>
+             <td id="cpu-y">0</td>
+             <td id="cpu-z">0</td>
+           </tr>
+         </tbody>
+       </table>
+     </div>
+   </div>
+
+
+   <!-- Disk System Display -->
+   <div style="margin-bottom: 10px; flex: 1;">
+     <div class="pcb-container">
+       <table style="width: 100%;">
+         <caption id="tbl-caption">Disk System</caption>
+         <thead>
+           <tr>
+             <th scope="col">Key</th>
+             <th scope="col">Has Data</th>
+             <th scope="col">Length</th>
+             <th scope="col">Value</th>
+           </tr>
+         </thead>
+         <tbody id="diskDisplayBody">
+         </tbody>
+       </table>
+     </div>
+   </div>
+
+
+   <!-- Process Display -->
+   <div style="flex: 1;">
+     <div class="pcb-container">
+       <table style="width: 100%;">
+         <caption id="tbl-caption">Process</caption>
+         <thead>
+           <tr>
+             <th scope="col">PID</th>
+             <th scope="col">PC</th>
+             <th scope="col">IR</th>
+             <th scope="col">ACC</th>
+             <th scope="col">X</th>
+             <th scope="col">Y</th>
+             <th scope="col">Z</th>
+             <th scope="col">Priority</th>
+             <th scope="col">State</th>
+             <th scope="col">Location</th>
+             <th scope="col">Base</th>
+             <th scope="col">Limit</th>
+             <th scope="col">Segment</th>
+           </tr>
+         </thead>
+         <tbody id="pcbDisplayBody">
+         </tbody>
+       </table>
+     </div>
+   </div>
+
+
+ </div>
+
 
 </div>
 </div>
+
 
 <p class="footerText" style="clear:both;">
-  <br>
-  Copyright &copy; 2008 - 2112 No Rights Reserved.
-  <br>
-  Reproduction is inhibited without the express written consent of
-  Ted Codd, Stevie Ray Vaughan, Neil Peart, and Ian Fleming.
+ <br>
+ Copyright &copy; 2008 - 2112 No Rights Reserved.
+ <br>
+ Reproduction is inhibited without the express written consent of
+ Ted Codd, Stevie Ray Vaughan, Neil Peart, and Ian Fleming.
 </p>
+
+
 
 
 </body>
