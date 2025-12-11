@@ -936,10 +936,50 @@ module TSOS {
                 bytes.push(readResult.data.charCodeAt(i));
             }
 
-            // Delete the swap file
-            this.delete(filename);
+            // Delete the swap file completely (including data blocks)
+            this.deleteSwapFile(filename);
 
             return bytes;
+        }
+
+        //Delete a swap file completely (clears data blocks too) - used by swapper
+        public deleteSwapFile(filename: string): void {
+            const dirTsb = this.findDirectoryEntry(filename);
+            if (!dirTsb) {
+                return;
+            }
+
+            // Read directory entry to get data blocks
+            const dirData = this.disk.readDisk(dirTsb);
+            let blockTsb = [
+                dirData.charCodeAt(0),
+                dirData.charCodeAt(1),
+                dirData.charCodeAt(2)
+            ];
+
+            // Clear the directory entry
+            this.disk.writeDisk(dirTsb, "");
+
+            // Free all data blocks
+            let blockStatus = 0;
+            do {
+                const blockData = this.disk.readDisk(blockTsb);
+                blockStatus = blockData.charCodeAt(0);
+
+                // Get next block before clearing
+                const nextTsb = [
+                    blockData.charCodeAt(1),
+                    blockData.charCodeAt(2),
+                    blockData.charCodeAt(3)
+                ];
+
+                // Clear the block
+                this.disk.writeDisk(blockTsb, "");
+
+                if (blockStatus === this.nextFlag.charCodeAt(0)) {
+                    blockTsb = nextTsb;
+                }
+            } while (blockStatus === this.nextFlag.charCodeAt(0));
         }
     }
 }

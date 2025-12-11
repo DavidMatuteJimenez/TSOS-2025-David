@@ -7,7 +7,7 @@ var TSOS;
                 _Kernel.krnTrace("Swapper initialized.");
             }
         }
-        //Roll out a process from memory to di
+        //Roll out a process from memory to disk
         rollOut(pcb) {
             if (pcb.location !== TSOS.pcbLocation.memory) {
                 _Kernel.krnTrace(`Swapper: Process ${pcb.pid} is not in memory, cannot roll out.`);
@@ -109,6 +109,7 @@ var TSOS;
                     return true;
                 }
             }
+            return false;
         }
         //Swap out a process to make room for another
         swapProcesses(swapInPcb) {
@@ -177,10 +178,9 @@ var TSOS;
         //Clean up swap files for terminated processes
         cleanupSwapFile(pid) {
             const filename = this.swapPrefix + pid;
-            const result = _FileSystem.delete(filename);
-            if (result.includes("successfully")) {
-                _Kernel.krnTrace(`Swapper: Cleaned up swap file for Process ${pid}.`);
-            }
+            // Use deleteSwapFile to properly clear data blocks
+            _FileSystem.deleteSwapFile(filename);
+            _Kernel.krnTrace(`Swapper: Cleaned up swap file for Process ${pid}.`);
         }
     }
     TSOS.Swapper = Swapper;

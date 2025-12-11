@@ -8,7 +8,7 @@ module TSOS {
       }
     }
 
-    //Roll out a process from memory to di
+    //Roll out a process from memory to disk
     public rollOut(pcb: Pcb): boolean {
       if (pcb.location !== pcbLocation.memory) {
         _Kernel.krnTrace(
@@ -142,7 +142,9 @@ module TSOS {
           return true;
         }
       }
+      return false;
     }
+
     //Swap out a process to make room for another
     public swapProcesses(swapInPcb: Pcb): boolean {
       if (swapInPcb.location !== pcbLocation.disk) {
@@ -234,10 +236,9 @@ module TSOS {
     //Clean up swap files for terminated processes
     public cleanupSwapFile(pid: number): void {
       const filename = this.swapPrefix + pid;
-      const result = _FileSystem.delete(filename);
-      if (result.includes("successfully")) {
-        _Kernel.krnTrace(`Swapper: Cleaned up swap file for Process ${pid}.`);
-      }
+      // Use deleteSwapFile to properly clear data blocks
+      _FileSystem.deleteSwapFile(filename);
+      _Kernel.krnTrace(`Swapper: Cleaned up swap file for Process ${pid}.`);
     }
   }
 }
