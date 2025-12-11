@@ -2,6 +2,7 @@ module TSOS {
   export class Shell {
     public promptStr = ">";
     public commandList = [];
+    public aliases: { [key: string]: string } = {};  // Store aliases
     public curses =
       "[fuvg],[cvff],[shpx],[phag],[pbpxfhpxre],[zbgureshpxre],[gvgf]";
     public apologies = "[sorry]";
@@ -221,6 +222,13 @@ module TSOS {
       );
       this.commandList[this.commandList.length] = sc;
 
+      sc = new ShellCommand(
+        this.shellAlias,
+        "alias",
+        "<existingcmd> <newname> - Create an alias for a command."
+      );
+      this.commandList[this.commandList.length] = sc;
+
       _StdOut.putText("Commands:");
       for (var i in this.commandList) {
         _StdOut.advanceLine();
@@ -245,6 +253,15 @@ module TSOS {
       var userCommand = this.parseInput(buffer);
       var cmd = userCommand.command;
       var args = userCommand.args;
+
+      // Resolve alias if one exists (handle chained aliases)
+      let aliasDepth = 0;
+      const maxAliasDepth = 10; // Prevent infinite loops
+      while (this.aliases[cmd] && aliasDepth < maxAliasDepth) {
+        cmd = this.aliases[cmd];
+        aliasDepth++;
+      }
+
       var index: number = 0;
       var found: boolean = false;
       var fn = undefined;
@@ -452,6 +469,17 @@ module TSOS {
             );
             _StdOut.advanceLine();
             _StdOut.putText("and display file size and creation date.");
+            break;
+          case "alias":
+            _StdOut.putText(
+              "alias <existingcmd> <newname> - Creates an alias for a command."
+            );
+            _StdOut.advanceLine();
+            _StdOut.putText(
+              "With no arguments, displays all current aliases."
+            );
+            _StdOut.advanceLine();
+            _StdOut.putText("Example: alias cls clear - makes 'clear' work like 'cls'");
             break;
           default:
             _StdOut.putText("No manual entry for " + args[0] + ".");
@@ -916,6 +944,61 @@ module TSOS {
           _StdOut.advanceLine();
         }
       }
+    }
+
+    public shellAlias(args: string[]) {
+      if (args.length === 0) {
+        // Show all aliases
+        const aliasKeys = Object.keys(_OsShell.aliases);
+        if (aliasKeys.length === 0) {
+          _StdOut.putText("No aliases defined.");
+        } else {
+          _StdOut.putText("Current aliases:");
+          for (const alias of aliasKeys) {
+            _StdOut.advanceLine();
+            _StdOut.putText(`  ${_OsShell.aliases[alias]} -> ${alias}`);
+          }
+        }
+        return;
+      }
+
+      if (args.length < 2) {
+        _StdOut.putText("Usage: alias <existingcmd> <newname>");
+        return;
+      }
+
+      const existingCmd = args[0];
+      const newName = args[1];
+
+      // Check if the existing command actually exists
+      let cmdExists = false;
+      for (const cmd of _OsShell.commandList) {
+        if (cmd.command === existingCmd) {
+          cmdExists = true;
+          break;
+        }
+      }
+
+      // Also check if it's an existing alias
+      if (!cmdExists && _OsShell.aliases[existingCmd]) {
+        cmdExists = true;
+      }
+
+      if (!cmdExists) {
+        _StdOut.putText(`Error: Command "${existingCmd}" does not exist.`);
+        return;
+      }
+
+      // Don't allow overwriting existing commands
+      for (const cmd of _OsShell.commandList) {
+        if (cmd.command === newName) {
+          _StdOut.putText(`Error: Cannot override built-in command "${newName}".`);
+          return;
+        }
+      }
+
+      _OsShell.aliases[newName] = existingCmd;
+      _StdOut.putText(`Alias created: ${existingCmd} -> ${newName}`);
     }
   }
 }
