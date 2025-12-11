@@ -181,30 +181,17 @@ var TSOS;
             const linkCount = this.countLinksToData(dataTsb);
             // Clear the directory entry (always do this)
             this.disk.writeDisk(dirTsb, "");
-            // Only free data blocks if no other files point to them
-            if (linkCount <= 1) {
-                // Free all data blocks
-                let blockTsb = dataTsb;
-                let blockStatus = 0;
-                do {
-                    const blockData = this.disk.readDisk(blockTsb);
-                    blockStatus = blockData.charCodeAt(0);
-                    // Get next block before clearing
-                    const nextTsb = [
-                        blockData.charCodeAt(1),
-                        blockData.charCodeAt(2),
-                        blockData.charCodeAt(3)
-                    ];
-                    // Clear the block
-                    this.disk.writeDisk(blockTsb, "");
-                    if (blockStatus === this.nextFlag.charCodeAt(0)) {
-                        blockTsb = nextTsb;
-                    }
-                } while (blockStatus === this.nextFlag.charCodeAt(0));
-                return `File "${filename}" deleted successfully.`;
+            // Only free data blocks if other files still point to them (links exist)
+            // If no links, leave data blocks intact for potential recovery
+            if (linkCount > 1) {
+                // Other links exist, just remove this directory entry
+                return `File "${filename}" removed. Data preserved (${linkCount - 1} link(s) remain).`;
             }
             else {
-                return `File "${filename}" removed. Data preserved (${linkCount - 1} link(s) remain).`;
+                // No other links - data blocks are now orphaned but recoverable
+                // Data is NOT cleared - can be recovered with chkdsk -recover
+                // Use chkdsk -reclaim to permanently free the blocks
+                return `File "${filename}" deleted. Data blocks can be recovered with 'chkdsk -recover'.`;
             }
         }
         //Create a hard link - make file2 point to the same data as file1
@@ -486,6 +473,286 @@ var TSOS;
             const byte3 = dirData.charCodeAt(6);
             const timestamp = (byte0 << 24) | (byte1 << 16) | (byte2 << 8) | byte3;
             return new Date(timestamp * 1000);
+        }
+        // ===== CHKDSK METHODS =====
+        //Main chkdsk function - scan, recover, reclaim, defrag
+        chkdsk(mode) {
+            if (!this.disk.isFormatted()) {
+                return "Error: Disk not formatted. Please run 'format' first.";
+            }
+            let output = "";
+            // Always scan first
+            const scanResult = this.scanDisk();
+            output += "=== DISK SCAN RESULTS ===\n";
+            output += `Files found: ${scanResult.fileCount}\n`;
+            output += `Orphaned blocks: ${scanResult.orphanedBlocks.length}\n`;
+            output += `Recoverable files: ${scanResult.recoverableChains.length}\n`;
+            output += `Fragmented files: ${scanResult.fragmentedFiles.length}\n`;
+            if (mode === "scan") {
+                return output;
+            }
+            if (mode === "recover" || mode === "all") {
+                output += "\n=== RECOVERING FILES ===\n";
+                output += this.recoverFiles(scanResult.recoverableChains);
+            }
+            if (mode === "reclaim" || mode === "all") {
+                output += "\n=== RECLAIMING BLOCKS ===\n";
+                output += this.reclaimBlocks(scanResult.orphanedBlocks);
+            }
+            if (mode === "defrag" || mode === "all") {
+                output += "\n=== DEFRAGMENTING ===\n";
+                output += this.defragment();
+            }
+            return output;
+        }
+        //Scan disk and return status
+        scanDisk() {
+            const result = {
+                fileCount: 0,
+                orphanedBlocks: [],
+                recoverableChains: [],
+                fragmentedFiles: []
+            };
+            // Get all TSBs that directory entries point to
+            const usedDataTsbs = new Set();
+            const fileStartBlocks = new Map(); // TSB string -> filename
+            // Scan directory entries
+            for (let s = 0; s < TSOS.Disk.sectorCount; ++s) {
+                for (let b = 0; b < TSOS.Disk.blockCount; ++b) {
+                    if (s === 0 && b === 0)
+                        continue; // Skip MBR
+                    const dirData = this.disk.readDisk([0, s, b]);
+                    if (dirData && dirData.charCodeAt(0) !== 0) {
+                        result.fileCount++;
+                        const filename = this.trimFilename(dirData.substring(7));
+                        const dataTsb = [
+                            dirData.charCodeAt(0),
+                            dirData.charCodeAt(1),
+                            dirData.charCodeAt(2)
+                        ];
+                        const tsbKey = `${dataTsb[0]}:${dataTsb[1]}:${dataTsb[2]}`;
+                        fileStartBlocks.set(tsbKey, filename);
+                        // Follow the chain and mark all blocks as used
+                        let currentTsb = dataTsb;
+                        let prevTsb = null;
+                        let isFragmented = false;
+                        while (currentTsb) {
+                            const blockKey = `${currentTsb[0]}:${currentTsb[1]}:${currentTsb[2]}`;
+                            usedDataTsbs.add(blockKey);
+                            // Check for fragmentation (non-contiguous blocks)
+                            if (prevTsb) {
+                                const expectedNext = [prevTsb[0], prevTsb[1], prevTsb[2] + 1];
+                                if (expectedNext[2] >= TSOS.Disk.blockCount) {
+                                    expectedNext[2] = 0;
+                                    expectedNext[1]++;
+                                    if (expectedNext[1] >= TSOS.Disk.sectorCount) {
+                                        expectedNext[1] = 0;
+                                        expectedNext[0]++;
+                                    }
+                                }
+                                if (currentTsb[0] !== expectedNext[0] ||
+                                    currentTsb[1] !== expectedNext[1] ||
+                                    currentTsb[2] !== expectedNext[2]) {
+                                    isFragmented = true;
+                                }
+                            }
+                            const blockData = this.disk.readDisk(currentTsb);
+                            if (blockData && blockData.charCodeAt(0) === this.nextFlag.charCodeAt(0)) {
+                                prevTsb = currentTsb;
+                                currentTsb = [
+                                    blockData.charCodeAt(1),
+                                    blockData.charCodeAt(2),
+                                    blockData.charCodeAt(3)
+                                ];
+                            }
+                            else {
+                                currentTsb = null;
+                            }
+                        }
+                        if (isFragmented) {
+                            result.fragmentedFiles.push(filename);
+                        }
+                    }
+                }
+            }
+            // Scan data blocks for orphaned/recoverable blocks
+            for (let t = 1; t < TSOS.Disk.trackCount; ++t) {
+                for (let s = 0; s < TSOS.Disk.sectorCount; ++s) {
+                    for (let b = 0; b < TSOS.Disk.blockCount; ++b) {
+                        const blockData = this.disk.readDisk([t, s, b]);
+                        const tsbKey = `${t}:${s}:${b}`;
+                        if (blockData && blockData.charCodeAt(0) !== 0) {
+                            // Block has data
+                            if (!usedDataTsbs.has(tsbKey)) {
+                                // Not referenced by any directory entry
+                                const status = blockData.charCodeAt(0);
+                                if (status === this.finalFlag.charCodeAt(0) ||
+                                    status === this.nextFlag.charCodeAt(0)) {
+                                    // This looks like a valid file block - recoverable
+                                    result.recoverableChains.push([t, s, b]);
+                                }
+                                else {
+                                    // Just orphaned data
+                                    result.orphanedBlocks.push([t, s, b]);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return result;
+        }
+        //Recover deleted files by creating new directory entries
+        recoverFiles(recoverableChains) {
+            if (recoverableChains.length === 0) {
+                return "No files to recover.\n";
+            }
+            let output = "";
+            let recoveredCount = 0;
+            for (const startTsb of recoverableChains) {
+                // Find an open directory entry
+                const dirTsb = this.nextOpenDirEntry();
+                if (!dirTsb) {
+                    output += "Directory full - cannot recover more files.\n";
+                    break;
+                }
+                // Generate recovery filename
+                const recoveryName = `recovered_${recoveredCount + 1}`;
+                // Get current timestamp
+                const timestamp = Math.floor(Date.now() / 1000);
+                const timestampBytes = [
+                    (timestamp >> 24) & 0xFF,
+                    (timestamp >> 16) & 0xFF,
+                    (timestamp >> 8) & 0xFF,
+                    timestamp & 0xFF
+                ];
+                // Create directory entry
+                const dirData = String.fromCharCode(startTsb[0]) +
+                    String.fromCharCode(startTsb[1]) +
+                    String.fromCharCode(startTsb[2]) +
+                    String.fromCharCode(timestampBytes[0]) +
+                    String.fromCharCode(timestampBytes[1]) +
+                    String.fromCharCode(timestampBytes[2]) +
+                    String.fromCharCode(timestampBytes[3]) +
+                    recoveryName;
+                this.disk.writeDisk(dirTsb, dirData);
+                output += `Recovered file as "${recoveryName}" from block ${startTsb[0]}:${startTsb[1]}:${startTsb[2]}\n`;
+                recoveredCount++;
+            }
+            output += `Total recovered: ${recoveredCount} file(s).\n`;
+            return output;
+        }
+        //Reclaim orphaned data blocks
+        reclaimBlocks(orphanedBlocks) {
+            if (orphanedBlocks.length === 0) {
+                return "No orphaned blocks to reclaim.\n";
+            }
+            let reclaimedCount = 0;
+            for (const tsb of orphanedBlocks) {
+                this.disk.writeDisk(tsb, "");
+                reclaimedCount++;
+            }
+            return `Reclaimed ${reclaimedCount} orphaned block(s).\n`;
+        }
+        //Defragment the disk - make files contiguous
+        defragment() {
+            // Step 1: Read all files into memory
+            const files = [];
+            // Scan directory and read all file data
+            for (let s = 0; s < TSOS.Disk.sectorCount; ++s) {
+                for (let b = 0; b < TSOS.Disk.blockCount; ++b) {
+                    if (s === 0 && b === 0)
+                        continue; // Skip MBR
+                    const dirData = this.disk.readDisk([0, s, b]);
+                    if (dirData && dirData.charCodeAt(0) !== 0) {
+                        const filename = this.trimFilename(dirData.substring(7));
+                        const timestamp = dirData.substring(3, 7);
+                        // Read file data
+                        const readResult = this.read(filename);
+                        if (readResult.success) {
+                            files.push({
+                                filename: filename,
+                                dirTsb: [0, s, b],
+                                timestamp: timestamp,
+                                data: readResult.data
+                            });
+                        }
+                    }
+                }
+            }
+            if (files.length === 0) {
+                return "No files to defragment.\n";
+            }
+            // Step 2: Clear all data blocks (tracks 1-3)
+            for (let t = 1; t < TSOS.Disk.trackCount; ++t) {
+                for (let s = 0; s < TSOS.Disk.sectorCount; ++s) {
+                    for (let b = 0; b < TSOS.Disk.blockCount; ++b) {
+                        this.disk.writeDisk([t, s, b], "");
+                    }
+                }
+            }
+            // Step 3: Rewrite files contiguously
+            let currentTrack = 1;
+            let currentSector = 0;
+            let currentBlock = 0;
+            let defraggedCount = 0;
+            for (const file of files) {
+                const startTsb = [currentTrack, currentSector, currentBlock];
+                // Write file data
+                let dataIndex = 0;
+                let prevTsb = null;
+                while (dataIndex < file.data.length || dataIndex === 0) {
+                    const currentTsb = [currentTrack, currentSector, currentBlock];
+                    const spaceInBlock = TSOS.Disk.blockSize - 4;
+                    const dataToWrite = file.data.substring(dataIndex, dataIndex + spaceInBlock);
+                    // Move to next block position
+                    currentBlock++;
+                    if (currentBlock >= TSOS.Disk.blockCount) {
+                        currentBlock = 0;
+                        currentSector++;
+                        if (currentSector >= TSOS.Disk.sectorCount) {
+                            currentSector = 0;
+                            currentTrack++;
+                            if (currentTrack >= TSOS.Disk.trackCount) {
+                                return `Error: Disk full during defragmentation. ${defraggedCount} file(s) defragmented.\n`;
+                            }
+                        }
+                    }
+                    let blockData;
+                    if (dataIndex + spaceInBlock < file.data.length) {
+                        // More data to write - link to next block
+                        const nextTsb = [currentTrack, currentSector, currentBlock];
+                        blockData = this.nextFlag +
+                            String.fromCharCode(nextTsb[0]) +
+                            String.fromCharCode(nextTsb[1]) +
+                            String.fromCharCode(nextTsb[2]) +
+                            dataToWrite;
+                    }
+                    else {
+                        // Last block
+                        blockData = this.finalFlag +
+                            String.fromCharCode(0xFF) +
+                            String.fromCharCode(0xFF) +
+                            String.fromCharCode(0xFF) +
+                            dataToWrite;
+                    }
+                    this.disk.writeDisk(currentTsb, blockData);
+                    dataIndex += spaceInBlock;
+                    // Handle empty files
+                    if (file.data.length === 0) {
+                        break;
+                    }
+                }
+                // Update directory entry with new start TSB
+                const newDirData = String.fromCharCode(startTsb[0]) +
+                    String.fromCharCode(startTsb[1]) +
+                    String.fromCharCode(startTsb[2]) +
+                    file.timestamp +
+                    file.filename;
+                this.disk.writeDisk(file.dirTsb, newDirData);
+                defraggedCount++;
+            }
+            return `Defragmentation complete. ${defraggedCount} file(s) reorganized.\n`;
         }
         // ===== SWAPPING METHODS =====
         //For swapping: save process to disk

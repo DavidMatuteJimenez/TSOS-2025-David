@@ -85,9 +85,13 @@ module TSOS {
         public renameFile(oldName: string, newName: string): string {
             return _FileSystem.rename(oldName, newName);
         }
-        //Added link file method
+
         public linkFile(file1: string, file2: string): string {
             return _FileSystem.link(file1, file2);
+        }
+
+        public chkdsk(mode: string): string {
+            return _FileSystem.chkdsk(mode);
         }
 
         // UPDATED: Added showAll parameter

@@ -71,6 +71,8 @@ var TSOS;
             this.commandList[this.commandList.length] = sc;
             sc = new TSOS.ShellCommand(this.shellLink, "link", "<file1> <file2> - Make both filenames point to the same file data.");
             this.commandList[this.commandList.length] = sc;
+            sc = new TSOS.ShellCommand(this.shellChkdsk, "chkdsk", "[-recover|-reclaim|-defrag|-all] - Check disk and repair issues.");
+            this.commandList[this.commandList.length] = sc;
             sc = new TSOS.ShellCommand(this.shellAlias, "alias", "<existingcmd> <newname> - Create an alias for a command.");
             this.commandList[this.commandList.length] = sc;
             _StdOut.putText("Commands:");
@@ -286,6 +288,21 @@ var TSOS;
                         _StdOut.putText("Both filenames will point to the same file data.");
                         _StdOut.advanceLine();
                         _StdOut.putText("Deleting one file will not affect the other.");
+                        break;
+                    case "chkdsk":
+                        _StdOut.putText("chkdsk - Check disk for errors and optionally repair.");
+                        _StdOut.advanceLine();
+                        _StdOut.putText("Flags:");
+                        _StdOut.advanceLine();
+                        _StdOut.putText("  (no flag) - Scan and report issues only");
+                        _StdOut.advanceLine();
+                        _StdOut.putText("  -recover  - Recover deleted files");
+                        _StdOut.advanceLine();
+                        _StdOut.putText("  -reclaim  - Reclaim orphaned data blocks");
+                        _StdOut.advanceLine();
+                        _StdOut.putText("  -defrag   - Defragment data blocks");
+                        _StdOut.advanceLine();
+                        _StdOut.putText("  -all      - Perform all repairs");
                         break;
                     case "alias":
                         _StdOut.putText("alias <existingcmd> <newname> - Creates an alias for a command.");
@@ -664,6 +681,43 @@ var TSOS;
                 }
             }
         }
+        shellChkdsk(args) {
+            const flag = args.length > 0 ? args[0].toLowerCase() : "";
+            let result;
+            switch (flag) {
+                case "-recover":
+                    result = _krnDiskDriver.chkdsk("recover");
+                    break;
+                case "-reclaim":
+                    result = _krnDiskDriver.chkdsk("reclaim");
+                    break;
+                case "-defrag":
+                    result = _krnDiskDriver.chkdsk("defrag");
+                    break;
+                case "-all":
+                    result = _krnDiskDriver.chkdsk("all");
+                    break;
+                case "":
+                    result = _krnDiskDriver.chkdsk("scan");
+                    break;
+                default:
+                    _StdOut.putText("Invalid flag. Use -recover, -reclaim, -defrag, or -all.");
+                    return;
+            }
+            // Split by newlines and display each line
+            const lines = result.split("\n");
+            for (let i = 0; i < lines.length; i++) {
+                _StdOut.putText(lines[i]);
+                if (i < lines.length - 1) {
+                    _StdOut.advanceLine();
+                }
+            }
+            if (typeof TSOS !== "undefined" &&
+                TSOS.Control &&
+                TSOS.Control.updateDiskDisplay) {
+                TSOS.Control.updateDiskDisplay();
+            }
+        }
         shellLink(args) {
             if (args.length < 2) {
                 _StdOut.putText("Usage: link <file1> <file2>");
@@ -671,7 +725,7 @@ var TSOS;
             }
             const file1 = args[0];
             const file2 = args[1];
-            const result = _FileSystem.link(file1, file2);
+            const result = _krnDiskDriver.linkFile(file1, file2);
             _StdOut.putText(result);
             if (typeof TSOS !== "undefined" &&
                 TSOS.Control &&
