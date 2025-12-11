@@ -71,6 +71,10 @@ var TSOS;
         renameFile(oldName, newName) {
             return _FileSystem.rename(oldName, newName);
         }
+        //Added link file method
+        linkFile(file1, file2) {
+            return _FileSystem.link(file1, file2);
+        }
         // UPDATED: Added showAll parameter
         listFiles(showAll = false) {
             return _FileSystem.ls(showAll);

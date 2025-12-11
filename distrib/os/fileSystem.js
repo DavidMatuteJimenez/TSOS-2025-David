@@ -170,31 +170,108 @@ var TSOS;
             if (!dirTsb) {
                 return `Error: File "${filename}" does not exist.`;
             }
-            // Read directory entry to get data blocks
+            // Read directory entry to get data blocks TSB
             const dirData = this.disk.readDisk(dirTsb);
-            let blockTsb = [
+            const dataTsb = [
                 dirData.charCodeAt(0),
                 dirData.charCodeAt(1),
                 dirData.charCodeAt(2)
             ];
-            // Free all data blocks
-            let blockStatus = 0;
-            do {
-                const blockData = this.disk.readDisk(blockTsb);
-                blockStatus = blockData.charCodeAt(0);
-                // Clear the block
-                this.disk.writeDisk(blockTsb, "");
-                if (blockStatus === this.nextFlag.charCodeAt(0)) {
-                    blockTsb = [
+            // Check if any other file links to the same data blocks
+            const linkCount = this.countLinksToData(dataTsb);
+            // Clear the directory entry (always do this)
+            this.disk.writeDisk(dirTsb, "");
+            // Only free data blocks if no other files point to them
+            if (linkCount <= 1) {
+                // Free all data blocks
+                let blockTsb = dataTsb;
+                let blockStatus = 0;
+                do {
+                    const blockData = this.disk.readDisk(blockTsb);
+                    blockStatus = blockData.charCodeAt(0);
+                    // Get next block before clearing
+                    const nextTsb = [
                         blockData.charCodeAt(1),
                         blockData.charCodeAt(2),
                         blockData.charCodeAt(3)
                     ];
+                    // Clear the block
+                    this.disk.writeDisk(blockTsb, "");
+                    if (blockStatus === this.nextFlag.charCodeAt(0)) {
+                        blockTsb = nextTsb;
+                    }
+                } while (blockStatus === this.nextFlag.charCodeAt(0));
+                return `File "${filename}" deleted successfully.`;
+            }
+            else {
+                return `File "${filename}" removed. Data preserved (${linkCount - 1} link(s) remain).`;
+            }
+        }
+        //Create a hard link - make file2 point to the same data as file1
+        link(file1, file2) {
+            if (!this.disk.isFormatted()) {
+                return "Error: Disk not formatted. Please run 'format' first.";
+            }
+            // Validate the new filename
+            if (!this.validateFilename(file2)) {
+                return "Error: Invalid filename for link.";
+            }
+            // Check if file1 exists
+            const dirTsb1 = this.findDirectoryEntry(file1);
+            if (!dirTsb1) {
+                return `Error: File "${file1}" does not exist.`;
+            }
+            // Check if file2 already exists
+            if (this.fileExists(file2)) {
+                return `Error: File "${file2}" already exists.`;
+            }
+            // Find next open directory entry for file2
+            const dirTsb2 = this.nextOpenDirEntry();
+            if (!dirTsb2) {
+                return "Error: Directory is full.";
+            }
+            // Read file1's directory entry to get its data block TSB
+            const dirData1 = this.disk.readDisk(dirTsb1);
+            const dataTsb = dirData1.substring(0, 3); // First 3 bytes are the TSB
+            // Get current timestamp for the link
+            const timestamp = Math.floor(Date.now() / 1000);
+            const timestampBytes = [
+                (timestamp >> 24) & 0xFF,
+                (timestamp >> 16) & 0xFF,
+                (timestamp >> 8) & 0xFF,
+                timestamp & 0xFF
+            ];
+            // Create directory entry for file2 pointing to same data blocks
+            const data = dataTsb +
+                String.fromCharCode(timestampBytes[0]) +
+                String.fromCharCode(timestampBytes[1]) +
+                String.fromCharCode(timestampBytes[2]) +
+                String.fromCharCode(timestampBytes[3]) +
+                file2;
+            this.disk.writeDisk(dirTsb2, data);
+            return `Link created: "${file1}" -> "${file2}" (both point to same data).`;
+        }
+        //Count how many directory entries point to the same data blocks
+        countLinksToData(dataTsb) {
+            let count = 0;
+            // Search all directory blocks (0:0:1 to 0:7:7)
+            for (let s = 0; s < TSOS.Disk.sectorCount; ++s) {
+                for (let b = 0; b < TSOS.Disk.blockCount; ++b) {
+                    // Skip MBR (0:0:0)
+                    if (s === 0 && b === 0)
+                        continue;
+                    const dirData = this.disk.readDisk([0, s, b]);
+                    if (dirData && dirData.charCodeAt(0) !== 0) {
+                        // Check if this entry points to the same data TSB
+                        if (dirData.charCodeAt(0) === dataTsb[0] &&
+                            dirData.charCodeAt(1) === dataTsb[1] &&
+                            dirData.charCodeAt(2) === dataTsb[2]) {
+                            count++;
+                        }
+                    }
                 }
-            } while (blockStatus === this.nextFlag.charCodeAt(0));
-            // Clear the directory entry
-            this.disk.writeDisk(dirTsb, "");
-            return `File "${filename}" deleted successfully.`;
+            }
+            return count;
         }
         //List all files with optional detailed view
         ls(showAll = false) {

@@ -223,6 +223,13 @@ module TSOS {
       this.commandList[this.commandList.length] = sc;
 
       sc = new ShellCommand(
+        this.shellLink,
+        "link",
+        "<file1> <file2> - Make both filenames point to the same file data."
+      );
+      this.commandList[this.commandList.length] = sc;
+
+      sc = new ShellCommand(
         this.shellAlias,
         "alias",
         "<existingcmd> <newname> - Create an alias for a command."
@@ -469,6 +476,19 @@ module TSOS {
             );
             _StdOut.advanceLine();
             _StdOut.putText("and display file size and creation date.");
+            break;
+          case "link":
+            _StdOut.putText(
+              "link <file1> <file2> - Creates a hard link."
+            );
+            _StdOut.advanceLine();
+            _StdOut.putText(
+              "Both filenames will point to the same file data."
+            );
+            _StdOut.advanceLine();
+            _StdOut.putText(
+              "Deleting one file will not affect the other."
+            );
             break;
           case "alias":
             _StdOut.putText(
@@ -943,6 +963,25 @@ module TSOS {
         if (i < lines.length - 1) {
           _StdOut.advanceLine();
         }
+      }
+    }
+
+    public shellLink(args: string[]) {
+      if (args.length < 2) {
+        _StdOut.putText("Usage: link <file1> <file2>");
+        return;
+      }
+
+      const file1 = args[0];
+      const file2 = args[1];
+      const result = _FileSystem.link(file1, file2);
+      _StdOut.putText(result);
+      if (
+        typeof TSOS !== "undefined" &&
+        TSOS.Control &&
+        TSOS.Control.updateDiskDisplay
+      ) {
+        TSOS.Control.updateDiskDisplay();
       }
     }
 
