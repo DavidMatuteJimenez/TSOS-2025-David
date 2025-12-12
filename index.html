@@ -1,421 +1,559 @@
 <!DOCTYPE HTML>
 <html lang="en">
 <head>
- <style>
-/* === CPU Display Styles === */
-/* Layout fix */
-#cpuMemoryContainer {
-   display: flex;
-   flex-direction: column; /* stack vertically */
-   gap: 20px; /* space between CPU and Memory */
-   margin: 20px 0;
-   margin-left: 20px;
-   max-width: 60%;
- }
-   .pcbCpuDisplay table {
-     width: 100%;
-     border-collapse: collapse;
-     min-width: 480px;
-   }
-   .pcbCpuDisplay thead th {
-     text-align: left;
-     padding: 8px 12px;
-     background: #0f172a;
-     color: #fff;
-     font-size: 0.9rem;
-     letter-spacing: 0.02em;
-   }
-   .pcbCpuDisplay tbody td {
-     padding: 8px 12px;
-     border-top: 1px solid #e6eef6;
-     font-size: 0.9rem;
-   }
-   .pcbCpuDisplay tbody tr:nth-child(even) { background: #fbfdff; }
-   .pcbCpuDisplay caption {
-     padding: 8px 12px;
-     text-align: left;
-     font-weight: 600;
-     color:#0f172a;
-   }
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="author" content="Alan G. Labouseur" />
+  <title>TSOS - Browser-Based Virtual Operating System</title>
+  
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-   /* === Memory Display Styles === */
-   .memory-container {
-     width: 100%;
-     min-width: 480px;
-     height: 250px;
-     overflow-y: auto;
-     overflow-x: auto;
-   }
-   .memory-container table {
-     border-collapse: collapse;
-     width: 100%;
-   }
-   .memory-container thead th {
-     text-align: center;
-     padding: 8px 12px;
-     background: #0f172a;
-     color: #fff;
-     font-size: 0.9rem;
-     letter-spacing: 0.02em;
-     position: sticky;
-     top: 0;
-     z-index: 2;
-   }
-   .memory-container tbody td {
-     border: 1px solid #ddd;
-     text-align: center;
-     padding: 8px 12px;
-     font-size: 0.9rem;
-   }
-   .memory-container caption {
-     padding: 8px 12px;
-     text-align: left;
-     font-weight: 600;
-     color:#0f172a;
-   }
-   .memory-container .address {
-     background: #f9f9f9;
-     font-weight: bold;
-     text-align: left;
-   }
+    :root {
+      --bg-primary: #0a0e27;
+      --bg-secondary: #151b3d;
+      --bg-tertiary: #1e2749;
+      --accent-blue: #3b82f6;
+      --accent-cyan: #06b6d4;
+      --accent-purple: #8b5cf6;
+      --text-primary: #e2e8f0;
+      --text-secondary: #94a3b8;
+      --border: #2d3a5f;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --card-bg: rgba(30, 39, 73, 0.6);
+      --glass-bg: rgba(255, 255, 255, 0.05);
+    }
 
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: linear-gradient(135deg, #0a0e27 0%, #1e2749 100%);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
 
-   /* === PCB/Process Display Styles === */
-   .pcb-container {
-     width: 100%;
-     min-width: 480px;
-     height: 200px;
-     overflow-y: auto;
-     overflow-x: auto;
-   }
-   .pcb-container table {
-     border-collapse: collapse;
-     width: 100%;
-   }
-   .pcb-container thead th {
-     text-align: center;
-     padding: 8px 12px;
-     background: #0f172a;
-     color: #fff;
-     font-size: 0.9rem;
-     letter-spacing: 0.02em;
-     position: sticky;
-     top: 0;
-     z-index: 2;
-   }
-   .pcb-container tbody td {
-     border: 1px solid #ddd;
-     text-align: center;
-     padding: 8px 12px;
-     font-size: 0.9rem;
-   }
-   .pcb-container caption {
-     padding: 8px 12px;
-     text-align: left;
-     font-weight: 600;
-     color:#0f172a;
-   }
- </style>
- <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
- <meta name="author"             content="Alan G. Labouseur" />
- <link rel="stylesheet" href="tsos.css" type="text/css" media="screen" />
- <title>
-    TSOS - a browser-based virtual Operating System in TypeScript
- </title>
+    /* Header */
+    .header {
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 2rem;
+      backdrop-filter: blur(10px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    }
 
+    .header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      max-width: 1920px;
+      margin: 0 auto;
+    }
 
+    .logo {
+      font-size: 1.5rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
 
+    .control-buttons {
+      display: flex;
+      gap: 0.75rem;
+    }
 
- <script type="text/javascript" src="distrib/globals.js"></script>
- <script type="text/javascript"src="distrib/host/memory.js"></script>
- <script type="text/javascript"src="distrib/host/memoryAccessor.js"></script>
- <script type="text/javascript" src="distrib/host/control.js"></script>
- <script type="text/javascript" src="distrib/host/devices.js"></script>
- <script type="text/javascript" src="distrib/host/cpu.js"></script>
- <script type="text/javascript" src="distrib/host/disk.js"></script>
+    .btn {
+      padding: 0.625rem 1.25rem;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.875rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      position: relative;
+      overflow: hidden;
+    }
 
+    .btn::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.2);
+      transform: translate(-50%, -50%);
+      transition: width 0.6s, height 0.6s;
+    }
 
+    .btn:hover::before {
+      width: 300px;
+      height: 300px;
+    }
 
+    .btn-start {
+      background: linear-gradient(135deg, var(--success), #059669);
+      color: white;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    }
 
- <script type="text/javascript" src="distrib/os/interrupt.js"></script>
- <script type="text/javascript" src="distrib/os/canvastext.js"></script>
- <script type="text/javascript" src="distrib/os/console.js"></script>
- <script type="text/javascript" src="distrib/os/deviceDriver.js"></script>
- <script type="text/javascript" src="distrib/os/deviceDriverKeyboard.js"></script>
- <script type="text/javascript" src="distrib/os/DeviceDriverDisk.js"></script>
- <script type="text/javascript" src="distrib/os/queue.js"></script>
- <script type="text/javascript" src="distrib/os/shell.js"></script>
- <script type="text/javascript" src="distrib/os/shellCommand.js"></script>
- <script type="text/javascript" src="distrib/os/userCommand.js"></script>
- <script type="text/javascript" src="distrib/os/kernel.js"></script>
- <script type="text/javascript"src="distrib/os/pcb.js"></script>
- <script type="text/javascript"src="distrib/os/memoryManagers.js"></script>
- <script type="text/javascript" src="distrib/os/scheduler.js"></script>
- <script type="text/javascript" src="distrib/os/dispatcher.js"></script>
- <script type="text/javascript" src="distrib/os/fileSystem.js"></script>
- <script type="text/javascript" src="distrib/os/swapper.js"></script>
+    .btn-start:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+    }
 
+    .btn-halt {
+      background: linear-gradient(135deg, var(--danger), #dc2626);
+      color: white;
+      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+    }
 
+    .btn-halt:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(239, 68, 68, 0.4);
+    }
 
+    .btn-reset {
+      background: linear-gradient(135deg, var(--accent-blue), #2563eb);
+      color: white;
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
 
- <script type="text/javascript" src="distrib/utils.js"></script>
- <script type="text/javascript" src="http://alanclasses.github.io/TSOS/test/glados-ip0.js"></script>
+    .btn-reset:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+    }
 
+    .btn-pause, .btn-step {
+      background: var(--glass-bg);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+      backdrop-filter: blur(10px);
+    }
 
+    .btn-pause:hover, .btn-step:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: var(--accent-cyan);
+    }
 
+    .btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      transform: none !important;
+    }
 
+    /* Status Bar */
+    .status-bar {
+      background: var(--bg-secondary);
+      padding: 0.75rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.875rem;
+      font-family: 'Courier New', monospace;
+    }
+
+    .status-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .status-indicator {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--success);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    /* Main Container */
+    .container {
+      max-width: 1920px;
+      margin: 0 auto;
+      padding: 1.5rem;
+      display: grid;
+      grid-template-columns: 400px 1fr 700px;
+      gap: 1.5rem;
+      height: calc(100vh - 180px);
+    }
+
+    /* Cards */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    .card-header {
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+      font-weight: 600;
+      font-size: 0.875rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      background: var(--glass-bg);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .card-header::before {
+      content: '';
+      width: 4px;
+      height: 16px;
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+      border-radius: 2px;
+    }
+
+    .card-body {
+      padding: 1rem;
+      flex: 1;
+      overflow: auto;
+    }
+
+    /* Left Column */
+    .left-column {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    textarea {
+      width: 100%;
+      height: 100%;
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text-primary);
+      padding: 0.75rem;
+      font-family: 'Courier New', monospace;
+      font-size: 0.875rem;
+      resize: none;
+      transition: border-color 0.3s;
+    }
+
+    textarea:focus {
+      outline: none;
+      border-color: var(--accent-cyan);
+    }
+
+    .quantum-display {
+      background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue));
+      padding: 1rem;
+      text-align: center;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 1rem;
+      box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+    }
+
+    /* Canvas */
+    .canvas-container {
+      position: relative;
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      background: var(--bg-primary);
+      border-radius: 8px;
+      box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Right Column - System Info */
+    .right-column {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      overflow-y: auto;
+    }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+    }
+
+    thead th {
+      background: var(--bg-primary);
+      color: var(--accent-cyan);
+      padding: 0.75rem 0.5rem;
+      text-align: left;
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      letter-spacing: 0.5px;
+      border-bottom: 2px solid var(--accent-cyan);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    tbody td {
+      padding: 0.625rem 0.5rem;
+      border-bottom: 1px solid var(--border);
+      font-family: 'Courier New', monospace;
+    }
+
+    tbody tr {
+      transition: background 0.2s;
+    }
+
+    tbody tr:hover {
+      background: var(--glass-bg);
+    }
+
+    .memory-cell {
+      text-align: center;
+      font-size: 0.75rem;
+    }
+
+    .address-cell {
+      color: var(--accent-cyan);
+      font-weight: 600;
+    }
+
+    /* Scrollbar Styling */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--bg-primary);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--accent-cyan);
+    }
+
+    /* Footer */
+    .footer {
+      text-align: center;
+      padding: 2rem;
+      color: var(--text-secondary);
+      font-size: 0.75rem;
+      border-top: 1px solid var(--border);
+      margin-top: 2rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 1600px) {
+      .container {
+        grid-template-columns: 350px 1fr 650px;
+      }
+    }
+
+    @media (max-width: 1200px) {
+      .container {
+        grid-template-columns: 1fr;
+        height: auto;
+      }
+    }
+  </style>
+
+  <script type="text/javascript" src="distrib/globals.js"></script>
+  <script type="text/javascript" src="distrib/host/memory.js"></script>
+  <script type="text/javascript" src="distrib/host/memoryAccessor.js"></script>
+  <script type="text/javascript" src="distrib/host/control.js"></script>
+  <script type="text/javascript" src="distrib/host/devices.js"></script>
+  <script type="text/javascript" src="distrib/host/cpu.js"></script>
+  <script type="text/javascript" src="distrib/host/disk.js"></script>
+  <script type="text/javascript" src="distrib/os/interrupt.js"></script>
+  <script type="text/javascript" src="distrib/os/canvastext.js"></script>
+  <script type="text/javascript" src="distrib/os/console.js"></script>
+  <script type="text/javascript" src="distrib/os/deviceDriver.js"></script>
+  <script type="text/javascript" src="distrib/os/deviceDriverKeyboard.js"></script>
+  <script type="text/javascript" src="distrib/os/DeviceDriverDisk.js"></script>
+  <script type="text/javascript" src="distrib/os/queue.js"></script>
+  <script type="text/javascript" src="distrib/os/shell.js"></script>
+  <script type="text/javascript" src="distrib/os/shellCommand.js"></script>
+  <script type="text/javascript" src="distrib/os/userCommand.js"></script>
+  <script type="text/javascript" src="distrib/os/kernel.js"></script>
+  <script type="text/javascript" src="distrib/os/pcb.js"></script>
+  <script type="text/javascript" src="distrib/os/memoryManagers.js"></script>
+  <script type="text/javascript" src="distrib/os/scheduler.js"></script>
+  <script type="text/javascript" src="distrib/os/dispatcher.js"></script>
+  <script type="text/javascript" src="distrib/os/fileSystem.js"></script>
+  <script type="text/javascript" src="distrib/os/swapper.js"></script>
+  <script type="text/javascript" src="distrib/utils.js"></script>
+  <script type="text/javascript" src="http://alanclasses.github.io/TSOS/test/glados-ip0.js"></script>
 </head>
 
-
-
-
 <body onload="onDocumentLoad()">
+  <!-- Header -->
+  <header class="header">
+    <div class="header-content">
+      <div class="logo">DavidOS</div>
+      <div class="control-buttons">
+        <button id="btnStartOS" class="btn btn-start" tabindex="0" onclick="TSOS.Control.hostBtnStartOS_click(this)">Start</button>
+        <button id="btnHaltOS" class="btn btn-halt" disabled tabindex="1" onclick="TSOS.Control.hostBtnHaltOS_click(this)">Halt</button>
+        <button id="btnReset" class="btn btn-reset" disabled tabindex="2" onclick="TSOS.Control.hostBtnReset_click(this)">Reset</button>
+        <button id="btnPauseOS" class="btn btn-pause" tabindex="3" onclick="TSOS.Control.onPauseClick(this)">Pause</button>
+        <button id="btnStepOS" class="btn btn-step" disabled tabindex="4" onclick="TSOS.Control.onStepClick(this)">Step</button>
+      </div>
+    </div>
+  </header>
 
-
-
-
-
-
-
-
-<div id="divMain" style="width:100%;">
-
-
-
-
- <div id="divButtonBar" style="margin:4px;">
-    <input type="button"
-           id = "btnStartOS"
-           name="brnStartOS"
-           class="normal_button"
-           value="Start"
-           tabindex="0"
-           onclick="TSOS.Control.hostBtnStartOS_click(this);">
-
-
-
-
-    <input type="button"
-           id = "btnHaltOS"
-           name="brnHaltOS"
-           class="normal_button"
-           disabled="disabled"
-           value="Halt"
-           tabindex="1"
-           onclick="TSOS.Control.hostBtnHaltOS_click(this);">
-
-
-
-
-    <input type="button"
-           id = "btnReset"
-           name="brnReset"
-           class="normal_button"
-           disabled="disabled"
-           value="Reset"
-           tabindex="2"
-           onclick="TSOS.Control.hostBtnReset_click(this);">
-    
-           <input type="button"
-           id = "btnPauseOS"
-           name="pauseBtnOS"
-           class="normal_button"
-           value="pause"
-           tabindex="1"
-           onclick="TSOS.Control.onPauseClick(this);">
-  
-           <input type="button"
-           id = "btnStepOS"
-           name="stepBtnOS"
-           class="normal_button"
-           disabled="disabled"
-           value="step"
-           tabindex="1"
-           onclick="TSOS.Control.onStepClick(this);">
- </div>
- <div id="Date and Time" style="background-color: #333; color: white; padding: 5px; font-family: monospace; display: flex; justify-content: space-between;">
+  <!-- Status Bar -->
+  <div class="status-bar">
+    <div class="status-item">
+      <span class="status-indicator"></span>
+      <span id="taskbarStatus">System Ready</span>
+    </div>
+    <div class="status-item">
       <span id="dateAndTime"></span>
+    </div>
   </div>
-  <div id="taskbar" style="background-color: #333; color: white; padding: 5px; font-family: monospace; display: flex; justify-content: space-between;">
-    <span id="taskbarStatus"></span>
-</div>
 
+  <!-- Main Container -->
+  <div class="container">
+    <!-- Left Column -->
+    <div class="left-column">
+      <div class="card" style="flex: 1;">
+        <div class="card-header">Host Log</div>
+        <div class="card-body" style="padding: 0;">
+          <textarea id="taHostLog" readonly></textarea>
+        </div>
+      </div>
+      
+      <div class="card" style="flex: 1;">
+        <div class="card-header">User Program Input</div>
+        <div class="card-body" style="padding: 0;">
+          <textarea id="taProgramInput" placeholder="Enter program code..."></textarea>
+        </div>
+      </div>
+      
+      <div class="quantum-display">
+        <span id="quantumDisplay">Quantum: 6</span>
+      </div>
+    </div>
 
+    <!-- Center Column - Canvas -->
+    <div class="card canvas-container">
+      <div class="card-header">Console</div>
+      <div class="card-body" style="padding: 0;">
+        <canvas id="display" width="750" height="1000" tabindex="5"></canvas>
+      </div>
+    </div>
 
+    <!-- Right Column -->
+    <div class="right-column">
+      <div class="card" style="max-height: 300px;">
+        <div class="card-header">Memory</div>
+        <div class="card-body" style="padding: 0; overflow: auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>Addr</th>
+                <th>0</th><th>1</th><th>2</th><th>3</th>
+                <th>4</th><th>5</th><th>6</th><th>7</th>
+                <th>8</th><th>9</th><th>A</th><th>B</th>
+                <th>C</th><th>D</th><th>E</th><th>F</th>
+              </tr>
+            </thead>
+            <tbody id="memoryDisplayTbody"></tbody>
+          </table>
+        </div>
+      </div>
 
-<!-- Three-column layout with Host Log/User Input | Canvas | System Displays -->
-<div style="display: flex; gap: 20px; width: 100%;">
+      <div class="card" style="flex-shrink: 0;">
+        <div class="card-header">CPU</div>
+        <div class="card-body" style="padding: 0;">
+          <table>
+            <thead>
+              <tr>
+                <th>PC</th><th>IR</th><th>ACC</th>
+                <th>X</th><th>Y</th><th>Z</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td id="cpu-pc">0</td>
+                <td id="cpu-ir">0</td>
+                <td id="cpu-acc">0</td>
+                <td id="cpu-x">0</td>
+                <td id="cpu-y">0</td>
+                <td id="cpu-z">0</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
 
+      <div class="card" style="flex: 1; min-height: 200px;">
+        <div class="card-header">Disk System</div>
+        <div class="card-body" style="padding: 0; overflow: auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>Key</th>
+                <th>Has Data</th>
+                <th>Length</th>
+                <th>Value</th>
+              </tr>
+            </thead>
+            <tbody id="diskDisplayBody"></tbody>
+          </table>
+        </div>
+      </div>
 
- <!-- Column 1: Host Log + User Program Input + Quantum -->
- <div style="width: 500px; display: flex; flex-direction: column; height: 500px;">
-  
-   <!-- Host Log -->
-   <div id="divLog" style="margin-bottom: 15px; flex: 1; min-height: 0;">
-      <label>
-         Host Log
-         <br>
-         <textarea name="taHostLog"
-                   id="taHostLog"
-                   style="width: 100%; height: calc(100% - 20px); resize: none; box-sizing: border-box;"
-         ></textarea>
-      </label>
-   </div>
+      <div class="card" style="flex: 1; min-height: 200px;">
+        <div class="card-header">Process Control</div>
+        <div class="card-body" style="padding: 0; overflow: auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>PID</th><th>PC</th><th>IR</th><th>ACC</th>
+                <th>X</th><th>Y</th><th>Z</th><th>Priority</th>
+                <th>State</th><th>Location</th><th>Base</th>
+                <th>Limit</th><th>Segment</th>
+              </tr>
+            </thead>
+            <tbody id="pcbDisplayBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
 
-
-   <!-- User Program Input -->
-   <div id="divUserProgramInput" style="margin-bottom: 15px; flex: 1; min-height: 0;">
-      <label>
-         User Program Input
-         <br>
-         <textarea name="taProgramInput"
-                   id="taProgramInput"
-                   style="width: 100%; height: calc(100% - 20px); resize: none; box-sizing: border-box;"
-         ></textarea>
-      </label>
-   </div>
-  
-   <!-- Quantum Display -->
-   <div id="quantumDisplayContainer" style="padding: 8px; background: #f5f5f5; border: 1px solid #ddd; text-align: center; flex-shrink: 0;">
-      <span id="quantumDisplay">Quantum is 6</span>
-   </div>
-
-
- </div>
-
-
- <!-- Column 2: Canvas -->
- <div style="width: 750px;">
-   <div id="divConsole" style="margin: 4px;">
-      <canvas id="display"
-              width="750px"
-              height="1000px"
-              tabindex="3">
-      </canvas>
-   </div>
- </div>
-
-
- <!-- Column 3: Memory + CPU + Disk System + Process -->
- <div style="width: 800px; display: flex; flex-direction: column;">
-  
-   <!-- Memory Display -->
-   <div style="margin-bottom: 10px; flex: 1;">
-     <div class="memory-container">
-       <table style="width: 100%;">
-        <caption id="tbl-caption">Memory</caption>
-         <thead>
-           <tr>
-             <th>Address</th>
-             <th>0</th><th>1</th><th>2</th><th>3</th>
-             <th>4</th><th>5</th><th>6</th><th>7</th>
-             <th>8</th><th>9</th><th>A</th><th>B</th>
-             <th>C</th><th>D</th><th>E</th><th>F</th>
-           </tr>
-         </thead>
-         <tbody id="memoryDisplayTbody">
-         </tbody>
-       </table>
-     </div>
-   </div>
-
-
-   <!-- CPU Display -->
-   <div style="margin-bottom: 10px;">
-     <div id="cpuDisplay" class="pcbCpuDisplay">
-       <table style="width: 100%;">
-         <caption id="tbl-caption">CPU</caption>
-         <thead>
-           <tr>
-             <th scope="col">PC</th>
-             <th scope="col">IR</th>
-             <th scope="col">ACC</th>
-             <th scope="col">X</th>
-             <th scope="col">Y</th>
-             <th scope="col">Z</th>
-           </tr>
-         </thead>
-         <tbody>
-           <tr>
-             <td id="cpu-pc">0</td>
-             <td id="cpu-ir">0</td>
-             <td id="cpu-acc">0</td>
-             <td id="cpu-x">0</td>
-             <td id="cpu-y">0</td>
-             <td id="cpu-z">0</td>
-           </tr>
-         </tbody>
-       </table>
-     </div>
-   </div>
-
-
-   <!-- Disk System Display -->
-   <div style="margin-bottom: 10px; flex: 1;">
-     <div class="pcb-container">
-       <table style="width: 100%;">
-         <caption id="tbl-caption">Disk System</caption>
-         <thead>
-           <tr>
-             <th scope="col">Key</th>
-             <th scope="col">Has Data</th>
-             <th scope="col">Length</th>
-             <th scope="col">Value</th>
-           </tr>
-         </thead>
-         <tbody id="diskDisplayBody">
-         </tbody>
-       </table>
-     </div>
-   </div>
-
-
-   <!-- Process Display -->
-   <div style="flex: 1;">
-     <div class="pcb-container">
-       <table style="width: 100%;">
-         <caption id="tbl-caption">Process</caption>
-         <thead>
-           <tr>
-             <th scope="col">PID</th>
-             <th scope="col">PC</th>
-             <th scope="col">IR</th>
-             <th scope="col">ACC</th>
-             <th scope="col">X</th>
-             <th scope="col">Y</th>
-             <th scope="col">Z</th>
-             <th scope="col">Priority</th>
-             <th scope="col">State</th>
-             <th scope="col">Location</th>
-             <th scope="col">Base</th>
-             <th scope="col">Limit</th>
-             <th scope="col">Segment</th>
-           </tr>
-         </thead>
-         <tbody id="pcbDisplayBody">
-         </tbody>
-       </table>
-     </div>
-   </div>
-
-
- </div>
-
-
-</div>
-</div>
-
-
-<p class="footerText" style="clear:both;">
- <br>
- Copyright &copy; 2008 - 2112 No Rights Reserved.
- <br>
- Reproduction is inhibited without the express written consent of
- Ted Codd, Stevie Ray Vaughan, Neil Peart, and Ian Fleming.
-</p>
-
-
-
-
+  <!-- Footer -->
+  <footer class="footer">
+    Copyright © 2008 - 2112 No Rights Reserved.<br>
+    Reproduction is inhibited without the express written consent of
+    Ted Codd, Stevie Ray Vaughan, Neil Peart, and Ian Fleming.
+  </footer>
 </body>
 </html>
